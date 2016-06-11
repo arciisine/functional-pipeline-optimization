@@ -54,7 +54,6 @@ class Utils {
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
       return ${escodegen.generate(node)}; 
     })()`;
-    console.log(src)
     return eval(src);
   }
 
@@ -79,7 +78,6 @@ class Utils {
   
   static rewrite(fn:Function, visitor:Visitor, globals:any = {}) {
     let ast = Utils.parse(fn); 
-    console.log(ast);  
     ast = Utils.visit(visitor, ast);
     return Utils.compile(ast, globals);
   }

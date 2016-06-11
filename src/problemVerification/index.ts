@@ -1,17 +1,8 @@
-let data:number[] = null
-function getData() {
-  if (data) return data;
-  
-  data = []
-  for (let i = 0; i < 100000; i++) {
-    data.push(parseInt('' + (Math.random() * 255)));
-  }
-  return data
-}
+import {doTest} from '../lib/test';
 
-function functional() {
+function functional(data:number[]) {
     
-  let hist = getData()
+  let hist = data
     .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
@@ -20,20 +11,19 @@ function functional() {
       return acc;
     }, {} as {[key:string]:number});
       
-  let count = getData()
+  let count = data
     .filter(x => x > 100)
     .map(function(x) {
       return x - 10
     })
     .reduce((acc, x) => acc + x, 0);
 
-  let evens = getData().filter(x => x % 2 === 0).map(x => x << 2);
+  let evens = data.filter(x => x % 2 === 0).map(x => x << 2);
       
   return [hist, count, evens];
 }
 
-function procedural() {
-  let data = getData()
+function procedural(data:number[]) {
   let hist:{[key:string]:number} = {}
   for (let i = 0; i < data.length; i++) {
     let x = data[i]
@@ -66,38 +56,5 @@ function procedural() {
   return [hist, count, evens]
 }
 
-function test(delta = .5) {
-  let counts = {};
-  counts[functional.name] = [];
-  counts[procedural.name] = [];
 
-  let time = 0;
-
-  for (let i = 0; i < 100; i++) {
-    let op = Math.random() >= delta ? functional : procedural;
-    time = Date.now()
-    op()
-    counts[op.name].push(Date.now() - time);
-  }
-  let out:{[key:string]:{min:number,max:number,n:number,avg:number}} = {};
-  [functional, procedural].filter(k => counts[k.name].length > 0).forEach(k => {
-    out[k.name] = {
-      min : Math.min.apply(null, counts[k.name]),
-      max : Math.max.apply(null, counts[k.name]),
-      n : counts[k.name].length,
-      avg : counts[k.name].reduce((acc, v) => acc+v, 0)/counts[k.name].length
-    }
-  })
-  return out;
-}
-
-function log(title, o){
-  console.log(title)
-  console.log('='.repeat(20)) 
-  console.log(JSON.stringify(o, null, 2))
-  console.log()
-}
-
-log("Mixed", test())
-log("All Procdedural", test(1))
-log("All Functional", test(0))
+doTest(functional, procedural);

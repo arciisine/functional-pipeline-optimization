@@ -48,7 +48,7 @@ export let Vars = (...args):AST.VariableDeclaration => {
   }  
   let decls = [];
   for (let i = 0; i < args.length; i+=2) {
-    if (args[i] && args[i+1]) {
+    if (args[i] && i <=  args.length) {
       decls.push({type:"VariableDeclarator", id:args[i], init:args[i+1]});
     }
   }
