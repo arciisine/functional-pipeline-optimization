@@ -4,10 +4,13 @@ import * as escodegen from '../escodegen';
 import * as AST from "../ast"
 
 let id_:number = new Date().getTime()%10000;
-type Transformer<T> = (node:T)=>T
 
-interface Visitor<T extends AST.Node> { 
-  process:Transformer<T>
+interface Transformer {
+  <T extends AST.Node>(node:T):T
+}
+
+interface Visitor { 
+  process:Transformer
 }
 
 class Utils {
@@ -16,7 +19,7 @@ class Utils {
     return "__gen"+parseInt(`${Math.random()*1000}`)+(id_++); 
   }
   
-  static visit<T extends AST.Node>(visitor:Visitor<T>, node:T, parent:AST.Node|[AST.Node] = null, key:string|number = null):T {   
+  static visit<T extends AST.Node>(visitor:Visitor, node:T, parent:AST.Node|[AST.Node] = null, key:string|number = null):T {   
     node = visitor.process(node);
     [
       'body', 'declarations', 'argument', 'arguments', 'alternate', 'consequent',
@@ -47,16 +50,17 @@ class Utils {
   static compile(node:AST.FunctionExpression, globals:any):Function {
     let src = `(function() {     
       var id_ = new Date().getTime();
-      var genSymbol = ${Utils.genSymbol.toString()};
+      var genSymbol = function ${Utils.genSymbol.toString()};
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
       return ${escodegen.generate(node)}; 
     })()`;
+    console.log(src)
     return eval(src);
   }
 
-  static visitor(conf:{[key:string]:Transformer<AST.Node>}) {
+  static visitor(conf:{[key:string]:Transformer}) {
     let out = {
-      process : function(node:AST.Node):AST.Node {
+      process : function<T extends AST.Node>(node:T):AST.Node {
         if (node['visited']) {
           return node;
         } else {
@@ -73,7 +77,7 @@ class Utils {
     return _.extend(out, conf) as typeof out;
   };
   
-  static rewrite(fn:Function, visitor:Visitor<AST.FunctionExpression>, globals:any) {
+  static rewrite(fn:Function, visitor:Visitor, globals:any = {}) {
     let ast = Utils.parse(fn); 
     console.log(ast);  
     ast = Utils.visit(visitor, ast);
@@ -86,3 +90,4 @@ export let visit = Utils.visit
 export let parse = Utils.parse
 export let compile = Utils.compile
 export let visitor = Utils.visitor
+export let rewrite = Utils.rewrite

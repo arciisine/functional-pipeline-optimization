@@ -1,4 +1,4 @@
-export interface Node {}
+export interface Node { type: string }
 export interface Statement extends Node { }
 export interface ASTFunction extends Node { }
 

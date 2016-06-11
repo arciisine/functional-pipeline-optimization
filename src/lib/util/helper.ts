@@ -1,35 +1,58 @@
 import * as AST from "../ast"
 import {genSymbol} from './index';
 
-export let Id = (name?:string):AST.Identifier => {return {type:"Identifier", name:name||genSymbol()}}
-export let Literal = (value:any):AST.Literal =>  {return {type:"Literal",    value }};
-export let Block = (...body):AST.BlockStatement => {return {type:"BlockStatement", body:body.filter(x => !!x) }};
-export let Expr = (n:AST.Node):AST.Expression => {return {type:"Expression", expression:n}};
+export let Id = (name?:string):AST.Identifier => ({type:"Identifier", name:name||genSymbol()})
+export let Literal = (value:any):AST.Literal =>  ({type:"Literal",    value })
+export let Block = (...body):AST.BlockStatement => ({type:"BlockStatement", body:body.filter(x => !!x) })
+export let Expr = (n:AST.Node):AST.ExpressionStatement => ({type:"ExpressionStatement", expression:n})
+export let Continue = ():AST.ContinueStatement => ({type:"ContinueStatement"})
+
 export let Return = (e:AST.Expression):AST.ReturnStatement => {return {type:"ReturnStatement", argument:e}};
 export let Yield = (e:AST.Expression, delegate:boolean = false):AST.YieldExpression => {
   return {type:"YieldExpression", argument:e, delegate} as AST.YieldExpression
 };
+
+export let Array = (size:number = 0):AST.ArrayPattern => {
+  return {
+    type: "ArrayPattern",
+    elements: []
+  };
+} 
+
 export let Throw = (e:AST.Expression):AST.ThrowStatement => {return {type:"ThrowStatement", argument:e}};
-export let Call = (id:AST.Identifier, ...args):AST.CallExpression => {
-  return {type:"CallExpression", callee:id, arguments:args.filter(x => !!x)}
+export let Call = (src:AST.Identifier|AST.Expression, ...args):AST.CallExpression => {
+  return {type:"CallExpression", callee:src, arguments:args.filter(x => !!x)}
+};
+
+export let Assign = (id:AST.Identifier, expr:AST.Expression, op:string = '='):AST.AssignmentExpression => {
+   return {
+    type : "AssignmentExpression",
+    left : id,
+    operator : op as any as AST.AssignmentOperator,
+    right : expr
+  };
 }
 
-export let GetProperty = (id:AST.Identifier, prop:string):AST.MemberExpression => {
+export let GetProperty = (id:AST.Identifier, prop:AST.Identifier|string):AST.MemberExpression => {
   return {
     type : "MemberExpression",
-    computed : false,
+    computed : typeof prop !== 'string',
     object : id,
-    property : Literal(prop),
+    property : typeof prop === 'string' ? Id(prop) : prop,
   };
 }
 export let Vars = (...args):AST.VariableDeclaration => {
+  let kind:('var'|'const'|'let') = 'var';
+  if (args[0] === 'var' || args[0] === 'let' || args[0] === 'const') {
+    kind = args.shift();
+  }  
   let decls = [];
   for (let i = 0; i < args.length; i+=2) {
     if (args[i] && args[i+1]) {
       decls.push({type:"VariableDeclarator", id:args[i], init:args[i+1]});
     }
   }
-  return {type:"VariableDeclaration",kind:"var", declarations: decls};
+  return {type:"VariableDeclaration", kind, declarations: decls};
 }
 
 export let BinaryExpr = (id:AST.Identifier, op:string, val:AST.Expression):AST.BinaryExpression => {
@@ -41,22 +64,30 @@ export let BinaryExpr = (id:AST.Identifier, op:string, val:AST.Expression):AST.B
   }
 }
 
-export let Increment = (id:AST.Identifier, increment:number = 1):AST.AssignmentExpression => {
+export let UnaryExpr = (op:string, val:AST.Expression):AST.UnaryExpression => {
   return {
-    type : "AssignmentExpression",
-    left : id,
-    operator : '+=' as any as AST.AssignmentOperator,
-    right : Literal(increment)
-  };
+    type : "UnaryExpression",    
+    operator : op as any as AST.UnaryOperator,
+    prefix : true,
+    argument : val
+  }
 }
 
-export let ForLoop = (id:AST.Identifier, init:AST.Expression, upto:AST.Expression, body:AST.Statement, increment:number = 1):AST.ForStatement => {
+export let Negate = (val:AST.Expression):AST.UnaryExpression => {
+  return UnaryExpr("!", val);
+}
+
+export let Increment = (id:AST.Identifier, increment:number = 1):AST.AssignmentExpression => {
+  return Assign(id, Literal(increment), '+=');
+}
+
+export let ForLoop = (id:AST.Identifier, init:AST.Expression, upto:AST.Expression, body:AST.Statement[], increment:number = 1):AST.ForStatement => {
   return {
     type : "ForStatement",
     init: Vars(id, init),
     test: BinaryExpr(id, '<', upto),
     update: Increment(id, increment),
-    body: Block(body)
+    body: Block(...body)
   };
 }
 
