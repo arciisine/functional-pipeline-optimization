@@ -1,18 +1,12 @@
 {
-  "compileOnSave": false,
   "compilerOptions": {
-    "declaration": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "mapRoot": "",
     "module": "commonjs",
     "moduleResolution": "node",
-    "noEmitOnError": true,
-    "noImplicitAny": false,
     "outDir": "dist/",
-    "rootDir": ".",
+    "rootDir": "src/",
     "sourceMap": true,
-    "target": "es6",
-    "inlineSources": true
-  }
+    "target": "es6"
+  }  
 }
