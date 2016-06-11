@@ -10,6 +10,8 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
-    "typescript": "^1.8.0-dev.20151231"
+    "esprima": "^2.7.2",
+    "lodash": "^4.13.1",
+    "typescript": "^1.9.0-dev.20160611-1.0"
   }
 }

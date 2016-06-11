@@ -1,4 +1,4 @@
-let data = null
+let data:number[] = null
 function getData() {
   if (data) return data;
   
@@ -18,7 +18,7 @@ function functional() {
     .reduce((acc, x) => {
       acc[x] = (acc[x] || 0) + 1;
       return acc;
-    }, {});
+    }, {} as {[key:string]:number});
       
   let count = getData()
     .filter(x => x > 100)
@@ -34,7 +34,7 @@ function functional() {
 
 function procedural() {
   let data = getData()
-  let hist = {}
+  let hist:{[key:string]:number} = {}
   for (let i = 0; i < data.length; i++) {
     let x = data[i]
     if (x >= 65 && x < 91 || x >= 97 && x < 123) {
@@ -79,7 +79,7 @@ function test(delta = .5) {
     op()
     counts[op.name].push(Date.now() - time);
   }
-  let out = {};
+  let out:{[key:string]:{min:number,max:number,n:number,avg:number}} = {};
   [functional, procedural].filter(k => counts[k.name].length > 0).forEach(k => {
     out[k.name] = {
       min : Math.min.apply(null, counts[k.name]),
@@ -93,7 +93,7 @@ function test(delta = .5) {
 
 function log(title, o){
   console.log(title)
-  console.log('======================================') 
+  console.log('='.repeat(20)) 
   console.log(JSON.stringify(o, null, 2))
   console.log()
 }
