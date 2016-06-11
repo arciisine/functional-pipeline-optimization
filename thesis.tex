@@ -1,0 +1,37 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{stmaryrd}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{verbatim}
+\usepackage{color}
+
+\usetikzlibrary{arrows,positioning,calc}
+\usetikzlibrary{graphs,graphdrawing,arrows.meta}
+\usegdlibrary{trees}
+
+\setlist[itemize]{leftmargin=*}
+\setlist[enumerate]{leftmargin=*}
+
+\usepackage[margin=1in]{geometry}
+
+\title{Masters Thesis}
+\author{Timothy Soehnlin}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+There is a disconnect between how human's organize computer code, and how compilers optimize it.  Many times the act of creating abstractions adds computational weight to the software in order to increase maintainability.  Generally the additional abstractions do not impact performance signficantly due to the frequency with which it is invoked.  However, code that is executed many times over, would benefit from optimization as the cost of the levels of abstraction is amplified.  
+
+In functional programming it is a common practice to handle loop iteration (map, filter, reduce) as applying a function to each iteration.  Then, via functional composition (or method chaining), multiple iterations are composed together to handle more complex iterations.  This allows for fairly elegant iteration code as well as code that is easy to test.  This abstraction though, comes with the expense of $N$ function invocations per iteration.  A common optimization that is encouraged, throughout many programming languages, is to manually convert the clean functional idioms into a more traditional for-loop.  This involes manually projecting the functional composition into standard procedural code.  This would generally translate to something along the lines of function inlining along with a quasi tail recursion optimization.  
+
+The main difference of this optimization is that it is built against the programmer's intent versus the structure of the compiled code.  
+
+\end{document}
