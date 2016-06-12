@@ -7,80 +7,65 @@ interface Response {
   vars:AST.Node[]
 }
 
-class Transformers {
-  static idCollector (params:AST.Pattern[], ids:AST.Identifier[]):{[key:string]:AST.Identifier} {
-    let out:{[key:string]:AST.Identifier} = {};
-    params.forEach((p,i) => {
-      out[(p as AST.Identifier).name] = ids[i];
-    })
-    return out;
+function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifier[], onReturn:(node:AST.ReturnStatement)=>AST.Node):Response {
+  let params:{[key:string]:AST.Identifier} = {};       
+  let pos = helper.Id();
+  fnParams.push(pos);
+
+  if (node.type === 'ExpressionStatement') {
+    node = (node as AST.ExpressionStatement).expression;
   }
 
-  static idTranslator(params:{[key:string]:AST.Identifier}, id:AST.Identifier):AST.Identifier {
-    return params[id.name] || id;
-  }
-
-  static filter(node:AST.Node, el:AST.Identifier):Response {
-    let params = null;       
-    let pos = helper.Id();
-    let res = visit(visitor({
-      //FunctionExpression : extractBody,
-      ArrowFunctionExpression : (node:AST.ArrowExpression) => {
-        params = Transformers.idCollector(node.params, [el, pos]);
-        return helper.IfThen(helper.Negate(node.body), [helper.Continue()]);
-      },
-      Identifier : x => Transformers.idTranslator(params, x)
-    }), node);
-
-    let ifElse = helper.Expr((res as any as AST.ExpressionStatement).expression);
-    let plen = Object.keys(params).length;
-
-    return {
-      body : plen > 1 ? [ifElse, helper.Expr(helper.Increment(pos))] : [ifElse],
-      vars : plen > 1 ? [pos, helper.Literal(0)] : []
+  let res = visit(visitor({
+    FunctionExpression : (node:AST.FunctionExpression) => {
+      node.params.forEach((p,i) => params[(p as AST.Identifier).name] = fnParams[i]);
+      return node;
+    },
+    ArrowFunctionExpression : (node:AST.ArrowExpression) => {
+      if (node.body.type !== 'BlockStatement') {
+        node.body = helper.Block(helper.Return(node.body))          
+      }
+      node.params.forEach((p,i) => {
+        let name = (p as AST.Identifier).name;
+        params[name] = fnParams[i]
+      })
+      return node;
+    },
+    ReturnStatement : x => {
+      return onReturn(x);
+    },
+    Identifier : x => {
+      return params[x.name] || x;
     }
+  }), node) as (AST.FunctionExpression|AST.ArrowExpression);
+
+  let plen = Object.keys(params).length;
+  let body = res.body
+  let min = fnParams.length - 1;
+
+  return {
+    body : plen > min ? [body, helper.Expr(helper.Increment(pos))] : [body],
+    vars : plen > min ? [pos, helper.Literal(0)] : []
+  }
+}
+
+class Transformers {
+  static filter(node:AST.Node, el:AST.Identifier):Response {
+    return standardHandler(node, el, [el], node => {
+      return helper.IfThen(helper.Negate(node.argument), [helper.Continue()]);
+    })
   }
 
   static map(node:AST.Node, el:AST.Identifier):Response {
-    let params = null;
-    let pos = helper.Id();
-    let res = visit(visitor({
-      //FunctionExpression : extractBody,
-      ArrowFunctionExpression : (node:AST.ArrowExpression) => {
-        params = Transformers.idCollector(node.params, [el, pos]);
-        return node.body;
-      },
-      Identifier : x => Transformers.idTranslator(params, x)
-    }), node);
-
-    let assign = helper.Expr(helper.Assign(el, (res as any as AST.ExpressionStatement).expression));
-    let plen = Object.keys(params).length;
-
-    return {
-      body : plen > 1 ? [assign, helper.Expr(helper.Increment(pos))] : [assign],
-      vars : plen > 1 ? [pos, helper.Literal(0)] : []
-    } 
+    return standardHandler(node, el, [el], node => {
+      return helper.Expr(helper.Assign(el, node.argument));
+    })
   }
   
   static reduce(node:AST.Node, el:AST.Identifier, ret:AST.Identifier):Response {
-    let params = null;
-    let pos = helper.Id();
-    let res = visit(visitor({
-      //FunctionExpression : extractBody,
-      ArrowFunctionExpression : (node:AST.ArrowExpression) => {
-        params = Transformers.idCollector(node.params, [ret, el, pos]);
-        return node.body;
-      },
-      Identifier : x => Transformers.idTranslator(params, x)
-    }), node);
-
-    let assign = helper.Expr(helper.Assign(ret, (res as any as AST.ExpressionStatement).expression));
-    let plen = Object.keys(params).length;
-
-    return {
-      body : plen > 2 ? [assign, helper.Expr(helper.Increment(pos))] : [assign],
-      vars : plen > 2 ? [pos, helper.Literal(0)] : []
-    } 
+    return standardHandler(node, el, [ret, el], node => {
+      return helper.Expr(helper.Assign(ret, node.argument));
+    })
   }
 }
 

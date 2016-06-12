@@ -24,7 +24,7 @@ class Utils {
     [
       'body', 'declarations', 'argument', 'arguments', 'alternate', 'consequent',
       'left', 'right', 'init', 'expression', 'callee', 'elements', 
-      'handlers', 'handler', 'block', 'finalizer', 'test', 'object'
+      'handlers', 'handler', 'block', 'finalizer', 'test', 'object', 'property'
     ]
       .filter(function(p) { return !!node[p]; })
       .forEach(function(p) { 
@@ -33,7 +33,7 @@ class Utils {
           x.forEach(function(y, i) {
             Utils.visit(visitor, y, x, i);
           })
-        } else {
+        } else if (typeof x !== 'string' && typeof x !== 'boolean' && typeof x !== 'number') {
           Utils.visit(visitor, x, node, p);
         }
       });
@@ -42,7 +42,7 @@ class Utils {
     return node;
   }
   
-  static parse(fn:Function):AST.FunctionExpression {
+  static parse(fn:Function|string):AST.FunctionExpression {
     let ast = <AST.FunctionExpression>(esprima.parse(fn.toString()) as any as AST.BlockStatement).body[0];
     return ast;
   }
@@ -54,6 +54,7 @@ class Utils {
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
       return ${escodegen.generate(node)}; 
     })()`;
+    console.log(src);
     return eval(src);
   }
 

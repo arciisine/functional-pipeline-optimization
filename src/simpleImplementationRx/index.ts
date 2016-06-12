@@ -94,7 +94,9 @@ export class AnyCollector<T, U> extends Collector<T[], U> {
   }
 
   getInitAST() {
-    return helper.Literal(this.init);
+    let src = `let a = ${JSON.stringify(this.init)}`;
+    let res = (parse(src) as any).declarations[0].init;
+    return res;
   }
 
   getCollectAST() {

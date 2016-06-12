@@ -6,6 +6,7 @@ export let Literal = (value:any):AST.Literal =>  ({type:"Literal",    value })
 export let Block = (...body):AST.BlockStatement => ({type:"BlockStatement", body:body.filter(x => !!x) })
 export let Expr = (n:AST.Node):AST.ExpressionStatement => ({type:"ExpressionStatement", expression:n})
 export let Continue = ():AST.ContinueStatement => ({type:"ContinueStatement"})
+export let Noop = ():AST.Node => Block([])
 
 export let Return = (e:AST.Expression):AST.ReturnStatement => {return {type:"ReturnStatement", argument:e}};
 export let Yield = (e:AST.Expression, delegate:boolean = false):AST.YieldExpression => {
