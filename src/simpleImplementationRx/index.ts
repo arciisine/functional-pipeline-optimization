@@ -4,19 +4,39 @@ import * as AST from '../lib/ast';
 import {genSymbol, parse, compile, visit, rewrite, visitor} from "../lib/util";
 import * as helper from "../lib/util/helper";
 import * as Transformers from './transformers';
+import {md5} from '../lib/md5';
 
 type Transformer = ((...args:any[])=>any)
 
+let annotate = (function() {
+  let cache = {};
 
-abstract class Collector<I,O> {
-  protected changed:boolean = false;
-  protected computed:(v:I)=>O;
+  let i = 0;
+  return (fn:Transformer):Transformer => {
+    let fnKey = md5(fn.toString());
+    
+    if (cache[fnKey]) {
+      fn = cache[fnKey];
+    } else {
+      cache[fnKey] = fn;
+    }
+    if (!fn['id']) fn['id'] = i++;
 
+    return fn;
+  };
+})()
+
+let tag = (fn, name) => fn['type'] = name;
+
+export abstract class Collector<I,O> {
+  static cache:{[key:string]:Transformer} = {};
+
+  protected key:string = null
   abstract getInitAST()
   abstract getCollectAST(ret:AST.Identifier, el:AST.Identifier)
 
   constructor(protected source:I, protected transformers:Transformer[] = []) {
-    this.changed = this.transformers.length > 0
+    this.transformers = this.transformers.map(annotate);
   }
 
   compute() {
@@ -59,12 +79,14 @@ abstract class Collector<I,O> {
     return compile(ast as any as AST.FunctionExpression, {}) as any
   }
 
-  exec():O {
-    if (this.changed) {
-      this.changed = false;
-      this.computed = this.compute(); 
+  exec(data:I = this.source):O {
+    if (this.key === null) {
+      this.key = this.transformers.map(x => x['id']).join('|');
     }
-    return this.computed(this.source);
+    if (!Collector.cache[this.key]) {
+      Collector.cache[this.key] = this.compute(); 
+    }
+    return Collector.cache[this.key](data);
   }
 }
 
@@ -72,19 +94,19 @@ export class ArraySource<T> {
   constructor(private source:T[]) {
   }
 
-  filter(fn:(e:T, i?:number)=>boolean):ArrayCollector<T, T, T> {
-    fn['type'] = 'filter'
-    return new ArrayCollector<T,T,T>(this.source, [fn as Transformer]);
+  filter(fn:(e:T, i?:number)=>boolean):ArrayCollector<T, T, T> {    
+    tag(fn, 'filter');
+    return new ArrayCollector<T,T,T>(this.source, [annotate(fn)]);
   }
 
   map<U>(fn:(e:T, i?:number)=>U):ArrayCollector<T, T, U> {
-    fn['type'] = 'map'
-    return new ArrayCollector<T, T, U>(this.source, [fn as Transformer]);
+    tag(fn, 'map');
+    return new ArrayCollector<T, T, U>(this.source, [annotate(fn)]);
   }
 
   reduce<U>(fn:(acc:U, e:T)=>U, init:U):AnyCollector<T, U> {
-    fn['type'] = 'reduce'
-    return new AnyCollector<T, U>(init, this.source, [fn as Transformer]);
+    tag(fn, 'reduce');
+    return new AnyCollector<T, U>(init, this.source, [annotate(fn)]);
   }
 }
 
@@ -118,21 +140,17 @@ export class ArrayCollector<T, U, V> extends Collector<T[], V[]> {
   }
    
   filter(fn:(e:V, i?:number)=>boolean):ArrayCollector<T, U, V> {
-    this.changed = true;
-    fn['type'] = 'filter'
-    this.transformers.push(fn)
-    return this
+    tag(fn, 'filter');
+    return new ArrayCollector<T, U, V>(this.source, this.transformers.concat(annotate(fn)));
   }
 
   map<W>(fn:(e:V, i?:number)=>W):ArrayCollector<T, V, W> {
-    this.changed = true;
-    fn['type'] = 'map'
-    return new ArrayCollector<T, V, W>(this.source, this.transformers.concat(fn));
+    tag(fn, 'map');
+    return new ArrayCollector<T, V, W>(this.source, this.transformers.concat(annotate(fn)));
   }
 
   reduce<W>(fn:(acc:W, e:V)=>W, init:W):AnyCollector<T, W> {
-    this.changed = true;
-    fn['type'] = 'reduce'
-    return new AnyCollector<T, W>(init, this.source, this.transformers.concat(fn));
+    tag(fn, 'reduce');
+    return new AnyCollector<T, W>(init, this.source, this.transformers.concat(annotate(fn)));
   }
 }

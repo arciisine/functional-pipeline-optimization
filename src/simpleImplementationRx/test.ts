@@ -1,14 +1,6 @@
 import {ArraySource} from './index';
 import {doTest} from '../lib/test';
 
-let wrappers:{[key:string]:ArraySource<any>} = {}
-
-function wrapArray<T>(data:T[], key):ArraySource<T> {
-  if (!wrappers[key]) {
-    wrappers[key] = new ArraySource(data)
-  }
-  return wrappers[key];
-}
 /*
 function compiled(data:number[]) {
   return wrapArray(data, 'a')
@@ -32,7 +24,7 @@ doTest(compiled, raw);
 */
 
 function functional(data:number[]) {    
-  let hist = wrapArray(data, 'b')
+  let hist = new ArraySource(data)
     .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
@@ -42,15 +34,13 @@ function functional(data:number[]) {
     }, {} as {[key:string]:number})
     .exec();
       
-  let count = wrapArray(data, 'c')
+  let count = new ArraySource(data)
     .filter(x => x > 100)
-    .map(function(x) {
-      return x - 10
-    })
+    .map(x => x - 10)
     .reduce((acc, x) => acc + x, 0)
     .exec();
 
-  let evens = wrapArray(data, 'd')
+  let evens = new ArraySource(data)
     .filter(x => x % 2 === 0)
     .map(x => x << 2)
     .exec();
