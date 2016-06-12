@@ -1,4 +1,4 @@
-import {ArraySource} from './collector/source';
+import {ArraySource} from '../basic';
 import {doTest} from '../lib/test';
 
 /*
