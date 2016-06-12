@@ -47,7 +47,5 @@ export function doTest(a:(nums:number[])=>void, b:(nums:number[])=>void) {
   log(`All ${a.name}`, test(a,b,0))
   log(`All ${b.name}`, test(a,b,1))
 
-  console.log(a.name, a(data))
-  console.log(b.name, b(data))
-  console.log(a(data) === b(data))
+  console.log(JSON.stringify(a(data)) === JSON.stringify(b(data)))
 } 

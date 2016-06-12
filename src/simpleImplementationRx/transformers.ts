@@ -2,7 +2,11 @@ import {genSymbol, parse, compile, visit, rewrite, visitor} from "../lib/util";
 import * as helper from "../lib/util/helper";
 import * as AST from '../lib/ast';
 
-interface Response {
+export interface Transformer {
+  (...args:any[]):any
+}
+
+export interface Response {
   body:AST.Node[],
   vars:AST.Node[]
 }
@@ -49,7 +53,7 @@ function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifi
   }
 }
 
-class Transformers {
+export class Transformers {
   static filter(node:AST.Node, el:AST.Identifier):Response {
     return standardHandler(node, el, [el], node => {
       return helper.IfThen(helper.Negate(node.argument), [helper.Continue()]);
@@ -69,6 +73,16 @@ class Transformers {
   }
 }
 
-export let reduce = Transformers.reduce;
-export let filter = Transformers.filter;
-export let map = Transformers.map;
+export class Manual {
+  static filter<T>(data:T[], fn:(o:T,i?:number)=>T):T[] {
+    return data.filter(fn as any);
+  }
+
+  static map<T,U>(data:T[],fn:(o:T,i?:number)=>U):U[] {
+    return data.map(fn);
+  }
+  
+  static reduce<T, U>(data:T[], fn:(acc:U, o:T)=>U):U {
+    return data.reduce(fn, JSON.parse(fn['init']) as U);
+  }
+}
