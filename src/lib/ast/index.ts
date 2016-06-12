@@ -1,11 +1,11 @@
 import * as _ from "lodash"
 import * as esprima from "esprima"
 import * as escodegen from '../escodegen';
-import * as _AST from "./types"
+import * as AST from "./types"
 import * as _helper from './helper';
 
 interface Transformer {
-  <T extends _AST.Node>(node:T):T
+  <T extends AST.Node>(node:T):T
 }
 
 interface Visitor { 
@@ -14,7 +14,7 @@ interface Visitor {
 
 export class Utils {
   
-  static visit<T extends _AST.Node>(visitor:Visitor, node:T, parent:_AST.Node|[_AST.Node] = null, key:string|number = null):T {   
+  static visit<T extends AST.Node>(visitor:Visitor, node:T, parent:AST.Node|[AST.Node] = null, key:string|number = null):T {   
     node = visitor.process(node);
     [
       'body', 'declarations', 'argument', 'arguments', 'alternate', 'consequent',
@@ -37,12 +37,12 @@ export class Utils {
     return node;
   }
   
-  static parse(fn:Function|string):_AST.FunctionExpression {
-    let ast = <_AST.FunctionExpression>(esprima.parse(fn.toString()) as any as _AST.BlockStatement).body[0];
+  static parse(fn:Function|string):AST.FunctionExpression {
+    let ast = <AST.FunctionExpression>(esprima.parse(fn.toString()) as any as AST.BlockStatement).body[0];
     return ast;
   }
   
-  static compile(node:_AST.FunctionExpression, globals:any):Function {
+  static compile(node:AST.FunctionExpression, globals:any):Function {
     let src = `(function() {     
       var id_ = new Date().getTime();
       var genSymbol = function ${_helper.genSymbol.toString()};
@@ -55,7 +55,7 @@ export class Utils {
 
   static visitor(conf:{[key:string]:Transformer}) {
     let out = {
-      process : function<T extends _AST.Node>(node:T):_AST.Node {
+      process : function<T extends AST.Node>(node:T):AST.Node {
         if (node['visited']) {
           return node;
         } else {
@@ -79,6 +79,4 @@ export class Utils {
   }
 }
 
-export * from './helper';
-export const AST = _AST
 export const helper = _helper;

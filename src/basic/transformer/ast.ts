@@ -1,5 +1,6 @@
-import {Utils, AST, helper} from "../../lib/ast";
+import {Utils, helper} from "../../lib/ast";
 import {md5} from '../../lib/md5';
+import * as AST from '../../lib/ast/types';
 
 export interface Transformer {
   (...args:any[]):any

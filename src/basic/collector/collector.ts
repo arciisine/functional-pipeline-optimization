@@ -1,8 +1,6 @@
-import {Transformer, annotate, Transformers} from '../transformers';
-import {Manual} from '../manual';
-import * as helper from '../../lib/util/helper';
-import {parse, compile} from '../../lib/util';
-import * as AST from '../../lib/ast';
+import {Transformer, annotate, Transformers, Manual} from '../transformer';
+import {helper, Utils} from '../../lib/ast';
+import * as AST from '../../lib/ast/types';
 
 export abstract class Collector<I,O> {
   static cache:{[key:string]:Transformer} = {};
@@ -16,7 +14,7 @@ export abstract class Collector<I,O> {
   }
 
   compute() {
-    let fns = this.transformers.map(x => parse)
+    let fns = this.transformers.map(x => Utils.parse)
     let itr = helper.Id();
     let el = helper.Id();
     let arr = helper.Id();
@@ -28,7 +26,7 @@ export abstract class Collector<I,O> {
          
     this.transformers
       .reverse()
-      .map(t => Transformers[t['type']](parse(t), el, ret))
+      .map(t => Transformers[t['type']](Utils.parse(t), el, ret))
       .reverse()
       .forEach(e => {
         body.push(...e.body)
@@ -52,7 +50,7 @@ export abstract class Collector<I,O> {
       ),
       helper.Return(ret)
     ]);
-    return compile(ast as any as AST.FunctionExpression, {}) as any
+    return Utils.compile(ast as any as AST.FunctionExpression, {}) as any
   }
 
   exec(data:I[] = this.source):O {

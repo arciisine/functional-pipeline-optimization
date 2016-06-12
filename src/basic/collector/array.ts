@@ -1,7 +1,8 @@
 import {Collector} from './collector';
 import {AnyCollector} from './any';
-import {Transformer, tag} from '../transformers';
-import * as helper from '../../lib/util/helper';
+import {Transformer, tag} from '../transformer';
+import {helper} from '../../lib/ast';
+import * as AST from '../../lib/ast/types';
 
 
 export class ArrayCollector<T, U, V> extends Collector<T, V[]> {

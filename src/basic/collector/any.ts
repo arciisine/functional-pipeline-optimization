@@ -1,7 +1,7 @@
-import {Transformer} from '../transformers';
+import {Transformer} from '../transformer';
 import {Collector} from './collector';
-import {parse, compile} from '../../lib/util';
-import * as AST from '../../lib/ast';
+import {Utils} from '../../lib/ast';
+import * as AST from '../../lib/ast/types';
 
 export class AnyCollector<T, U> extends Collector<T, U> {
   constructor(protected init:U, source:T[], transformers:Transformer[] = []) {
@@ -11,7 +11,7 @@ export class AnyCollector<T, U> extends Collector<T, U> {
 
   getInitAST() {
     let src = `let a = ${JSON.stringify(this.init)}`;
-    let res = (parse(src) as any).declarations[0].init;
+    let res = (Utils.parse(src) as any).declarations[0].init;
     return res;
   }
 
