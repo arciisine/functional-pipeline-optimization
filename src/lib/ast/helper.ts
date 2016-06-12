@@ -1,5 +1,9 @@
-import * as AST from "../ast"
-import {genSymbol} from './index';
+import * as AST from "./types"
+
+let id_:number = new Date().getTime()%10000;
+export function genSymbol() {
+  return "__gen"+parseInt(`${Math.random()*1000}`)+(id_++); 
+}
 
 export let Id = (name?:string):AST.Identifier => ({type:"Identifier", name:name||genSymbol()})
 export let Literal = (value:any):AST.Literal =>  ({type:"Literal",    value })

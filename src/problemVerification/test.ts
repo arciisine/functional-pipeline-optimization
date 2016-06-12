@@ -1,4 +1,4 @@
-import {ArraySource} from './index';
+import {ArraySource} from './collector/source';
 import {doTest} from '../lib/test';
 
 /*
@@ -73,4 +73,30 @@ function functionalRaw(data:number[]) {
   return [hist, count, evens];
 }
 
-doTest(functional, functionalRaw)
+
+function functionalManual(data:number[]) {    
+  let hist = new ArraySource(data)
+    .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
+    .map(x => x > 91 ? x - 32 : x)
+    .map(x => String.fromCharCode(x))
+    .reduce((acc, x) => {
+      acc[x] = (acc[x] || 0) + 1;
+      return acc;
+    }, {} as {[key:string]:number})
+    .execManual();
+      
+  let count = new ArraySource(data)
+    .filter(x => x > 100)
+    .map(x => x - 10)
+    .reduce((acc, x) => acc + x, 0)
+    .execManual();
+
+  let evens = new ArraySource(data)
+    .filter(x => x % 2 === 0)
+    .map(x => x << 2)
+    .execManual();
+      
+  return [hist, count, evens];
+}
+
+doTest(functionalManual, functionalRaw)

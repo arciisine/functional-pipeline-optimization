@@ -1,15 +1,38 @@
-import {genSymbol, parse, compile, visit, rewrite, visitor} from "../lib/util";
-import * as helper from "../lib/util/helper";
-import * as AST from '../lib/ast';
+import {Utils, AST, helper} from "../../lib/ast";
+import {md5} from '../../lib/md5';
 
 export interface Transformer {
   (...args:any[]):any
 }
 
+export let tag = (fn, name) => fn['type'] = name;
+
 export interface Response {
   body:AST.Node[],
   vars:AST.Node[]
 }
+
+export let annotate = (function() {
+  let cache = {};
+
+  let i = 0;
+  return (fn:Transformer):Transformer => {
+    if (!fn['key']) {
+      fn['key'] = md5(fn.toString());
+    }
+
+    let fnKey = fn['key'];
+    
+    if (cache[fnKey]) {
+      fn = cache[fnKey];
+    } else {
+      cache[fnKey] = fn;
+    }
+    if (!fn['id']) fn['id'] = i++;
+
+    return fn;
+  };
+})()
 
 function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifier[], onReturn:(node:AST.ReturnStatement)=>AST.Node):Response {
   let params:{[key:string]:AST.Identifier} = {};       
@@ -20,7 +43,7 @@ function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifi
     node = (node as AST.ExpressionStatement).expression;
   }
 
-  let res = visit(visitor({
+  let res = Utils.visit(Utils.visitor({
     FunctionExpression : (node:AST.FunctionExpression) => {
       node.params.forEach((p,i) => params[(p as AST.Identifier).name] = fnParams[i]);
       return node;
@@ -70,19 +93,5 @@ export class Transformers {
     return standardHandler(node, el, [ret, el], node => {
       return helper.Expr(helper.Assign(ret, node.argument));
     })
-  }
-}
-
-export class Manual {
-  static filter<T>(data:T[], fn:(o:T,i?:number)=>T):T[] {
-    return data.filter(fn as any);
-  }
-
-  static map<T,U>(data:T[],fn:(o:T,i?:number)=>U):U[] {
-    return data.map(fn);
-  }
-  
-  static reduce<T, U>(data:T[], fn:(acc:U, o:T)=>U):U {
-    return data.reduce(fn, JSON.parse(fn['init']) as U);
   }
 }
