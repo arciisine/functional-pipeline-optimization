@@ -1,5 +1,5 @@
-import {ArraySource} from '../basic';
 import {doTest} from '../lib/test';
+import '../basic/source'
 
 /*
 function compiled(data:number[]) {
@@ -24,7 +24,7 @@ doTest(compiled, raw);
 */
 
 function functional(data:number[]) {    
-  let hist = new ArraySource(data)
+  let hist = data.r()
     .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
@@ -34,13 +34,13 @@ function functional(data:number[]) {
     }, {} as {[key:string]:number})
     .exec();
       
-  let count = new ArraySource(data)
+  let count = data.r()
     .filter(x => x > 100)
     .map(x => x - 10)
     .reduce((acc, x) => acc + x, 0)
     .exec();
 
-  let evens = new ArraySource(data)
+  let evens = data.r()
     .filter(x => x % 2 === 0)
     .map(x => x << 2)
     .exec();
@@ -75,7 +75,7 @@ function functionalRaw(data:number[]) {
 
 
 function functionalManual(data:number[]) {    
-  let hist = new ArraySource(data)
+  let hist = data.r()
     .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
@@ -85,13 +85,13 @@ function functionalManual(data:number[]) {
     }, {} as {[key:string]:number})
     .execManual();
       
-  let count = new ArraySource(data)
+  let count = data.r()
     .filter(x => x > 100)
     .map(x => x - 10)
     .reduce((acc, x) => acc + x, 0)
     .execManual();
 
-  let evens = new ArraySource(data)
+  let evens = data.r()
     .filter(x => x % 2 === 0)
     .map(x => x << 2)
     .execManual();

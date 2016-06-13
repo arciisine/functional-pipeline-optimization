@@ -65,7 +65,7 @@ export abstract class Collector<I,O> {
 
   execManual(data:I[] = this.source):O {
     this.transformers.forEach(t => {
-      data = Manual[t['type']](data);
+      data = Manual[t['type']](data, t);
     })
     return data as any as O;
   }
