@@ -99,4 +99,4 @@ function functionalManual(data:number[]) {
   return [hist, count, evens];
 }
 
-doTest(functionalManual, functionalRaw)
+doTest(functionalManual, functional)
