@@ -78,19 +78,19 @@ function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifi
 }
 
 export class Transformers {
-  static filter(node:AST.Node, el:AST.Identifier):Response {
+  static filter(node:AST.Node, el:AST.Identifier, ret:AST.Identifier, continueLabel:AST.Identifier):Response {
     return standardHandler(node, el, [el], node => {
-      return helper.IfThen(helper.Negate(node.argument), [helper.Continue()]);
+      return helper.IfThen(helper.Negate(node.argument), [helper.Continue(continueLabel)]);
     })
   }
 
-  static map(node:AST.Node, el:AST.Identifier):Response {
+  static map(node:AST.Node, el:AST.Identifier, ret:AST.Identifier, continueLabel:AST.Identifier):Response {
     return standardHandler(node, el, [el], node => {
       return helper.Expr(helper.Assign(el, node.argument));
     })
   }
   
-  static reduce(node:AST.Node, el:AST.Identifier, ret:AST.Identifier):Response {
+  static reduce(node:AST.Node, el:AST.Identifier, ret:AST.Identifier, continueLabel:AST.Identifier):Response {
     return standardHandler(node, el, [ret, el], node => {
       return helper.Expr(helper.Assign(ret, node.argument));
     })

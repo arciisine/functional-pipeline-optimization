@@ -9,7 +9,7 @@ export let Id = (name?:string):AST.Identifier => ({type:"Identifier", name:name|
 export let Literal = (value:any):AST.Literal =>  ({type:"Literal",    value })
 export let Block = (...body):AST.BlockStatement => ({type:"BlockStatement", body:body.filter(x => !!x) })
 export let Expr = (n:AST.Node):AST.ExpressionStatement => ({type:"ExpressionStatement", expression:n})
-export let Continue = ():AST.ContinueStatement => ({type:"ContinueStatement"})
+export let Continue = (label?:AST.Identifier):AST.ContinueStatement => ({type:"ContinueStatement", label})
 export let Noop = ():AST.Node => Block([])
 
 export let Return = (e:AST.Expression):AST.ReturnStatement => {return {type:"ReturnStatement", argument:e}};
@@ -84,6 +84,14 @@ export let Negate = (val:AST.Expression):AST.UnaryExpression => {
 
 export let Increment = (id:AST.Identifier, increment:number = 1):AST.AssignmentExpression => {
   return Assign(id, Literal(increment), '+=');
+}
+
+export let Labeled = (id:AST.Identifier, body:AST.Statement):AST.LabeledStatement => {
+  return {
+    type : "LabeledStatement",
+    label : id,
+    body
+  };
 }
 
 export let ForLoop = (id:AST.Identifier, init:AST.Expression, upto:AST.Expression, body:AST.Statement[], increment:number = 1):AST.ForStatement => {

@@ -20,13 +20,14 @@ export abstract class Collector<I,O> {
     let arr = helper.Id();
     let temp = helper.Id();
     let ret = helper.Id()
+    let label = helper.Id()
 
     let vars:AST.Node[] = []
     let body:AST.Node[] = []
          
     this.transformers
       .reverse()
-      .map(t => Transformers[t['type']](Utils.parse(t), el, ret))
+      .map(t => Transformers[t['type']](Utils.parse(t), el, ret, label))
       .reverse()
       .forEach(e => {
         body.push(...e.body)
@@ -42,11 +43,13 @@ export abstract class Collector<I,O> {
 
     let ast = helper.Func(temp, [arr], [
       helper.Vars('let', ...vars),
-      helper.ForLoop(itr, helper.Literal(0), helper.GetProperty(arr, "length"),
-        [
-          helper.Vars('let', el, helper.GetProperty(arr, itr)),
-          ...body
-        ]        
+      helper.Labeled(label,
+        helper.ForLoop(itr, helper.Literal(0), helper.GetProperty(arr, "length"),
+          [
+            helper.Vars('let', el, helper.GetProperty(arr, itr)),
+            ...body
+          ]        
+        )
       ),
       helper.Return(ret)
     ]);
