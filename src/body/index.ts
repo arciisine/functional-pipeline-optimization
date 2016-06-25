@@ -1,16 +1,16 @@
-import {AST, Transform, Macro as m, VisitParents} from '../../node_modules/ecma-ast-transform/src';
+import {AST, Util, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
 
 function rewriteBody(content:string) {
-  let body = Transform.parseExpression<AST.Node>(content);
+  let body = Util.parseExpression<AST.Node>(content);
 
-  Transform.visit(Transform.visitor({
-    MemberExpression : (x:AST.MemberExpression, parents:VisitParents) => {
+  body = new Visitor({
+    MemberExpression : (x:AST.MemberExpression, parents:Visitor) => {
       
     },
-    CallExpression : (x : AST.CallExpression, parents:VisitParents) => {
+    CallExpression : (x : AST.CallExpression, parents:Visitor) => {
       
     }
-  }), body);
+  }).exec(body);
 
-  return Transform.compileExpression(body);
+  return Util.compileExpression(body);
 }

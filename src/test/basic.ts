@@ -1,5 +1,5 @@
 import {doTest} from './util';
-import '../basic/source'
+import '../array/source'
 
 export function functional(data:number[]) {    
   let hist = data.r

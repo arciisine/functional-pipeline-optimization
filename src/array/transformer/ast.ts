@@ -87,7 +87,8 @@ export function checkPurity(fn:Transformer, globals:any = {}):boolean {
           found[readId(d.id)] = true
         })
       },
-      Identifier : (x:AST.Identifier, parent) => {
+      Identifier : (x:AST.Identifier, visitor:Visitor) => {
+        let parent = visitor.parent.node as AST.Node;
         if (parent.type === 'MemberExpression') {
           if (((parent as AST.MemberExpression).object as AST.Identifier).name != x.name) {
             return;
