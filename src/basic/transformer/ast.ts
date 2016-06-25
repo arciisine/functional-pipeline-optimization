@@ -1,11 +1,16 @@
 import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 import {md5} from '../../md5';
 
+type Ops = 'filter'|'map'|'reduce';
+
 export interface Transformer {
-  (...args:any[]):any
+  (...args:any[]):any,
+  key? : string,
+  id? : number,
+  type? : Ops
 }
 
-export let tag = (fn, name) => fn['type'] = name;
+export let tag = (fn:Transformer, name:Ops) => fn.type = name;
 
 export interface TransformReference {
   node:AST.Node,
@@ -24,27 +29,25 @@ export interface TransformResponse {
   vars:AST.Node[]
 }
 
-export let annotate = (function() {
-  let cache = {};
+let cache = {};
+let i = 0;
 
-  let i = 0;
-  return (fn:Transformer):Transformer => {
-    if (!fn['key']) {
-      fn['key'] = md5(fn.toString());
-    }
+export function annotate(fn:Transformer):Transformer {
+  if (!fn.key) {
+    fn.key = md5(fn.toString());
+  }
 
-    let fnKey = fn['key'];
-    
-    if (cache[fnKey]) {
-      fn = cache[fnKey];
-    } else {
-      cache[fnKey] = fn;
-    }
-    if (!fn['id']) fn['id'] = i++;
+  if (cache[fn.key]) {
+    fn = cache[fn.key];
+  } else {
+    cache[fn.key] = fn;
+  }
+  if (!fn.id) {
+    fn.id = i++;
+  }
 
-    return fn;
-  };
-})();
+  return fn;
+};
 
 function standardHandler(tr:TransformReference):TransformResponse {
   let params:{[key:string]:AST.Identifier} = {};       

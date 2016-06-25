@@ -38,7 +38,7 @@ export abstract class Collector<I,O> {
     this.transformers
       .reverse()
       .map(t => {
-        let tfn = Transformers[t['type']] as (ref:TransformReference, state:TransformState) => TransformResponse; 
+        let tfn = Transformers[t.type] as (ref:TransformReference, state:TransformState) => TransformResponse; 
         return tfn({node:Transform.parse(t)}, state)
       })
       .reverse()
@@ -71,7 +71,7 @@ export abstract class Collector<I,O> {
 
   exec(data:I[] = this.source):O {
     if (this.key === null) {
-      this.key = this.transformers.map(x => x['id']).join('|');
+      this.key = this.transformers.map(x => x.id).join('|');
     }
     if (!Collector.cache[this.key]) {
       Collector.cache[this.key] = this.compute(); 
@@ -81,7 +81,7 @@ export abstract class Collector<I,O> {
 
   execManual(data:I[] = this.source):O {
     this.transformers.forEach(t => {
-      data = Manual[t['type']](data, t);
+      data = Manual[t.type](data, t);
     })
     return data as any as O;
   }
