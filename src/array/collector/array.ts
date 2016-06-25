@@ -1,4 +1,5 @@
 import {Collector} from './collector';
+import {VoidCollector} from './void';
 import {AnyCollector} from './any';
 import {Transformer, tag, TransformState} from '../transformer';
 import {Macro as m} from '../../../node_modules/ecma-ast-transform/src';
@@ -30,5 +31,10 @@ export class ArrayCollector<T, U, V> extends Collector<T, V[]> {
   reduce<W>(fn:(acc:W, e:V)=>W, init:W, globals?:any):AnyCollector<T, W> {
     tag(fn, 'reduce', globals);
     return new AnyCollector<T, W>(init, this.source, [...this.transformers,fn]);
+  }
+
+  forEach(fn:(e:V, i?:number)=>void, globals?:any):VoidCollector<T, V> {
+    tag(fn, 'forEach', globals);
+    return new VoidCollector<T, V>(this.source, [...this.transformers,fn]);
   }
 }

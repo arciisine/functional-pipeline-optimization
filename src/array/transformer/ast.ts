@@ -1,7 +1,7 @@
 import {AST, Util, Macro as m, Visitor} from '../../../node_modules/ecma-ast-transform/src';
 import {md5} from './md5';
 
-type Ops = 'filter'|'map'|'reduce';
+type Ops = 'filter'|'map'|'reduce'|'forEach';
 
 export interface Transformer {
   (...args:any[]):any,
@@ -40,7 +40,7 @@ export function tag(fn:Transformer, name:Ops, globals?:any) {
 
 export function annotate(fn:Transformer):Transformer {
   if (fn.pure === undefined) {
-    fn.pure = checkPurity(fn, fn.globals || {});
+    fn.pure = Util.isPureFunction(fn, fn.globals || {});
   } 
 
   if (fn.pure) {
@@ -61,50 +61,6 @@ export function annotate(fn:Transformer):Transformer {
 
   return fn;
 };
-
-declare var global,window;
-let _global = global || window;
-
-export function checkPurity(fn:Transformer, globals:any = {}):boolean {
-  let found = {};
-
-  let readId = (p:AST.Pattern) => p.type === "Identifier" ? p['name'] : (p as AST.Identifier).name;
-
-  try {
-    new Visitor({
-      ArrowFunctionExpression : (x:AST.ArrowExpression) => {
-        x.params.forEach(p => {
-          found[readId(p)] = true;
-        })
-      },
-      FunctionDeclaration : (x:AST.FunctionDeclaration) => {
-        x.params.forEach(p => {
-          found[readId(p)] = true;
-        })
-      },
-      VariableDeclaration : (x:AST.VariableDeclaration) => {
-        x.declarations.forEach(d => {
-          found[readId(d.id)] = true
-        })
-      },
-      Identifier : (x:AST.Identifier, visitor:Visitor) => {
-        let parent = visitor.parent.node as AST.Node;
-        if (parent.type === 'MemberExpression') {
-          if (((parent as AST.MemberExpression).object as AST.Identifier).name != x.name) {
-            return;
-          }
-        } 
-        if (!found[x.name] && !_global[x.name] && !globals[x.name]) {
-          throw new Error(`Read before declare ${x.name}`); 
-        }
-      }
-    }).exec(Util.parse(fn));
-    return true;
-  } catch (e) {
-    console.log(e);
-    return false;
-  }
-}
 
 export function standardHandler(tr:TransformReference):TransformResponse {
   let params:{[key:string]:AST.Identifier} = {};       

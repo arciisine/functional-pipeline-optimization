@@ -1,4 +1,5 @@
 import {doTest} from './util';
+import {rewriteBody} from '../body';
 import '../array/source'
 
 export function functional(data:number[]) {    
@@ -76,5 +77,7 @@ export function functionalManual(data:number[]) {
       
   return [hist, count, evens];
 }
+
+console.log(rewriteBody(functional.toString()))
 
 //doTest({functionalManual, functional, functionalRaw})
