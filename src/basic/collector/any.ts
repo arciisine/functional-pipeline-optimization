@@ -10,7 +10,7 @@ export class AnyCollector<T, U> extends Collector<T, U> {
 
   getInitAST(state:TransformState) {
     let src = `let a = ${JSON.stringify(this.init)}`;
-    let res = (Transform.parse(src) as any).declarations[0].init;
+    let res = Transform.parseExpression<AST.VariableDeclaration>(src).declarations[0].init;
     return res;
   }
 

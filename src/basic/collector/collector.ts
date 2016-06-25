@@ -13,11 +13,16 @@ export abstract class Collector<I,O> {
   static cache:{[key:string]:Transformer} = {};
 
   protected key:string = null
-  abstract getInitAST(state:TransformState)
-  abstract getCollectAST(state:TransformState)
+  protected pure:boolean = true;
+  abstract getInitAST(state:TransformState):AST.Node
+  abstract getCollectAST(state:TransformState):AST.Node
 
   constructor(protected source:I[], protected transformers:Transformer[] = []) {
-    this.transformers = this.transformers.map(annotate);
+    this.transformers = this.transformers.map(fn => {
+      let res = annotate(fn);
+      this.pure = this.pure && res.pure;
+      return res;
+    });
   }
 
   compute() {
@@ -70,13 +75,18 @@ export abstract class Collector<I,O> {
   }
 
   exec(data:I[] = this.source):O {
+    //Short circuit if dealing with impure functions
+    if (!this.pure) {
+      return this.execManual(data);
+    }
+
     if (this.key === null) {
       this.key = this.transformers.map(x => x.id).join('|');
     }
     if (!Collector.cache[this.key]) {
       Collector.cache[this.key] = this.compute(); 
     }
-    return Collector.cache[this.key](data);
+    return Collector.cache[this.key].call(this, data);
   }
 
   execManual(data:I[] = this.source):O {

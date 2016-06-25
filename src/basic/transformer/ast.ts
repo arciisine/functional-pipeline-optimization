@@ -7,10 +7,9 @@ export interface Transformer {
   (...args:any[]):any,
   key? : string,
   id? : number,
-  type? : Ops
+  type? : Ops,
+  pure?: boolean
 }
-
-export let tag = (fn:Transformer, name:Ops) => fn.type = name;
 
 export interface TransformReference {
   node:AST.Node,
@@ -32,6 +31,8 @@ export interface TransformResponse {
 let cache = {};
 let i = 0;
 
+export let tag = (fn:Transformer, name:Ops) => fn.type = name;
+
 export function annotate(fn:Transformer):Transformer {
   if (!fn.key) {
     fn.key = md5(fn.toString());
@@ -42,6 +43,11 @@ export function annotate(fn:Transformer):Transformer {
   } else {
     cache[fn.key] = fn;
   }
+
+  if (fn.pure === undefined) {
+    fn.pure = checkPurity(fn);
+  } 
+
   if (!fn.id) {
     fn.id = i++;
   }
@@ -49,7 +55,50 @@ export function annotate(fn:Transformer):Transformer {
   return fn;
 };
 
-function standardHandler(tr:TransformReference):TransformResponse {
+declare var global,window;
+let _global = global || window;
+
+export function checkPurity(fn:Transformer):boolean {
+  let found = {};
+
+  let readId = (p:AST.Pattern) => p.type === "Identifier" ? p['name'] : (p as AST.Identifier).name;
+
+  try {
+    Transform.visit(Transform.visitor({
+      ArrowFunctionExpression : (x:AST.ArrowExpression) => {
+        x.params.forEach(p => {
+          found[readId(p)] = true;
+        })
+      },
+      FunctionDeclaration : (x:AST.FunctionDeclaration) => {
+        x.params.forEach(p => {
+          found[readId(p)] = true;
+        })
+      },
+      VariableDeclaration : (x:AST.VariableDeclaration) => {
+        x.declarations.forEach(d => {
+          found[readId(d.id)] = true
+        })
+      },
+      Identifier : (x:AST.Identifier, parent) => {
+        if (parent.type === 'MemberExpression') {
+          if (((parent as AST.MemberExpression).object as AST.Identifier).name != x.name) {
+            return;
+          }
+        } 
+        if (!found[x.name] && !_global[x.name]) {
+          throw new Error(`Read before declare ${x.name}`); 
+        }
+      }
+    }), Transform.parse(fn));
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+}
+
+export function standardHandler(tr:TransformReference):TransformResponse {
   let params:{[key:string]:AST.Identifier} = {};       
   let pos = m.Id();
   tr.params.push(pos);
