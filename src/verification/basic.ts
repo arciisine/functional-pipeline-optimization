@@ -1,31 +1,9 @@
 import {doTest} from '../test';
 import '../basic/source'
 
-/*
-function compiled(data:number[]) {
-  return wrapArray(data, 'a')
-      .filter(x => x % 2 === 0)
-      .map(x => x * 2)
-      .map((x,i) => x.toString() + i)
-      .map(x => parseInt(x))
-      .reduce((acc, x) => acc + x, 0)
-      .exec();
-}
-
-function raw(data:number[]) {
-  return  data.filter(x => x % 2 === 0)
-      .map(x => x * 2)
-      .map((x,i) => x.toString() + i)
-      .map(x => parseInt(x))
-      .reduce((acc, x) => acc + x, 0)
-}
-
-doTest(compiled, raw);
-*/
-
-function functional(data:number[]) {    
-  let hist = data.r
-    .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
+export function functional(data:number[]) {    
+  let hist = data.r()
+    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
@@ -34,13 +12,13 @@ function functional(data:number[]) {
     }, {} as {[key:string]:number})
     .exec();
       
-  let count = data.r
+  let count = data.r()
     .filter(x => x > 100)
     .map(x => x - 10)
     .reduce((acc, x) => acc + x, 0)
     .exec();
 
-  let evens = data.r
+  let evens = data.r()
     .filter(x => x % 2 === 0)
     .map(x => x << 2)
     .exec();
@@ -48,10 +26,10 @@ function functional(data:number[]) {
   return [hist, count, evens];
 }
 
-function functionalRaw(data:number[]) {
+export function functionalRaw(data:number[]) {
     
   let hist = data
-    .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
+    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
@@ -74,9 +52,9 @@ function functionalRaw(data:number[]) {
 }
 
 
-function functionalManual(data:number[]) {    
-  let hist = data.r
-    .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
+export function functionalManual(data:number[]) {    
+  let hist = data.r()
+    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
@@ -85,13 +63,13 @@ function functionalManual(data:number[]) {
     }, {} as {[key:string]:number})
     .execManual();
       
-  let count = data.r
+  let count = data.r()
     .filter(x => x > 100)
     .map(x => x - 10)
     .reduce((acc, x) => acc + x, 0)
     .execManual();
 
-  let evens = data.r
+  let evens = data.r()
     .filter(x => x % 2 === 0)
     .map(x => x << 2)
     .execManual();
@@ -99,4 +77,4 @@ function functionalManual(data:number[]) {
   return [hist, count, evens];
 }
 
-doTest(functionalManual, functional)
+//doTest(functionalManual, functional, functionalRaw)

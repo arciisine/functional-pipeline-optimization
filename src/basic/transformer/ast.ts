@@ -33,23 +33,25 @@ let i = 0;
 
 export let tag = (fn:Transformer, name:Ops) => fn.type = name;
 
-export function annotate(fn:Transformer):Transformer {
-  if (!fn.key) {
-    fn.key = md5(fn.toString());
-  }
-
-  if (cache[fn.key]) {
-    fn = cache[fn.key];
-  } else {
-    cache[fn.key] = fn;
-  }
-
+export function annotate(fn:Transformer, globals:any):Transformer {
   if (fn.pure === undefined) {
-    fn.pure = checkPurity(fn);
+    fn.pure = checkPurity(fn, globals);
   } 
 
-  if (!fn.id) {
-    fn.id = i++;
+  if (fn.pure) {
+    if (!fn.key) {
+      fn.key = md5(fn.toString());
+    }
+
+    if (cache[fn.key]) {
+      fn = cache[fn.key];
+    } else {
+      cache[fn.key] = fn;
+    }
+
+    if (!fn.id) {
+      fn.id = i++;
+    }
   }
 
   return fn;
@@ -58,7 +60,7 @@ export function annotate(fn:Transformer):Transformer {
 declare var global,window;
 let _global = global || window;
 
-export function checkPurity(fn:Transformer):boolean {
+export function checkPurity(fn:Transformer, globals:any):boolean {
   let found = {};
 
   let readId = (p:AST.Pattern) => p.type === "Identifier" ? p['name'] : (p as AST.Identifier).name;
@@ -86,7 +88,7 @@ export function checkPurity(fn:Transformer):boolean {
             return;
           }
         } 
-        if (!found[x.name] && !_global[x.name]) {
+        if (!found[x.name] && !_global[x.name] && !globals[x.name]) {
           throw new Error(`Read before declare ${x.name}`); 
         }
       }

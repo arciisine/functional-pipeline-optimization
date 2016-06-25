@@ -1,9 +1,9 @@
 import {doTest} from '../test';
 
-function functional(data:number[]) {
+export function functional(data:number[]) {
     
   let hist = data
-    .filter(x => x > 65 && x < 91 || x >= 97 && x < 123)
+    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
@@ -23,7 +23,7 @@ function functional(data:number[]) {
   return [hist, count, evens];
 }
 
-function procedural(data:number[]) {
+export function procedural(data:number[]) {
   let hist:{[key:string]:number} = {}
   for (let i = 0; i < data.length; i++) {
     let x = data[i]
@@ -57,4 +57,4 @@ function procedural(data:number[]) {
 }
 
 
-doTest(functional, procedural);
+//doTest(functional, procedural);

@@ -17,9 +17,9 @@ export abstract class Collector<I,O> {
   abstract getInitAST(state:TransformState):AST.Node
   abstract getCollectAST(state:TransformState):AST.Node
 
-  constructor(protected source:I[], protected transformers:Transformer[] = []) {
+  constructor(protected source:I[], protected globals:any, protected transformers:Transformer[] = []) {
     this.transformers = this.transformers.map(fn => {
-      let res = annotate(fn);
+      let res = annotate(fn, globals);
       this.pure = this.pure && res.pure;
       return res;
     });

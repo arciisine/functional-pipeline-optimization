@@ -3,8 +3,8 @@ import {Collector} from './collector';
 import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 export class AnyCollector<T, U> extends Collector<T, U> {
-  constructor(protected init:U, source:T[], transformers:Transformer[] = []) {
-    super(source, transformers);
+  constructor(protected init:U, source:T[], globals:any, transformers:Transformer[] = []) {
+    super(source, globals, transformers);
     transformers[transformers.length - 1]['init'] = JSON.stringify(init);
   }
 
