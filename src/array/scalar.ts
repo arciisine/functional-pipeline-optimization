@@ -1,15 +1,15 @@
-import {AST, Util as tUtil} from '../../node_modules/ecma-ast-transform/src';
+import {AST, Util} from '../../node_modules/ecma-ast-transform/src';
+import { CompileUtil, Compilable} from '../compile';
+import { Transformer, Transformable, TransformState } from '../transform';
 
-import { Util, Collector, Transformer, Transformable, TransformState } from './util';
-
-export class ScalarCollector<I,O> implements Collector<I, O> {
+export class ScalarCollector<I,O> implements Compilable<I, O> {
 
   key:string = null
   pure:boolean = true;
 
   constructor(public source:I[], public chain:Transformable[] = [], public init:O = undefined) {
     this.chain = this.chain.map(fn => {
-      let res = Util.annotate(fn);
+      let res = CompileUtil.annotate(fn);
       this.pure = this.pure && res.pure;
       return res;
     });
@@ -18,7 +18,7 @@ export class ScalarCollector<I,O> implements Collector<I, O> {
   getInitAST(state:TransformState):AST.Node { 
     if (this.init !== undefined) {
       let src = `let a = ${JSON.stringify(this.init)}`;
-      let res = tUtil.parseExpression<AST.VariableDeclaration>(src).declarations[0].init;
+      let res = Util.parseExpression<AST.VariableDeclaration>(src).declarations[0].init;
       return res;
     }
   }
@@ -28,6 +28,6 @@ export class ScalarCollector<I,O> implements Collector<I, O> {
   }
 
   exec(data:I[] = this.source):O {
-    return Util.getComputed(this).call(this, data);
+    return CompileUtil.getCompiled(this).call(this, data);
   }
 }
