@@ -1,17 +1,6 @@
 import {AST, Util as tUtil, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
 import {md5} from './md5';
 
-export interface Transformable {
-  (...args:any[]):any,
-  key? : string,
-  id? : number,
-  type? : string,
-  init?: any,
-  globals?:any,
-  pure?: boolean,
-  parsed?:AST.Node
-}
-
 export interface Transformer {
   (ref:TransformReference, state:TransformState):TransformResponse
 }
@@ -33,11 +22,21 @@ export interface TransformResponse {
   vars:AST.Node[]
 }
 
+export interface Transformable {
+  (...args:any[]):any,
+  key? : string,
+  id? : number,
+  type? : string,
+  init?: any,
+  globals?:any,
+  pure?: boolean,
+  transformer?:Transformer
+}
+
 export interface Collector<I, O> {
   key:string;
   pure:boolean;
   chain:Transformable[],
-  mapping:{[type:string]:Transformer}
   getCollectAST(state:TransformState):AST.Node
   getInitAST(state:TransformState):AST.Node
 }
@@ -47,9 +46,10 @@ export class Util {
   private static computed:{[key:string]:Transformable} = {};
   private static annotated:{[key:string]:Transformable} = {};
 
-  static tag(fn:Transformable, name:string, globals?:any) {
-    fn.type = name;
+  static tag(fn:Transformable, transformer:Transformer, name?:string, globals?:any) {
     fn.globals = globals;
+    fn.transformer = transformer;
+    fn.type = name || transformer.name;
   }
 
   static annotate(fn:Transformable):Transformable {
@@ -71,8 +71,6 @@ export class Util {
       if (!fn.id) {
         fn.id = Util.i++;
       }
-
-      fn.parsed = tUtil.parse(fn);
     }
 
     return fn;
@@ -95,8 +93,7 @@ export class Util {
     collector.chain
       .reverse()
       .map(t => {
-        let tfn = collector.mapping[t.type]; 
-        return tfn({node:t.parsed}, state)
+        return t.transformer({node:tUtil.parse(t)}, state)
       })
       .reverse()
       .forEach(e => {
@@ -136,7 +133,7 @@ export class Util {
     return Util.computed[collector.key];
   }
 
-  static standardHandler(tr:TransformReference):TransformResponse {
+  static standardTransformer(tr:TransformReference):TransformResponse {
     let params:{[key:string]:AST.Identifier} = {};       
     let pos = m.Id();
     tr.params.push(pos);

@@ -7,7 +7,7 @@ export class ScalarCollector<I,O> implements Collector<I, O> {
   key:string = null
   pure:boolean = true;
 
-  constructor(public mapping:{[type:string]:Transformer}, public source:I[], public chain:Transformable[] = [], public init:O = undefined) {
+  constructor(public source:I[], public chain:Transformable[] = [], public init:O = undefined) {
     this.chain = this.chain.map(fn => {
       let res = Util.annotate(fn);
       this.pure = this.pure && res.pure;
