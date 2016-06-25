@@ -1,13 +1,13 @@
-import {ArrayCollector} from './collector';
+import {ArrayCompilable} from './compilable';
 
 declare global {
   interface Array<T> {
-    r:ArrayCollector<T, T, T>;
+    r:ArrayCompilable<T, T, T>;
   }
 }
 
 Object.defineProperty(Array.prototype, 'r', {
   get : function() {
-    return new ArrayCollector(this);
+    return new ArrayCompilable(this);
   }
 });

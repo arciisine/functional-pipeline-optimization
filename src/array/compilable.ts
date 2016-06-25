@@ -3,7 +3,7 @@ import {CompileUtil, ScalarCompilable } from '../compile';
 import {Transformers} from './transformers';
 import {Macro as m} from '../../node_modules/ecma-ast-transform/src';
 
-export class ArrayCollector<T, U, V> extends ScalarCompilable<T, V[]> {
+export class ArrayCompilable<T, U, V> extends ScalarCompilable<T, V[]> {
   constructor(source:T[], chain:Transformable[] = []) {
     super(source, chain, []);
   }
@@ -12,14 +12,14 @@ export class ArrayCollector<T, U, V> extends ScalarCompilable<T, V[]> {
     return m.Expr(m.Call(m.GetProperty(state.ret, 'push'), state.element))
   }
    
-  filter(fn:(e:V, i?:number)=>boolean, globals?:any):ArrayCollector<T, U, V> {
+  filter(fn:(e:V, i?:number)=>boolean, globals?:any):ArrayCompilable<T, U, V> {
     CompileUtil.tag(fn, Transformers.filter, globals);
-    return new ArrayCollector<T, U, V>(this.source, [...this.chain,fn]);
+    return new ArrayCompilable<T, U, V>(this.source, [...this.chain,fn]);
   }
 
-  map<W>(fn:(e:V, i?:number)=>W, globals?:any):ArrayCollector<T, V, W> {
+  map<W>(fn:(e:V, i?:number)=>W, globals?:any):ArrayCompilable<T, V, W> {
     CompileUtil.tag(fn, Transformers.map, globals);
-    return new ArrayCollector<T, V, W>(this.source, [...this.chain,fn]);
+    return new ArrayCompilable<T, V, W>(this.source, [...this.chain,fn]);
   }
 
   reduce<W>(fn:(acc:W, e:V)=>W, init:W, globals?:any):ScalarCompilable<T, W> {
