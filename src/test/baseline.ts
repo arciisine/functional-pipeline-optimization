@@ -1,4 +1,4 @@
-import {doTest} from '../test';
+import {doTest} from './util';
 
 export function functional(data:number[]) {
     
@@ -23,8 +23,7 @@ export function functional(data:number[]) {
   return [hist, count, evens];
 }
 
-export function procedural(data:number[]) {
-  let hist:{[key:string]:number} = {}
+export function procedural(data:number[], hist = {}, count = 0, evens = []) {
   for (let i = 0; i < data.length; i++) {
     let x = data[i]
     if (x >= 65 && x < 91 || x >= 97 && x < 123) {
@@ -36,7 +35,6 @@ export function procedural(data:number[]) {
     }
   } 
 
-  let count = 0
   for (let i = 0; i < data.length; i++) {
     let x = data[i]
     if (x > 100) {
@@ -45,7 +43,6 @@ export function procedural(data:number[]) {
     }
   }
 
-  let evens = []
   for (let i = 0; i < data.length; i++) {
     let x = data[i]
     if (x % 2 === 0) {
@@ -57,4 +54,44 @@ export function procedural(data:number[]) {
 }
 
 
-//doTest(functional, procedural);
+export function proceduralFunctioned(data:number[]) {
+  let hist = (function(hist) { 
+    for (let i = 0; i < data.length; i++) {
+      let x = data[i]
+      if (x >= 65 && x < 91 || x >= 97 && x < 123) {
+        if (x > 91) {
+          x = x - 32
+        }
+        let ch = String.fromCharCode(x)
+        hist[ch] = (hist[ch] || 0) + 1;
+      }
+    }
+    return hist;
+  })({}); 
+
+  let count = (function(count) {
+    for (let i = 0; i < data.length; i++) {
+      let x = data[i]
+      if (x > 100) {
+        x -= 10
+        count += x
+      }
+    }
+    return count;
+  })(0);
+
+  let evens = (function(evens) {
+    for (let i = 0; i < data.length; i++) {
+      let x = data[i]
+      if (x % 2 === 0) {
+        evens.push(x << 2);
+      }
+    }
+    return evens;
+  })([]);
+
+  return [hist, count, evens]
+}
+
+
+//doTest({functional, procedural});

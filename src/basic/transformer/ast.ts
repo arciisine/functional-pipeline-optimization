@@ -1,5 +1,5 @@
 import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
-import {md5} from '../../md5';
+import {md5} from './md5';
 
 type Ops = 'filter'|'map'|'reduce';
 
@@ -8,6 +8,8 @@ export interface Transformer {
   key? : string,
   id? : number,
   type? : Ops,
+  init?: any,
+  globals?:any,
   pure?: boolean
 }
 
@@ -31,11 +33,14 @@ export interface TransformResponse {
 let cache = {};
 let i = 0;
 
-export let tag = (fn:Transformer, name:Ops) => fn.type = name;
+export function tag(fn:Transformer, name:Ops, globals?:any) {
+  fn.type = name;
+  fn.globals = globals;
+}
 
-export function annotate(fn:Transformer, globals:any):Transformer {
+export function annotate(fn:Transformer):Transformer {
   if (fn.pure === undefined) {
-    fn.pure = checkPurity(fn, globals);
+    fn.pure = checkPurity(fn, fn.globals || {});
   } 
 
   if (fn.pure) {

@@ -1,3 +1,5 @@
+import {Transformer} from './ast';
+
 export class Manual {
   static filter<T>(data:T[], fn:(o:T,i?:number)=>T):T[] {
     return data.filter(fn as any);
@@ -8,6 +10,6 @@ export class Manual {
   }
   
   static reduce<T, U>(data:T[], fn:(acc:U, o:T)=>U):U {
-    return data.reduce(fn, JSON.parse(fn['init']) as U);
+    return data.reduce(fn, JSON.parse((fn as Transformer).init) as U);
   }
 }

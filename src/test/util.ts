@@ -9,26 +9,27 @@ function getData() {
   return data
 }
 
-function test(...tests:((nums:number[])=>void)[]) {
+function test(tests:{[key:string]:(nums:number[])=>void}) {
   let counts = {};
-  tests.forEach(t => counts[t.name] = []);
+  let keys = Object.keys(tests);
+  keys.forEach(t => counts[t] = []);
 
   let time = 0;
   let data = getData();
 
   for (let i = 0; i < 100; i++) {
-    let op = tests[parseInt(Math.random()*tests.length as any)];
+    let k = keys[parseInt(Math.random()*keys.length as any)];
     time = Date.now()
-    op(data)
-    counts[op.name].push(Date.now() - time);
+    tests[k](data)
+    counts[k].push(Date.now() - time);
   }
   let out:{[key:string]:{min:number,max:number,n:number,avg:number}} = {};
-  tests.forEach(k => {
-    out[k.name] = {
-      min : Math.min.apply(null, counts[k.name]),
-      max : Math.max.apply(null, counts[k.name]),
-      n : counts[k.name].length,
-      avg : counts[k.name].reduce((acc, v) => acc+v, 0)/counts[k.name].length
+  keys.forEach(k => {
+    out[k] = {
+      min : Math.min.apply(null, counts[k]),
+      max : Math.max.apply(null, counts[k]),
+      n : counts[k].length,
+      avg : counts[k].reduce((acc, v) => acc+v, 0)/counts[k].length
     }
   });
   return out;
@@ -41,29 +42,32 @@ function log(title, o){
   console.log()
 }
 
-export function doTest(...tests:((nums:number[])=>void)[]) {
+export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
   let out:any[][] = [];
-  tests.forEach(t => {
-    out.push([`All ${t.name}`, test(t)])
+  let keys = Object.keys(tests);
+  keys.forEach(k => {
+    let o:{[key:string]:(nums:number[])=>void} = {};
+    o[k] = tests[k];
+    out.push([`All ${k}`, test(o)])
   })
-  out.push(['Mixed', test(...tests)]);
+  out.push(['Mixed', test(tests)]);
 
   out.forEach(p => {
     log(p[0], p[1]);
   })
 
-  for (let i = 1; i < tests.length; i++) {
-    let a = tests[i-1](data)[0];
-    let b = tests[i](data)[0];
-
-    let eq = areEqual(a,b); 
+  let orig = tests[keys[0]](data);
+  keys.slice(1).reduce((a,b) => {
+    let cur = tests[b](data);
+    let eq = areEqual(cur, orig);;
     if (!eq) {
-      console.log(a);
+      console.log(cur);
       console.log("===============")
-      console.log(b);
+      console.log(orig);
     }
     console.log(eq);
-  }
+    return cur; 
+  }, orig) 
 } 
 
 function areEqual(a, b):boolean {

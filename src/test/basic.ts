@@ -1,4 +1,4 @@
-import {doTest} from '../test';
+import {doTest} from './util';
 import '../basic/source'
 
 export function functional(data:number[]) {    
@@ -77,4 +77,4 @@ export function functionalManual(data:number[]) {
   return [hist, count, evens];
 }
 
-//doTest(functionalManual, functional, functionalRaw)
+//doTest({functionalManual, functional, functionalRaw})
