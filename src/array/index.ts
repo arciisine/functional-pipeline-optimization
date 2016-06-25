@@ -1,2 +1,2 @@
 export * from './transformers';
-export * from './collector';
+export * from './compilable';
