@@ -1,7 +1,6 @@
 import {Transformer} from '../transformer';
 import {Collector} from './collector';
-import {Utils} from '../../lib/ast';
-import * as AST from '../../lib/ast/types';
+import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 export class AnyCollector<T, U> extends Collector<T, U> {
   constructor(protected init:U, source:T[], transformers:Transformer[] = []) {
@@ -11,7 +10,7 @@ export class AnyCollector<T, U> extends Collector<T, U> {
 
   getInitAST() {
     let src = `let a = ${JSON.stringify(this.init)}`;
-    let res = (Utils.parse(src) as any).declarations[0].init;
+    let res = (Transform.parse(src) as any).declarations[0].init;
     return res;
   }
 

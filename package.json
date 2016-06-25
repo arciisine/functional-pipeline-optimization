@@ -10,8 +10,7 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
-    "esprima": "^2.7.2",
-    "lodash": "^4.13.1",
-    "typescript": "^1.9.0-dev.20160611-1.0"
+    "ecma-ast": "git@github.com:arciisine/ecma-ast-transform.git",
+    "typescript": "^1.9.0-dev.20160625-1.0"
   }
 }

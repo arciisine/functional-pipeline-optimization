@@ -1,6 +1,5 @@
 import {Transformer, annotate, Transformers, Manual} from '../transformer';
-import {helper, Utils} from '../../lib/ast';
-import * as AST from '../../lib/ast/types';
+import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 export abstract class Collector<I,O> {
   static cache:{[key:string]:Transformer} = {};
@@ -14,20 +13,20 @@ export abstract class Collector<I,O> {
   }
 
   compute() {
-    let fns = this.transformers.map(x => Utils.parse)
-    let itr = helper.Id();
-    let el = helper.Id();
-    let arr = helper.Id();
-    let temp = helper.Id();
-    let ret = helper.Id()
-    let label = helper.Id()
+    let fns = this.transformers.map(x => Transform.parse)
+    let itr = m.Id();
+    let el = m.Id();
+    let arr = m.Id();
+    let temp = m.Id();
+    let ret = m.Id()
+    let label = m.Id()
 
     let vars:AST.Node[] = []
     let body:AST.Node[] = []
          
     this.transformers
       .reverse()
-      .map(t => Transformers[t['type']](Utils.parse(t), el, ret, label))
+      .map(t => Transformers[t['type']](Transform.parse(t), el, ret, label))
       .reverse()
       .forEach(e => {
         body.push(...e.body)
@@ -41,19 +40,19 @@ export abstract class Collector<I,O> {
     if (init) vars.push(ret, init);
     if (collect) body.push(collect);
 
-    let ast = helper.Func(temp, [arr], [
-      helper.Vars('let', ...vars),
-      helper.Labeled(label,
-        helper.ForLoop(itr, helper.Literal(0), helper.GetProperty(arr, "length"),
+    let ast = m.Func(temp, [arr], [
+      m.Vars('let', ...vars),
+      m.Labeled(label,
+        m.ForLoop(itr, m.Literal(0), m.GetProperty(arr, "length"),
           [
-            helper.Vars('let', el, helper.GetProperty(arr, itr)),
+            m.Vars('let', el, m.GetProperty(arr, itr)),
             ...body
           ]        
         )
       ),
-      helper.Return(ret)
+      m.Return(ret)
     ]);
-    return Utils.compile(ast as any as AST.FunctionExpression, {}) as any
+    return Transform.compile(ast as any as AST.FunctionExpression, {}) as any
   }
 
   exec(data:I[] = this.source):O {
