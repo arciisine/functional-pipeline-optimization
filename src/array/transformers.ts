@@ -1,5 +1,5 @@
-import {Macro as m} from '../../../node_modules/ecma-ast-transform/src';
-import {standardHandler, TransformResponse, TransformReference, TransformState} from './util';
+import {Macro as m} from '../../node_modules/ecma-ast-transform/src';
+import {TransformResponse, TransformReference, TransformState, standardHandler} from './util';
 
 export class Transformers {
   static filter(ref:TransformReference, state:TransformState):TransformResponse {
