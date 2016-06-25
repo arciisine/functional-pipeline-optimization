@@ -1,6 +1,5 @@
 import {Collector} from './collector';
-import {VoidCollector} from './void';
-import {AnyCollector} from './any';
+import {ScalarCollector} from './scalar';
 import {Transformer, tag, TransformState} from '../transformer';
 import {Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
@@ -28,13 +27,23 @@ export class ArrayCollector<T, U, V> extends Collector<T, V[]> {
     return new ArrayCollector<T, V, W>(this.source, [...this.transformers,fn]);
   }
 
-  reduce<W>(fn:(acc:W, e:V)=>W, init:W, globals?:any):AnyCollector<T, W> {
+  reduce<W>(fn:(acc:W, e:V)=>W, init:W, globals?:any):ScalarCollector<T, W> {
     tag(fn, 'reduce', globals);
-    return new AnyCollector<T, W>(init, this.source, [...this.transformers,fn]);
+    return new ScalarCollector<T, W>(this.source, [...this.transformers,fn], init);
   }
 
-  forEach(fn:(e:V, i?:number)=>void, globals?:any):VoidCollector<T, V> {
+  forEach(fn:(e:V, i?:number)=>void, globals?:any):ScalarCollector<T, void> {
     tag(fn, 'forEach', globals);
-    return new VoidCollector<T, V>(this.source, [...this.transformers,fn]);
+    return new ScalarCollector<T, void>(this.source, [...this.transformers,fn]);
+  }
+
+  find(fn:(e:V, i?:number)=>void, globals?:any):ScalarCollector<T, V> {
+    tag(fn, 'find', globals);
+    return new ScalarCollector<T, V>(this.source, [...this.transformers,fn]);
+  }
+
+  some(fn:(e:V, i?:number)=>boolean, globals?:any):ScalarCollector<T, boolean> {
+    tag(fn, 'some', globals);
+    return new ScalarCollector<T, boolean>(this.source, [...this.transformers,fn]);
   }
 }

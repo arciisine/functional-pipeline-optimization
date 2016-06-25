@@ -2,11 +2,11 @@ import {
   Transformer, 
   annotate, 
   Transformers, 
-  Manual, 
-  TransformReference, 
-  TransformResponse,
   TransformState
 } from '../transformer';
+
+import {Manual} from '../manual';
+
 import {AST, Util, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 export abstract class Collector<I,O> {
@@ -42,7 +42,7 @@ export abstract class Collector<I,O> {
     this.transformers
       .reverse()
       .map(t => {
-        let tfn = Transformers[t.type] as (ref:TransformReference, state:TransformState) => TransformResponse; 
+        let tfn = Transformers[t.type]; 
         return tfn({node:Util.parse(t)}, state)
       })
       .reverse()
@@ -93,9 +93,11 @@ export abstract class Collector<I,O> {
   }
 
   execManual(data:I[] = this.source):O {
-    this.transformers.forEach(t => {
+    this.transformers.slice(0, this.transformers.length-1).forEach((t, i) => {
       data = Manual[t.type](data, t);
     })
+    let finalTfn = this.transformers[this.transformers.length - 1];
+    data = Manual[finalTfn.type](data, finalTfn, this['init'] || undefined);
     return data as any as O;
   }
 }

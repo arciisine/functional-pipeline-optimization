@@ -1,7 +1,7 @@
 import {AST, Util, Macro as m, Visitor} from '../../../node_modules/ecma-ast-transform/src';
 import {md5} from './md5';
 
-type Ops = 'filter'|'map'|'reduce'|'forEach';
+type Ops = 'filter'|'map'|'reduce'|'forEach'|'find'|'some';
 
 export interface Transformer {
   (...args:any[]):any,
@@ -101,25 +101,5 @@ export function standardHandler(tr:TransformReference):TransformResponse {
   return {
     body : plen > min ? [body, m.Expr(m.Increment(pos))] : [body],
     vars : plen > min ? [pos, m.Literal(0)] : []
-  }
-}
-
-export class Transformers {
-  static filter(ref:TransformReference, state:TransformState):TransformResponse {
-    ref.params = [state.element];
-    ref.onReturn = node => m.IfThen(m.Negate(node.argument), [m.Continue(state.continueLabel)]);
-    return standardHandler(ref);
-  }
-
-  static map(ref:TransformReference, state:TransformState):TransformResponse {
-    ref.params = [state.element];
-    ref.onReturn = node => m.Expr(m.Assign(state.element, node.argument));
-    return standardHandler(ref);
-  }
-  
-  static reduce(ref:TransformReference, state:TransformState):TransformResponse {
-    ref.params = [state.ret, state.element];
-    ref.onReturn = node => m.Expr(m.Assign(state.ret, node.argument));
-    return standardHandler(ref);
   }
 }
