@@ -1,7 +1,7 @@
 import {Collector} from './collector';
 import {AnyCollector} from './any';
 import {Transformer, tag, TransformState} from '../transformer';
-import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
+import {Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 
 export class ArrayCollector<T, U, V> extends Collector<T, V[]> {

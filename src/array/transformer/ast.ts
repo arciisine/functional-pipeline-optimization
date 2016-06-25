@@ -1,4 +1,4 @@
-import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
+import {AST, Util, Macro as m, Visitor} from '../../../node_modules/ecma-ast-transform/src';
 import {md5} from './md5';
 
 type Ops = 'filter'|'map'|'reduce';
@@ -71,7 +71,7 @@ export function checkPurity(fn:Transformer, globals:any = {}):boolean {
   let readId = (p:AST.Pattern) => p.type === "Identifier" ? p['name'] : (p as AST.Identifier).name;
 
   try {
-    Transform.visit(Transform.visitor({
+    new Visitor({
       ArrowFunctionExpression : (x:AST.ArrowExpression) => {
         x.params.forEach(p => {
           found[readId(p)] = true;
@@ -97,7 +97,7 @@ export function checkPurity(fn:Transformer, globals:any = {}):boolean {
           throw new Error(`Read before declare ${x.name}`); 
         }
       }
-    }), Transform.parse(fn));
+    }).exec(Util.parse(fn));
     return true;
   } catch (e) {
     console.log(e);
@@ -114,7 +114,7 @@ export function standardHandler(tr:TransformReference):TransformResponse {
     tr.node = (tr.node as AST.ExpressionStatement).expression;
   }
 
-  let res = Transform.visit(Transform.visitor({
+  let res = new Visitor({
     FunctionExpression : (node:AST.FunctionExpression) => {
       node.params.forEach((p,i) => params[(p as AST.Identifier).name] = tr.params[i]);
       return node;
@@ -135,7 +135,7 @@ export function standardHandler(tr:TransformReference):TransformResponse {
     Identifier : x => {
       return params[x.name] || x;
     }
-  }), tr.node) as (AST.FunctionExpression|AST.ArrowExpression);
+  }).exec(tr.node) as (AST.FunctionExpression|AST.ArrowExpression);
 
   let plen = Object.keys(params).length;
   let body = res.body

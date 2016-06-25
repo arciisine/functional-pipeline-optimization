@@ -7,7 +7,7 @@ import {
   TransformResponse,
   TransformState
 } from '../transformer';
-import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
+import {AST, Util, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 export abstract class Collector<I,O> {
   static cache:{[key:string]:Transformer} = {};
@@ -26,7 +26,6 @@ export abstract class Collector<I,O> {
   }
 
   compute() {
-    let fns = this.transformers.map(x => Transform.parse)
     let itr = m.Id();
     let arr = m.Id();
     let temp = m.Id();
@@ -44,7 +43,7 @@ export abstract class Collector<I,O> {
       .reverse()
       .map(t => {
         let tfn = Transformers[t.type] as (ref:TransformReference, state:TransformState) => TransformResponse; 
-        return tfn({node:Transform.parse(t)}, state)
+        return tfn({node:Util.parse(t)}, state)
       })
       .reverse()
       .forEach(e => {
@@ -71,7 +70,7 @@ export abstract class Collector<I,O> {
       ),
       m.Return(state.ret)
     ]);
-    return Transform.compile(ast as any as AST.FunctionExpression, {}) as any
+    return Util.compile(ast as any as AST.FunctionExpression, {}) as any
   }
 
   getComputed() {
