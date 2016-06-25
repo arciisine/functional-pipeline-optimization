@@ -1,6 +1,6 @@
 import {Collector} from './collector';
 import {AnyCollector} from './any';
-import {Transformer, tag} from '../transformer';
+import {Transformer, tag, TransformState} from '../transformer';
 import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 
@@ -9,12 +9,12 @@ export class ArrayCollector<T, U, V> extends Collector<T, V[]> {
     super(source, transformers);
   }
 
-  getInitAST() {
+  getInitAST(state:TransformState) {
     return m.Array();
   }
 
-  getCollectAST(ret:AST.Identifier, el:AST.Identifier) {
-    return m.Expr(m.Call(m.GetProperty(ret, 'push'), el))
+  getCollectAST(state:TransformState) {
+    return m.Expr(m.Call(m.GetProperty(state.ret, 'push'), state.element))
   }
    
   filter(fn:(e:V, i?:number)=>boolean):ArrayCollector<T, U, V> {

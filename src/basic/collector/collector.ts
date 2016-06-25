@@ -1,12 +1,20 @@
-import {Transformer, annotate, Transformers, Manual, TransformReference, TransformResponse} from '../transformer';
+import {
+  Transformer, 
+  annotate, 
+  Transformers, 
+  Manual, 
+  TransformReference, 
+  TransformResponse,
+  TransformState
+} from '../transformer';
 import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 export abstract class Collector<I,O> {
   static cache:{[key:string]:Transformer} = {};
 
   protected key:string = null
-  abstract getInitAST()
-  abstract getCollectAST(ret:AST.Identifier, el:AST.Identifier)
+  abstract getInitAST(state:TransformState)
+  abstract getCollectAST(state:TransformState)
 
   constructor(protected source:I[], protected transformers:Transformer[] = []) {
     this.transformers = this.transformers.map(annotate);
@@ -15,11 +23,14 @@ export abstract class Collector<I,O> {
   compute() {
     let fns = this.transformers.map(x => Transform.parse)
     let itr = m.Id();
-    let el = m.Id();
     let arr = m.Id();
     let temp = m.Id();
-    let ret = m.Id()
-    let label = m.Id()
+
+    let state:TransformState = {
+      element: m.Id(),
+      continueLabel : m.Id(),
+      ret : m.Id()
+    }; 
 
     let vars:AST.Node[] = []
     let body:AST.Node[] = []
@@ -27,8 +38,8 @@ export abstract class Collector<I,O> {
     this.transformers
       .reverse()
       .map(t => {
-        let tfn = Transformers[t['type']] as ((ref:TransformReference) => TransformResponse)
-        return tfn({node:Transform.parse(t), element:el, ret, continueLabel:label})
+        let tfn = Transformers[t['type']] as (ref:TransformReference, state:TransformState) => TransformResponse; 
+        return tfn({node:Transform.parse(t)}, state)
       })
       .reverse()
       .forEach(e => {
@@ -37,23 +48,23 @@ export abstract class Collector<I,O> {
       }); 
 
     //Handle collector
-    let collect = this.getCollectAST(ret, el);
-    let init = this.getInitAST()
+    let collect = this.getCollectAST(state);
+    let init = this.getInitAST(state)
 
-    if (init) vars.push(ret, init);
+    if (init) vars.push(state.ret, init);
     if (collect) body.push(collect);
 
     let ast = m.Func(temp, [arr], [
       m.Vars('let', ...vars),
-      m.Labeled(label,
+      m.Labeled(state.continueLabel,
         m.ForLoop(itr, m.Literal(0), m.GetProperty(arr, "length"),
           [
-            m.Vars('let', el, m.GetProperty(arr, itr)),
+            m.Vars('let', state.element, m.GetProperty(arr, itr)),
             ...body
           ]        
         )
       ),
-      m.Return(ret)
+      m.Return(state.ret)
     ]);
     return Transform.compile(ast as any as AST.FunctionExpression, {}) as any
   }

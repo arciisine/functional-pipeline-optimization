@@ -9,11 +9,14 @@ export let tag = (fn, name) => fn['type'] = name;
 
 export interface TransformReference {
   node:AST.Node,
+  params?:AST.Identifier[],
+  onReturn?:(node:AST.ReturnStatement)=>AST.Node
+}
+
+export interface TransformState {
   element:AST.Identifier,
   ret?:AST.Identifier
-  continueLabel?:AST.Identifier,
-  params?:AST.Identifier[],
-  onReturn?:(node:AST.ReturnStatement)=>AST.Node  
+  continueLabel?:AST.Identifier    
 }
 
 export interface TransformResponse {
@@ -86,21 +89,21 @@ function standardHandler(tr:TransformReference):TransformResponse {
 }
 
 export class Transformers {
-  static filter(ref:TransformReference):TransformResponse {
-    ref.params = [ref.element];
-    ref.onReturn = node => m.IfThen(m.Negate(node.argument), [m.Continue(ref.continueLabel)]);
+  static filter(ref:TransformReference, state:TransformState):TransformResponse {
+    ref.params = [state.element];
+    ref.onReturn = node => m.IfThen(m.Negate(node.argument), [m.Continue(state.continueLabel)]);
     return standardHandler(ref);
   }
 
-  static map(ref:TransformReference):TransformResponse {
-    ref.params = [ref.element];
-    ref.onReturn = node => m.Expr(m.Assign(ref.element, node.argument));
+  static map(ref:TransformReference, state:TransformState):TransformResponse {
+    ref.params = [state.element];
+    ref.onReturn = node => m.Expr(m.Assign(state.element, node.argument));
     return standardHandler(ref);
   }
   
-  static reduce(ref:TransformReference):TransformResponse {
-    ref.params = [ref.ret, ref.element];
-    ref.onReturn = node => m.Expr(m.Assign(ref.ret, node.argument));
+  static reduce(ref:TransformReference, state:TransformState):TransformResponse {
+    ref.params = [state.ret, state.element];
+    ref.onReturn = node => m.Expr(m.Assign(state.ret, node.argument));
     return standardHandler(ref);
   }
 }
