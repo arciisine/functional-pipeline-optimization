@@ -1,7 +1,7 @@
 import {AST, Util as tUtil, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
 import {md5} from './md5';
 
-export interface Transformer {
+export interface Transformable {
   (...args:any[]):any,
   key? : string,
   id? : number,
@@ -10,6 +10,10 @@ export interface Transformer {
   globals?:any,
   pure?: boolean,
   parsed?:AST.Node
+}
+
+export interface Transformer {
+  (ref:TransformReference, state:TransformState):TransformResponse
 }
 
 export interface TransformReference {
@@ -32,20 +36,23 @@ export interface TransformResponse {
 export interface Collector<I, O> {
   key:string;
   pure:boolean;
-  transformers:Transformer[],
-  mapping:{[type:string]:(...args:any)=>AST.Node}
+  chain:Transformable[],
+  mapping:{[type:string]:Transformer}
+  getCollectAST(state:TransformState):AST.Node
+  getInitAST(state:TransformState):AST.Node
 }
 
 export class Util {
-  private static computed:{[key:string]:Transformer} = {};
-  private static annotated:{[key:string]:Transformer} = {};
+  private static i = 0;
+  private static computed:{[key:string]:Transformable} = {};
+  private static annotated:{[key:string]:Transformable} = {};
 
-  static tag(fn:Transformer, name:string, globals?:any) {
+  static tag(fn:Transformable, name:string, globals?:any) {
     fn.type = name;
     fn.globals = globals;
   }
 
-  static annotate(fn:Transformer):Transformer {
+  static annotate(fn:Transformable):Transformable {
     if (fn.pure === undefined) {
       fn.pure = tUtil.isPureFunction(fn, fn.globals || {});
     } 
@@ -62,7 +69,7 @@ export class Util {
       }
 
       if (!fn.id) {
-        fn.id = i++;
+        fn.id = Util.i++;
       }
 
       fn.parsed = tUtil.parse(fn);
@@ -71,7 +78,7 @@ export class Util {
     return fn;
   }
 
-  static compute(collector:Collector<I, O>):(i:I)=>O {
+  static compute<I,O>(collector:Collector<I, O>):(i:I)=>O {
     let itr = m.Id();
     let arr = m.Id();
     let temp = m.Id();
@@ -85,7 +92,7 @@ export class Util {
     let vars:AST.Node[] = []
     let body:AST.Node[] = []
          
-    collector.transformers
+    collector.chain
       .reverse()
       .map(t => {
         let tfn = collector.mapping[t.type]; 
@@ -119,9 +126,9 @@ export class Util {
     return tUtil.compile(ast as any as AST.FunctionExpression, {}) as any
   }
 
-  static getComputed(collector:Collector<I, O>):(i:I)=>O {
+  static getComputed<I,O>(collector:Collector<I, O>):(i:I)=>O {
     if (collector.key === null) {
-      collector.key = collector.transformers.map(x => x.id).join('|');
+      collector.key = collector.chain.map(x => x.id).join('|');
     }
     if (!Util.computed[collector.key]) {
       Util.computed[collector.key] = Util.compute(collector); 

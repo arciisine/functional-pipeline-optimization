@@ -1,15 +1,14 @@
 import {AST, Util as tUtil} from '../../node_modules/ecma-ast-transform/src';
 
-import { Transformers } from './transformers';
-import { Util, Collector, Transformer, TransformState } from './util';
+import { Util, Collector, Transformer, Transformable, TransformState } from './util';
 
-export class ScalarCollector<I,O> {
+export class ScalarCollector<I,O> implements Collector<I, O> {
 
-  protected key:string = null
-  protected pure:boolean = true;
+  key:string = null
+  pure:boolean = true;
 
-  constructor(protected mapping:{[type:string]:Transformer}, protected source:I[], protected transformers:Transformer[] = [], protected init:O = undefined) {
-    this.transformers = this.transformers.map(fn => {
+  constructor(public mapping:{[type:string]:Transformer}, public source:I[], public chain:Transformable[] = [], public init:O = undefined) {
+    this.chain = this.chain.map(fn => {
       let res = Util.annotate(fn);
       this.pure = this.pure && res.pure;
       return res;
@@ -29,6 +28,6 @@ export class ScalarCollector<I,O> {
   }
 
   exec(data:I[] = this.source):O {
-    return Util.getComputed(this, Transformers).call(this, data);
+    return Util.getComputed(this).call(this, data);
   }
 }

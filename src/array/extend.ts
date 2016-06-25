@@ -1,4 +1,4 @@
-import {ArrayCollector} from './collector/array';
+import {ArrayCollector} from './collector';
 
 declare global {
   interface Array<T> {
