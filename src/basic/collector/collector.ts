@@ -1,4 +1,4 @@
-import {Transformer, annotate, Transformers, Manual} from '../transformer';
+import {Transformer, annotate, Transformers, Manual, TransformReference, TransformResponse} from '../transformer';
 import {AST, Transform, Macro as m} from '../../../node_modules/ecma-ast-transform/src';
 
 export abstract class Collector<I,O> {
@@ -26,7 +26,10 @@ export abstract class Collector<I,O> {
          
     this.transformers
       .reverse()
-      .map(t => Transformers[t['type']](Transform.parse(t), el, ret, label))
+      .map(t => {
+        let tfn = Transformers[t['type']] as ((ref:TransformReference) => TransformResponse)
+        return tfn({node:Transform.parse(t), element:el, ret, continueLabel:label})
+      })
       .reverse()
       .forEach(e => {
         body.push(...e.body)

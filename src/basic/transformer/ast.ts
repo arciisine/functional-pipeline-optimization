@@ -7,7 +7,16 @@ export interface Transformer {
 
 export let tag = (fn, name) => fn['type'] = name;
 
-export interface Response {
+export interface TransformReference {
+  node:AST.Node,
+  element:AST.Identifier,
+  ret?:AST.Identifier
+  continueLabel?:AST.Identifier,
+  params?:AST.Identifier[],
+  onReturn?:(node:AST.ReturnStatement)=>AST.Node  
+}
+
+export interface TransformResponse {
   body:AST.Node[],
   vars:AST.Node[]
 }
@@ -32,20 +41,20 @@ export let annotate = (function() {
 
     return fn;
   };
-})()
+})();
 
-function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifier[], onReturn:(node:AST.ReturnStatement)=>AST.Node):Response {
+function standardHandler(tr:TransformReference):TransformResponse {
   let params:{[key:string]:AST.Identifier} = {};       
   let pos = m.Id();
-  fnParams.push(pos);
+  tr.params.push(pos);
 
-  if (node.type === 'ExpressionStatement') {
-    node = (node as AST.ExpressionStatement).expression;
+  if (tr.node.type === 'ExpressionStatement') {
+    tr.node = (tr.node as AST.ExpressionStatement).expression;
   }
 
   let res = Transform.visit(Transform.visitor({
     FunctionExpression : (node:AST.FunctionExpression) => {
-      node.params.forEach((p,i) => params[(p as AST.Identifier).name] = fnParams[i]);
+      node.params.forEach((p,i) => params[(p as AST.Identifier).name] = tr.params[i]);
       return node;
     },
     ArrowFunctionExpression : (node:AST.ArrowExpression) => {
@@ -54,21 +63,21 @@ function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifi
       }
       node.params.forEach((p,i) => {
         let name = (p as AST.Identifier).name;
-        params[name] = fnParams[i]
+        params[name] = tr.params[i]
       })
       return node;
     },
     ReturnStatement : x => {
-      return onReturn(x);
+      return tr.onReturn(x);
     },
     Identifier : x => {
       return params[x.name] || x;
     }
-  }), node) as (AST.FunctionExpression|AST.ArrowExpression);
+  }), tr.node) as (AST.FunctionExpression|AST.ArrowExpression);
 
   let plen = Object.keys(params).length;
   let body = res.body
-  let min = fnParams.length - 1;
+  let min = tr.params.length - 1;
 
   return {
     body : plen > min ? [body, m.Expr(m.Increment(pos))] : [body],
@@ -77,21 +86,21 @@ function standardHandler(node:AST.Node, el:AST.Identifier, fnParams:AST.Identifi
 }
 
 export class Transformers {
-  static filter(node:AST.Node, el:AST.Identifier, ret:AST.Identifier, continueLabel:AST.Identifier):Response {
-    return standardHandler(node, el, [el], node => {
-      return m.IfThen(m.Negate(node.argument), [m.Continue(continueLabel)]);
-    })
+  static filter(ref:TransformReference):TransformResponse {
+    ref.params = [ref.element];
+    ref.onReturn = node => m.IfThen(m.Negate(node.argument), [m.Continue(ref.continueLabel)]);
+    return standardHandler(ref);
   }
 
-  static map(node:AST.Node, el:AST.Identifier, ret:AST.Identifier, continueLabel:AST.Identifier):Response {
-    return standardHandler(node, el, [el], node => {
-      return m.Expr(m.Assign(el, node.argument));
-    })
+  static map(ref:TransformReference):TransformResponse {
+    ref.params = [ref.element];
+    ref.onReturn = node => m.Expr(m.Assign(ref.element, node.argument));
+    return standardHandler(ref);
   }
   
-  static reduce(node:AST.Node, el:AST.Identifier, ret:AST.Identifier, continueLabel:AST.Identifier):Response {
-    return standardHandler(node, el, [ret, el], node => {
-      return m.Expr(m.Assign(ret, node.argument));
-    })
+  static reduce(ref:TransformReference):TransformResponse {
+    ref.params = [ref.ret, ref.element];
+    ref.onReturn = node => m.Expr(m.Assign(ref.ret, node.argument));
+    return standardHandler(ref);
   }
 }
