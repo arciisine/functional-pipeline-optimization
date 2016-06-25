@@ -74,19 +74,23 @@ export abstract class Collector<I,O> {
     return Transform.compile(ast as any as AST.FunctionExpression, {}) as any
   }
 
-  exec(data:I[] = this.source):O {
-    //Short circuit if dealing with impure functions
-    if (!this.pure) {
-      return this.execManual(data);
-    }
-
+  getComputed() {
     if (this.key === null) {
       this.key = this.transformers.map(x => x.id).join('|');
     }
     if (!Collector.cache[this.key]) {
       Collector.cache[this.key] = this.compute(); 
     }
-    return Collector.cache[this.key].call(this, data);
+    return Collector.cache[this.key];
+  }
+
+  exec(data:I[] = this.source):O {
+    //Short circuit if dealing with impure functions
+    if (!this.pure) {
+      return this.execManual(data);
+    } else {
+      return this.getComputed().call(this, data);
+    }
   }
 
   execManual(data:I[] = this.source):O {

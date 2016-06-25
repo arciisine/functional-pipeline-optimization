@@ -65,7 +65,7 @@ export function annotate(fn:Transformer):Transformer {
 declare var global,window;
 let _global = global || window;
 
-export function checkPurity(fn:Transformer, globals:any):boolean {
+export function checkPurity(fn:Transformer, globals:any = {}):boolean {
   let found = {};
 
   let readId = (p:AST.Pattern) => p.type === "Identifier" ? p['name'] : (p as AST.Identifier).name;
