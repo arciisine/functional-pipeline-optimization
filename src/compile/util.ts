@@ -1,27 +1,30 @@
-import {AST, Util as tUtil, Macro as m} from '../../node_modules/ecma-ast-transform/src';
+import {AST, Util, Macro as m} from '../../node_modules/ecma-ast-transform/src';
 import {md5} from './md5';
 import {Transformable, Transformer, TransformState} from '../transform';
-import {Compilable} from './types';
+import {Compilable } from './types';
 
 export class CompileUtil {
-  private static i = 0;
-  private static computed:{[key:string]:Transformable} = {};
-  private static annotated:{[key:string]:Transformable} = {};
+  private static id = 0;
+  private static computed:{[key:string]:(...args:any[])=>any = {};
+  private static annotated:{[key:string]:Transformable<any, any>} = {};
 
-  static tag(fn:Transformable, transformer:Transformer, name?:string, globals?:any) {
-    fn.globals = globals;
-    fn.transformer = transformer;
-    fn.type = name || transformer.name;
+  static tag<I,O>(fn:(...args:any[])=>any, config:any) {
+    return {
+      raw  : fn,
+      globals : config.globals,
+      manual : config.manual,
+      transformer : config.transformer
+    };
   }
 
-  static annotate(fn:Transformable):Transformable {
+  static annotate<I, O>(fn:Transformable<I,O>):Transformable<I,O> {
     if (fn.pure === undefined) {
-      fn.pure = tUtil.isPureFunction(fn, fn.globals || {});
+      fn.pure = Util.isPureFunction(fn.raw, fn.globals || {});
     } 
 
     if (fn.pure) {
       if (!fn.key) {
-        fn.key = md5(fn.toString());
+        fn.key = md5(fn.raw.toString());
       }
 
       if (CompileUtil.annotated[fn.key]) {
@@ -31,7 +34,7 @@ export class CompileUtil {
       }
 
       if (!fn.id) {
-        fn.id = CompileUtil.i++;
+        fn.id = CompileUtil.id++;
       }
     }
 
@@ -55,7 +58,7 @@ export class CompileUtil {
     collector.chain
       .reverse()
       .map(t => {
-        return t.transformer({node:tUtil.parse(t)}, state)
+        return t.transformer({node:Util.parse(t.raw)}, state)
       })
       .reverse()
       .forEach(e => {
@@ -82,7 +85,7 @@ export class CompileUtil {
       ),
       m.Return(state.ret)
     ]);
-    return tUtil.compile(ast as any as AST.FunctionExpression, {}) as any
+    return Util.compile(ast as any as AST.FunctionExpression, {}) as any
   }
 
   static getCompiled<I,O>(collector:Compilable<I, O>):(i:I)=>O {
@@ -94,6 +97,4 @@ export class CompileUtil {
     }
     return CompileUtil.computed[collector.key];
   }
-
-
 }

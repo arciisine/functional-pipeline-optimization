@@ -10,7 +10,7 @@ export class ScalarCompilable<I,O> implements Compilable<I, O> {
   key:string = null
   pure:boolean = true;
 
-  constructor(public source:I[], public chain:Transformable[] = [], 
+  constructor(public source:I[], public chain:Transformable<any, any>[] = [], 
     private init:Convert|O = null, 
     private collect:Convert = null
   ) {
