@@ -1,6 +1,8 @@
 import {AST, Util, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
-import {Transformers} from '../array';
+import {SUPPORTED} from '../array';
 
+let supported = {};
+SUPPORTED.forEach( k => supported[k] = true )
 
 export function rewriteBody(content:string) {
   let body = Util.parseExpression<AST.Node>(content);
@@ -11,7 +13,7 @@ export function rewriteBody(content:string) {
     MemberExpression : (x:AST.MemberExpression, visitor:Visitor) => {
       if (x.property.type === 'Identifier'){ 
         let name = (x.property as AST.Identifier).name;
-        if (Transformers[name]) {
+        if (supported[name]) {
           let container = visitor.findParent(x => !Array.isArray(x.node) && containers[(x.node as AST.Node).type] )
           container['rewrite'] = true;
         }

@@ -42,4 +42,8 @@ export class ScalarCompilable<I,O> implements Compilable<I, O> {
   exec(data:I[] = this.source):O {
     return CompileUtil.getCompiled(this).call(this, data);
   }
+
+  execManual(data:I[] = this.source):O {
+    return this.chain.reduce((data, fn) => fn.manual(data), data) as any as O;
+  }
 }

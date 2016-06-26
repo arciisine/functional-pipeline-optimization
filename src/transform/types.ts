@@ -21,14 +21,14 @@ export interface TransformResponse {
   vars:AST.Node[]
 }
 
-export interface Transformable<I, O> {
-  raw:(...args:any[])=>any,
-  args?:any[]
-  manual?:(i:I, ...args:any[])=>O,
-  transformer?:Transformer,
-  key? : string,
-  id? : number,
-  init?: any,
-  globals?:any,
-  pure?: boolean
+export abstract class Transformable<I, O> {
+
+  key: string;
+  id: number;
+  pure: boolean;
+
+  constructor (public raw:(...args:any[])=>any, public globals?:any) {}
+
+  abstract transformer(ref:TransformReference, state:TransformState):TransformResponse;
+  abstract manual(data:I):O;
 }

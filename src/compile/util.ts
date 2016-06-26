@@ -5,7 +5,7 @@ import {Compilable } from './types';
 
 export class CompileUtil {
   private static id = 0;
-  private static computed:{[key:string]:(...args:any[])=>any = {};
+  private static computed:{[key:string]:(...args:any[])=>any} = {};
   private static annotated:{[key:string]:Transformable<any, any>} = {};
 
   static tag<I,O>(fn:(...args:any[])=>any, config:any) {
