@@ -78,6 +78,6 @@ export function functionalManual(data:number[]) {
   return [hist, count, evens];
 }
 
-console.log(rewriteBody(functional.toString()))
+//console.log(rewriteBody(functional.toString()))
 
-//doTest({functionalManual, functional, functionalRaw})
+doTest({functional, functionalRaw})

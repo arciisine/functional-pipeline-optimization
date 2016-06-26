@@ -26,8 +26,7 @@ export abstract class Transformable<I, O> {
   key: string;
   id: number;
   pure: boolean;
-
-  constructor (public raw:(...args:any[])=>any, public globals?:any) {}
+  constructor(public raw:(...args:any[])=>any, public globals?:any) {}
 
   abstract transformer(ref:TransformReference, state:TransformState):TransformResponse;
   abstract manual(data:I):O;
