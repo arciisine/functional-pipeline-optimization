@@ -32,8 +32,11 @@ export class MapTransform<T, U> extends Transformable<T[], U[]> {
 }
 
 export class ReduceTransform<T, U> extends Transformable<T[], U> {
-  constructor(raw, globals, public init:U = null) {
+  private initRaw:string;
+
+  constructor(raw, globals, init:U = null) {
     super(raw, globals)
+    this.initRaw = JSON.stringify(init);
   }
   transformer(ref:TransformReference, state:TransformState):TransformResponse  {
     ref.params = [state.ret, state.element];
@@ -41,7 +44,7 @@ export class ReduceTransform<T, U> extends Transformable<T[], U> {
     return TransformUtil.standardTransformer(ref);
   }
   manual(data:T[]):U { 
-     return data.reduce(this.raw, this.init); 
+     return data.reduce(this.raw, JSON.parse(this.initRaw)); 
   }
 }
 

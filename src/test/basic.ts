@@ -1,6 +1,6 @@
 import {doTest} from './util';
 import {rewriteBody} from '../body';
-import '../array/source'
+import '../array/extend'
 
 export function functional(data:number[]) {    
   let hist = data.r
@@ -80,4 +80,4 @@ export function functionalManual(data:number[]) {
 
 //console.log(rewriteBody(functional.toString()))
 
-doTest({functional, functionalRaw})
+doTest({functionalManual, functional, functionalRaw})
