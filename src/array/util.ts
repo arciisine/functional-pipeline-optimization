@@ -1,7 +1,8 @@
-import {AST, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
-import {TransformReference, TransformResponse} from './types';
+import {AST, Macro as m, Visitor, Util} from '../../node_modules/ecma-ast-transform/src';
+import {TransformReference, TransformResponse } from '../transform';
+import {Compilable, CompileUtil} from '../compile';
 
-export class TransformUtil {
+export class ArrayUtil {
   static standardTransformer(tr:TransformReference):TransformResponse {
     let params:{[key:string]:AST.Identifier} = {};       
     let pos = m.Id();

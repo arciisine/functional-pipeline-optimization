@@ -1,19 +1,13 @@
 import {AST} from '../../node_modules/ecma-ast-transform/src';
 
 export interface Transformer {
-  (ref:TransformReference, state:TransformState):TransformResponse
+  <T>(ref:TransformReference, state:T):TransformResponse
 }
 
 export interface TransformReference {
   node:AST.Node,
   params?:AST.Identifier[],
   onReturn?:(node:AST.ReturnStatement)=>AST.Node
-}
-
-export interface TransformState {
-  element:AST.Identifier,
-  ret?:AST.Identifier
-  continueLabel?:AST.Identifier    
 }
 
 export interface TransformResponse {
@@ -28,6 +22,6 @@ export abstract class Transformable<I, O> {
   pure: boolean;
   constructor(public raw:(...args:any[])=>any, public globals?:any) {}
 
-  abstract transformer(ref:TransformReference, state:TransformState):TransformResponse;
+  abstract transformer<T>(ref:TransformReference, state:T):TransformResponse;
   abstract manual(data:I):O;
 }
