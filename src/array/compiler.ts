@@ -25,6 +25,7 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
     if (last instanceof ScalarTransformable) {
       res.vars.push(state.returnValueId, last.init(state));
     }
+    console.log(last.raw.toString());
     return res;
   }
 

@@ -42,10 +42,15 @@ export class Compilable<I,O>  {
       this.key = compilable.key;
     }
     if (toAdd) {
-      let res = Compilable.annotate(toAdd);
-      this.chain.push(res);
-      this.pure = this.pure && res.pure;
-      this.key = `${this.key}|${res.id}`;
+      this.add(toAdd);
     }
+  }
+
+  add(toAdd?:Transformable<any, any>):this {
+    let res = Compilable.annotate(toAdd);
+    this.chain.push(res);
+    this.pure = this.pure && res.pure;
+    this.key = `${this.key}|${res.id}`;
+    return this;
   }
 }

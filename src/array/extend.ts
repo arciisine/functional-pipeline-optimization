@@ -1,5 +1,6 @@
 import {ArrayCompilable} from './compilable';
 import  {ArrayCompiler} from './compiler';
+import * as Transform from './transform';
 
 declare global {
   interface Array<T> {
@@ -20,32 +21,32 @@ class ArrayProxy<T> implements BaseProxy<T> {
   constructor(protected data:T[]) {}
 
   filter(fn:(v:T, i?:number)=>boolean):ArrayProxy<T> {
-    this.compilable = this.compilable.filter(fn);
+    this.compilable.add(new Transform.FilterTransform(fn, null));
     return this;
   }
 
   map<W>(fn:(v:T, i?:number)=>W):ArrayProxy<W> {
-    this.compilable = this.compilable.map(fn) as any;
+    this.compilable.add(new Transform.MapTransform(fn, null));
     return this as any;
   }
 
   reduce<W>(fn:(acc:W, v:T, i?:number, arr?:T[])=>W, init?:W):BaseProxy<W> {
-    this.compilable = this.compilable.reduce(fn, null, init) as any;
+    this.compilable.add(new Transform.ReduceTransform(fn, null, init));
     return this as any;
   }
 
   forEach(fn:(v:T, i?:number)=>void):BaseProxy<void> {
-    this.compilable = this.compilable.forEach(fn) as any;
+    this.compilable.add(new Transform.ForEachTransform(fn, null));
     return this as any;
   }
 
   find(fn:(v:T, i?:number, arr?:T[])=>boolean):BaseProxy<T> {
-    this.compilable = this.compilable.find(fn) as any;
+    this.compilable.add(new Transform.FindTransform(fn, null));
     return this as any;
   }
 
   some(fn:(v:T, i?:number)=>boolean):BaseProxy<boolean> {
-    this.compilable = this.compilable.some(fn) as any;
+    this.compilable.add(new Transform.SomeTransform(fn, null));
     return this as any;
   }
 
