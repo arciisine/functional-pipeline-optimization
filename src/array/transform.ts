@@ -1,11 +1,11 @@
 import { AST, Macro as m } from '../../node_modules/ecma-ast-transform/src';
-import { TransformResponse, TransformReference, Transformable } from '../transform';
+import { TransformResponse, TransformReference } from '../transform';
 import { ArrayUtil } from './util'
-import { TransformState } from './types';
+import { TransformState, ScalarTransformable, ArrayTransformable } from './types';
 
 export const SUPPORTED = ['filter', 'map', 'reduce', 'forEach', 'find' ,'some'];
 
-export class FilterTransform<T> extends Transformable<T[], T[]> {
+export class FilterTransform<T> extends ArrayTransformable<T, T> {
   transformer(ref:TransformReference, state:TransformState):TransformResponse  {
     ref.params = [state.elementId];
     ref.onReturn = node => m.IfThen(m.Negate(node.argument), [m.Continue(state.continueLabel)]);
@@ -16,7 +16,7 @@ export class FilterTransform<T> extends Transformable<T[], T[]> {
   }
 }
 
-export class MapTransform<T, U> extends Transformable<T[], U[]> {
+export class MapTransform<T, U> extends ArrayTransformable<T, U> {
   transformer(ref:TransformReference, state:TransformState):TransformResponse  {
     ref.params = [state.elementId];
     ref.onReturn = node => m.Expr(m.Assign(state.elementId, node.argument));
@@ -27,14 +27,7 @@ export class MapTransform<T, U> extends Transformable<T[], U[]> {
   }
 }
 
-export class ReduceTransform<T, U> extends Transformable<T[], U> {
-  private initRaw:string;
-
-  constructor(raw, globals, init:U = null) {
-    super(raw, globals)
-    this.initRaw = JSON.stringify(init);
-  }
-
+export class ReduceTransform<T, U> extends ScalarTransformable<T, U> {
   transformer(ref:TransformReference, state:TransformState):TransformResponse  {
     ref.params = [state.returnValueId, state.elementId];
     ref.onReturn = node => m.Expr(m.Assign(state.returnValueId, node.argument));
@@ -45,7 +38,7 @@ export class ReduceTransform<T, U> extends Transformable<T[], U> {
   }
 }
 
-export class ForEachTransform<T> extends Transformable<T[], void> {
+export class ForEachTransform<T> extends ScalarTransformable<T, void> {
   transformer(ref:TransformReference, state:TransformState):TransformResponse  {
     ref.params = [state.elementId];
     ref.onReturn = node => m.Continue(state.continueLabel);
@@ -56,7 +49,7 @@ export class ForEachTransform<T> extends Transformable<T[], void> {
   }
 }
 
-export class FindTransform<T> extends Transformable<T[], T> {
+export class FindTransform<T> extends ScalarTransformable<T, T> {
   transformer(ref:TransformReference, state:TransformState):TransformResponse  {
     ref.params = [state.elementId];
     ref.onReturn = node => m.IfThen(node.argument, [m.Return(state.elementId)]);
@@ -67,7 +60,7 @@ export class FindTransform<T> extends Transformable<T[], T> {
   }
 }
 
-export class SomeTransform<T> extends Transformable<T[], boolean> {
+export class SomeTransform<T> extends ScalarTransformable<T, boolean> {
   transformer(ref:TransformReference, state:TransformState):TransformResponse  {
     ref.params = [state.elementId];
     ref.onReturn = node => m.IfThen(node.argument, [m.Return(m.Literal(true))]);

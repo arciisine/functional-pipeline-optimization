@@ -5,10 +5,6 @@ import { TransformState } from './types';
 
 export class ArrayCompilable<T, U, V> extends Compilable<T[], V[]> {
 
-  getCollectAST(state:TransformState) {
-    return m.Expr(m.Call(m.GetProperty(state.returnValueId, 'push'), state.elementId))
-  }
-   
   filter(fn:(v:V, i?:number)=>boolean, globals?:any):ArrayCompilable<T, U, V> {
     let tr = new Transform.FilterTransform<V>(fn, globals);
     return new ArrayCompilable<T, U, V>(tr, this);

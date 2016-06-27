@@ -1,6 +1,5 @@
-import {AST, Macro as m, Visitor, Util} from '../../node_modules/ecma-ast-transform/src';
+import {AST, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
 import {TransformReference, TransformResponse } from '../transform';
-import {Compilable, CompileUtil} from '../compile';
 
 export class ArrayUtil {
   static standardTransformer(tr:TransformReference):TransformResponse {
