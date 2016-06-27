@@ -1,4 +1,4 @@
-import { AST, Macro as m } from '../../node_modules/ecma-ast-transform/src';
+import { AST, Macro as m, Util } from '../../node_modules/ecma-ast-transform/src';
 import { Transformable } from '../transform';
 
 export interface TransformState {
@@ -17,7 +17,8 @@ export abstract class ScalarTransformable<T, U> extends Transformable<T[], U> {
   }
 
   init(state:TransformState):AST.Node {
-    return m.Literal(this.initValue);
+    let decl = Util.parseExpression(`let a = ${JSON.stringify(this.initValue)}`) as AST.VariableDeclaration;
+    return decl.declarations[0].init;
   }
 }
 

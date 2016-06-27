@@ -18,14 +18,14 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
 
   generate(collector:Compilable<I[], O>, state:TransformState):TransformResponse {
     let res = super.generate(collector, state);
-    let last = collector.chain[collector.chain.length-1];
+    let last = collector.chain[0];
     if (last instanceof ArrayTransformable) {
       res.body.push(last.collect(state));
     }
     if (last instanceof ScalarTransformable) {
       res.vars.push(state.returnValueId, last.init(state));
     }
-    console.log(last.raw.toString());
+    console.log(collector.chain.map(x => x.raw.toString()));
     return res;
   }
 
