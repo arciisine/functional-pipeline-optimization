@@ -18,7 +18,7 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
 
   generate(collector:Compilable<I[], O>, state:TransformState):TransformResponse {
     let res = super.generate(collector, state);
-    let last = collector.chain[0];
+    let last = collector.chain[collector.chain.length-1];
     if (last instanceof ArrayTransformable) {
       res.body.push(last.collect(state));
     }

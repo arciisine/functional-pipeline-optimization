@@ -34,7 +34,7 @@ export class ReduceTransform<T, U> extends ScalarTransformable<T, U> {
     return ArrayUtil.standardTransformer(ref);
   }
   manual(data:T[]):U { 
-     return data.reduce(this.raw, this.initValue); 
+     return data.reduce(this.raw, JSON.parse(this.initRaw)); 
   }
 }
 

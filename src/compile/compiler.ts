@@ -20,7 +20,7 @@ export abstract class Compiler<I,O,T> {
     let vars:AST.Node[] = []
     let body:AST.Node[] = []
          
-    collector.chain
+    collector.chain.slice()
       .reverse()
       .map(t => {
         return t.transformer({node:Util.parse(t.raw)}, state)

@@ -12,12 +12,17 @@ export interface TransformState {
 
 export abstract class ScalarTransformable<T, U> extends Transformable<T[], U> {
 
-  constructor(raw, globals, protected initValue:U = null) {
+  initRaw:string = null;
+
+  constructor(raw, globals, initValue:U = null) {
     super(raw, globals);
+    if (initValue !== null) {
+      this.initRaw = JSON.stringify(initValue);
+    }
   }
 
   init(state:TransformState):AST.Node {
-    let decl = Util.parseExpression(`let a = ${JSON.stringify(this.initValue)}`) as AST.VariableDeclaration;
+    let decl = Util.parseExpression(`let a = ${this.initRaw}`) as AST.VariableDeclaration;
     return decl.declarations[0].init;
   }
 }
