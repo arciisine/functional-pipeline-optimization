@@ -1,4 +1,7 @@
 Things to do:
+  * Figure out how to handle external data cleanly
+    * Reduce init
+    * this on map/forEach/filte/reduce/ etc.
   * body
     * Find expression ranges for arr.filter().map().filter().reduce()....
     * Collect available globals per filter
