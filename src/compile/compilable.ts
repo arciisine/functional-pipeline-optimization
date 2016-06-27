@@ -7,9 +7,9 @@ export class Compilable<I,O>  {
   private static annotated = {};
   private static id:number = 0;
 
-  key:string = null
+  key:string = '~';
   pure:boolean = true;
-  chain:Transformable<any, any>[]
+  chain:Transformable<any, any>[] = []
 
   static annotate<I, O>(fn:Transformable<I,O>):Transformable<I,O> {
     if (fn.pure === undefined) {
@@ -35,17 +35,17 @@ export class Compilable<I,O>  {
     return fn;
   }
 
-  constructor(toAdd:Transformable<any, O>, compilable?:Compilable<I, O>) {
-    let res = Compilable.annotate(toAdd);
-      
+  constructor(compilable?:Compilable<any, any>, toAdd?:Transformable<any, O>) {
     if (compilable) {
       this.chain = compilable.chain.slice();
-      this.pure = compilable.pure && res.pure;
-      this.key = `${compilable.key}|${res.id}`;
-    } else {
-      this.chain = [res];
-      this.pure = res.pure;
-      this.key = `${res.id}`;
+      this.pure = compilable.pure;
+      this.key = compilable.key;
+    }
+    if (toAdd) {
+      let res = Compilable.annotate(toAdd);
+      this.chain.push(res);
+      this.pure = this.pure && res.pure;
+      this.key = `${this.key}|${res.id}`;
     }
   }
 }

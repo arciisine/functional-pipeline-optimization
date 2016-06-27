@@ -12,23 +12,24 @@ export interface TransformState {
 
 export abstract class ScalarTransformable<T, U> extends Transformable<T[], U> {
 
-  protected initRaw:string;
-
-  constructor(raw, globals, init:U = null) {
+  constructor(raw, globals, protected initValue:U = null) {
     super(raw, globals);
-    this.initRaw = JSON.stringify(init);
   }
 
   init(state:TransformState):AST.Node {
-    return m.Literal(JSON.parse(this.initRaw));
+    return m.Literal(this.initValue);
   }
 }
 
 export abstract class ArrayTransformable<T, U> extends ScalarTransformable<T, U[]> {
   constructor(raw, globals) {
-    super(raw, globals, [])
+    super(raw, globals);
   }
-  
+
+  init(state:TransformState) {
+    return m.Array();
+  }
+
   collect(state:TransformState):AST.Node {
     return m.Expr(m.Call(m.GetProperty(state.returnValueId, 'push'), state.elementId))
   }

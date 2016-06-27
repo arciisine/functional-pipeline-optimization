@@ -3,9 +3,9 @@ import { Compiler, Compilable } from '../compile';
 import { TransformState, ArrayTransformable, ScalarTransformable } from './types';
 import { TransformResponse } from '../transform';
 
-export class ArrayCompiler<I, O> extends Compiler<I[], O[], TransformState> {
+export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
 
-  init():TransformState {
+  createState():TransformState {
     return {
       elementId : m.Id(),
       returnValueId : m.Id(),
@@ -16,7 +16,7 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O[], TransformState> {
     }
   }
 
-  generate(collector:Compilable<I[], O[]>, state:TransformState):TransformResponse {
+  generate(collector:Compilable<I[], O>, state:TransformState):TransformResponse {
     let res = super.generate(collector, state);
     let last = collector.chain[collector.chain.length-1];
     if (last instanceof ArrayTransformable) {
@@ -28,7 +28,7 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O[], TransformState> {
     return res;
   }
 
-  compile(collector:Compilable<I[], O[]>, state:TransformState):AST.Node {
+  compile(collector:Compilable<I[], O>, state:TransformState):AST.Node {
     let {vars, body} = this.generate(collector, state);
 
     return m.Func(state.functionId, [state.arrayId], [

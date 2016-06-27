@@ -42,34 +42,6 @@ function log(title, o){
   console.log()
 }
 
-export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
-  let out:any[][] = [];
-  let keys = Object.keys(tests);
-  keys.forEach(k => {
-    let o:{[key:string]:(nums:number[])=>void} = {};
-    o[k] = tests[k];
-    out.push([`All ${k}`, test(o)])
-  })
-  out.push(['Mixed', test(tests)]);
-
-  out.forEach(p => {
-    log(p[0], p[1]);
-  })
-
-  let orig = tests[keys[0]](data);
-  keys.slice(1).reduce((a,b) => {
-    let cur = tests[b](data);
-    let eq = areEqual(cur, orig);;
-    if (!eq) {
-      console.log(cur);
-      console.log("===============")
-      console.log(orig);
-    }
-    console.log(eq);
-    return cur; 
-  }, orig) 
-} 
-
 function areEqual(a, b):boolean {
   if (typeof a !== typeof b) {
     return false;
@@ -105,3 +77,32 @@ function areEqual(a, b):boolean {
       }       
   }
 }
+
+
+export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
+  let out:any[][] = [];
+  let keys = Object.keys(tests);
+  keys.forEach(k => {
+    let o:{[key:string]:(nums:number[])=>void} = {};
+    o[k] = tests[k];
+    out.push([`All ${k}`, test(o)])
+  })
+  out.push(['Mixed', test(tests)]);
+
+  out.forEach(p => {
+    log(p[0], p[1]);
+  })
+
+  let orig = tests[keys[0]](data);
+  keys.slice(1).reduce((a,b) => {
+    let cur = tests[b](data);
+    let eq = areEqual(cur, orig);;
+    if (!eq) {
+      console.log(cur);
+      console.log("===============")
+      console.log(orig);
+    }
+    console.log(eq);
+    return cur; 
+  }, orig) 
+} 

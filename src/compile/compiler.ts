@@ -5,7 +5,7 @@ import { TransformResponse } from '../transform';
 export abstract class Compiler<I,O,T> {
   private static computed:{[key:string]:(...args:any[])=>any} = {};
 
-  abstract init():T;
+  abstract createState():T;
   abstract compile(collector:Compilable<I, O>, state:T):AST.Node;
 
   exec(collector:Compilable<I, O>, data:I):O {
@@ -38,7 +38,7 @@ export abstract class Compiler<I,O,T> {
     if (Compiler.computed[collector.key]) {
       return Compiler.computed[collector.key];
     } 
-    let res = Util.compile(this.compile(collector, this.init()) as any, {}) as (i:I)=>O;
+    let res = Util.compile(this.compile(collector, this.createState()) as any, {}) as (i:I)=>O;
     Compiler.computed[collector.key] = res;
     return res;
   }

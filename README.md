@@ -1,7 +1,4 @@
 Things to do:
-  * remove array specific pieces from packages
-    * compile
-    * transform
   * body
     * Find expression ranges for arr.filter().map().filter().reduce()....
     * Collect available globals per filter
