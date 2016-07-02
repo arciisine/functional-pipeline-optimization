@@ -8,12 +8,12 @@ declare global {
   }
 }
 
-interface BaseProxy<T> {
+interface TerminalProxy<T> {
   exec():T
   execManual():T
 }
 
-class ArrayProxy<T> implements BaseProxy<T> {
+class ArrayProxy<T> implements TerminalProxy<T> {
 
   private compilable = new ArrayCompilable<T, T, T>();
   private compiler = new ArrayCompiler<T, T>();
@@ -30,22 +30,22 @@ class ArrayProxy<T> implements BaseProxy<T> {
     return this as any;
   }
 
-  reduce<W>(fn:(acc:W, v:T, i?:number, arr?:T[])=>W, init?:W):BaseProxy<W> {
+  reduce<W>(fn:(acc:W, v:T, i?:number, arr?:T[])=>W, init?:W):TerminalProxy<W> {
     this.compilable.add(new Transform.ReduceTransform(fn, null, init));
     return this as any;
   }
 
-  forEach(fn:(v:T, i?:number)=>void):BaseProxy<void> {
+  forEach(fn:(v:T, i?:number)=>void):TerminalProxy<void> {
     this.compilable.add(new Transform.ForEachTransform(fn, null));
     return this as any;
   }
 
-  find(fn:(v:T, i?:number, arr?:T[])=>boolean):BaseProxy<T> {
+  find(fn:(v:T, i?:number, arr?:T[])=>boolean):TerminalProxy<T> {
     this.compilable.add(new Transform.FindTransform(fn, null));
     return this as any;
   }
 
-  some(fn:(v:T, i?:number)=>boolean):BaseProxy<boolean> {
+  some(fn:(v:T, i?:number)=>boolean):TerminalProxy<boolean> {
     this.compilable.add(new Transform.SomeTransform(fn, null));
     return this as any;
   }

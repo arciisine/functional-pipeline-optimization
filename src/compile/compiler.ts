@@ -22,9 +22,7 @@ export abstract class Compiler<I,O,T> {
          
     collector.chain.slice()
       .reverse()
-      .map(t => {
-        return t.transformer({node:Util.parse(t.raw)}, state)
-      })
+      .map(t => t.transformer({node:Util.parse(t.raw)}, state))
       .reverse()
       .forEach(e => {
         body.push(...e.body)

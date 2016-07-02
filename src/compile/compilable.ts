@@ -1,6 +1,6 @@
 import { Util } from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import { md5 } from './md5';
-import { Transformable } from '../transform';
+import { Transformable, TransformLevel } from '../transform';
 
 export class Compilable<I,O>  {
 
@@ -8,15 +8,17 @@ export class Compilable<I,O>  {
   private static id:number = 0;
 
   key:string = '~';
-  pure:boolean = true;
+  level:TransformLevel = null;
   chain:Transformable<any, any>[] = []
 
   static annotate<I, O>(fn:Transformable<I,O>):Transformable<I,O> {
-    if (fn.pure === undefined) {
-      fn.pure = Util.isPureFunction(fn.raw, fn.globals || {});
+    if (fn.level === null) {
+      if (Util.isPureFunction(fn.raw, fn.globals || {})) {
+        fn.level = TransformLevel.NO_DEPDENDENCE
+      }
     } 
 
-    if (fn.pure) {
+    if (fn.level >= TransformLevel.READ_DEPENDENCE) {
       if (!fn.key) {
         fn.key = md5(fn.raw.toString());
       }
@@ -38,7 +40,7 @@ export class Compilable<I,O>  {
   constructor(compilable?:Compilable<any, any>, toAdd?:Transformable<any, O>) {
     if (compilable) {
       this.chain = compilable.chain.slice();
-      this.pure = compilable.pure;
+      this.level = compilable.level;
       this.key = compilable.key;
     }
     if (toAdd) {
@@ -49,7 +51,7 @@ export class Compilable<I,O>  {
   add(toAdd?:Transformable<any, any>):this {
     let res = Compilable.annotate(toAdd);
     this.chain.push(res);
-    this.pure = this.pure && res.pure;
+    this.level = Math.min(this.level, res.level);
     this.key = `${this.key}|${res.id}`;
     return this;
   }
