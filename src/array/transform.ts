@@ -84,7 +84,7 @@ export class ReduceTransform<T, U> extends ReduceTransformable<T, U, U> {
   }
 
   init(state:TransformState):AST.Node {
-    let decl = Util.parseExpression(`let a = ${this.init}`) as AST.VariableDeclaration;
+    let decl = Util.parseExpression(`let a = ${JSON.stringify(this.initValue)}`) as AST.VariableDeclaration;
     return decl.declarations[0].init;
   }
 }
