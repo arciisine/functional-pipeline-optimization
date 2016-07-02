@@ -2,7 +2,7 @@ import { AST, Macro as m, Util, Visitor } from '../../node_modules/@arcsine/ecma
 import { Transformable, TrackedFunction, TransformResponse } from '../transform';
 import {TransformState} from './types';
 
-export abstract class BaseArrayTransformable<T, U, V extends Function, W extends Function> extends 
+export abstract class BaseTransformable<T, U, V extends Function, W extends Function> extends 
   Transformable<T[], U> 
 {
   private static cache = {};
@@ -12,11 +12,11 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     super(callback, context);
 
     let key = (this as any).name
-    if (!BaseArrayTransformable.cache[key]) {
-      BaseArrayTransformable.cache[key] = Array.prototype[key.split('Transformable')[0].toLowerCase()];
+    if (!BaseTransformable.cache[key]) {
+      BaseTransformable.cache[key] = Array.prototype[key.split('Transformable')[0].toLowerCase()];
     }
 
-    this.fn = BaseArrayTransformable.cache[key];
+    this.fn = BaseTransformable.cache[key];
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
@@ -68,32 +68,5 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   manual(data:T[]):U {
     return this.fn.apply(data, this.inputs) as U; 
-  }
-}
-
-export abstract class ScalarTransformable<T, U, V> extends 
-  BaseArrayTransformable<T, U, (el:T, i?:number, arr?:T[])=>V, 
-    (callback:(el:T, i?:number, arr?:T[])=>V, context?:any)=>U> 
-{
-  constructor(public callback:(el:T, i?:number, arr?:T[])=>V, public context?:any) {
-    super(callback, context);
-  }
-
-  getParams(state:TransformState) {
-    return [state.elementId];
-  }
-}
-
-export abstract class ReduceTransformable<T, U, V> extends 
-  BaseArrayTransformable<T, U, (acc:U, el:T, i?:number, arr?:T[])=>V, 
-    (callback:(acc:U, el:T, i?:number, arr?:T[])=>V, context?:any)=>U> 
-{
-  constructor(callback:(acc:U, el:T, i?:number, arr?:T[])=>V, public initValue?:U, context?:any) {
-    super(callback, context);
-    this.inputs.splice(1, 0, this.initValue); //put init value in the right position
-  }
-
-  getParams(state:TransformState) {
-    return [state.returnValueId, state.elementId];
   }
 }

@@ -1,8 +1,35 @@
 import { AST, Macro as m, Util } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { ScalarTransformable, ReduceTransformable } from './transformable';
+import { BaseTransformable } from './base-transformable';
 import { TransformState } from './types';
 
 export const SUPPORTED = ['filter', 'map', 'reduce', 'forEach', 'find' ,'some'];
+
+export abstract class ScalarTransformable<T, U, V> extends 
+  BaseTransformable<T, U, (el:T, i?:number, arr?:T[])=>V, 
+    (callback:(el:T, i?:number, arr?:T[])=>V, context?:any)=>U> 
+{
+  constructor(public callback:(el:T, i?:number, arr?:T[])=>V, public context?:any) {
+    super(callback, context);
+  }
+
+  getParams(state:TransformState) {
+    return [state.elementId];
+  }
+}
+
+export abstract class ReduceTransformable<T, U, V> extends 
+  BaseTransformable<T, U, (acc:U, el:T, i?:number, arr?:T[])=>V, 
+    (callback:(acc:U, el:T, i?:number, arr?:T[])=>V, context?:any)=>U> 
+{
+  constructor(callback:(acc:U, el:T, i?:number, arr?:T[])=>V, public initValue?:U, context?:any) {
+    super(callback, context);
+    this.inputs.splice(1, 0, this.initValue); //put init value in the right position
+  }
+
+  getParams(state:TransformState) {
+    return [state.returnValueId, state.elementId];
+  }
+}
 
 export class FilterTransform<T> extends ScalarTransformable<T, T[], boolean> {
   init(state:TransformState) {
