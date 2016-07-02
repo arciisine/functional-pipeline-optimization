@@ -39,7 +39,7 @@ export class TransformUtil {
 
   static annotateTransformable<I, O>(fn:Transformable<I,O>):Transformable<I,O> {
     if (fn.level === null) {
-      fn.level = fn.input
+      fn.level = fn.inputs
         .filter(x => _.isFunction(x))
         .map(TransformUtil.annotateTracked)
         .reduce((acc, l) => acc < l.level ? acc : l.level, TransformLevel.NO_DEPDENDENCE);
@@ -47,7 +47,7 @@ export class TransformUtil {
 
     if (fn.level >= TransformLevel.READ_DEPENDENCE) {
       if (!fn.key) {
-        fn.key = fn.input
+        fn.key = fn.inputs
           .filter(x => _.isFunction(x))
           .map(x => x.key).join("~");
       }

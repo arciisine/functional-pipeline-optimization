@@ -15,7 +15,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     if (!BaseArrayTransformable.cache[key]) {
       BaseArrayTransformable.cache[key] = Array.prototype[key.split('Transformable')[0].toLowerCase()];
     }
-    
+
     this.fn = BaseArrayTransformable.cache[key];
   }
 
@@ -66,7 +66,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     }
   }
 
-  manual(data:T[]):U { 
+  manual(data:T[]):U {
     return this.fn.apply(data, this.inputs) as U; 
   }
 }
@@ -90,7 +90,7 @@ export abstract class ReduceTransformable<T, U, V> extends
 {
   constructor(callback:(acc:U, el:T, i?:number, arr?:T[])=>V, public initValue?:U, context?:any) {
     super(callback, context);
-    this.inputs.splice(1, 0, this.initValue); //put init value in the right arg
+    this.inputs.splice(1, 0, this.initValue); //put init value in the right position
   }
 
   getParams(state:TransformState) {

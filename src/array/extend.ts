@@ -1,6 +1,6 @@
-import {ArrayCompilable} from './compilable';
 import  {ArrayCompiler} from './compiler';
 import * as Transform from './transform';
+import {Compilable} from '../compile';
 
 declare global {
   interface Array<T> {
@@ -15,7 +15,7 @@ interface TerminalProxy<T> {
 
 class ArrayProxy<T> implements TerminalProxy<T> {
 
-  private compilable = new ArrayCompilable<T, T, T>();
+  private compilable = new Compilable<T[], T[]>();
   private compiler = new ArrayCompiler<T, T>();
 
   constructor(protected data:T[]) {}
