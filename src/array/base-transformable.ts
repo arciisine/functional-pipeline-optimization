@@ -11,9 +11,9 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   constructor(public callback:V, public context?:any) {
     super(callback, context);
 
-    let key = (this as any).name
+    let key = (this as any).constructor.name
     if (!BaseTransformable.cache[key]) {
-      BaseTransformable.cache[key] = Array.prototype[key.split('Transformable')[0].toLowerCase()];
+      BaseTransformable.cache[key] = Array.prototype[key.split('Transform')[0].toLowerCase()];
     }
 
     this.fn = BaseTransformable.cache[key];
