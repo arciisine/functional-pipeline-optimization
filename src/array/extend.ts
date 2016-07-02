@@ -31,7 +31,7 @@ class ArrayProxy<T> implements TerminalProxy<T> {
   }
 
   reduce<W>(fn:(acc:W, v:T, i?:number, arr?:T[])=>W, init?:W, context?:any):TerminalProxy<W> {
-    this.compilable.add(new Transform.ReduceTransform(fn,init, context));
+    this.compilable.add(new Transform.ReduceTransform(fn, init, context));
     return this as any;
   }
 

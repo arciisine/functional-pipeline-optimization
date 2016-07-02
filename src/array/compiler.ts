@@ -1,6 +1,6 @@
 import { AST, Macro as m} from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Compiler, Compilable } from '../compile';
-import { TransformState, ArrayTransformable, ScalarTransformable } from './types';
+import { TransformState } from './types';
 import { TransformResponse } from '../transform';
 
 export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
@@ -19,8 +19,8 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
   generate(collector:Compilable<I[], O>, state:TransformState):TransformResponse {
     let res = super.generate(collector, state);
     let last = collector.chain[collector.chain.length-1];
-    if (last instanceof ArrayTransformable) {
-      res.body.push(last.collect(state));
+    if (last['collect']) {
+      res.body.push(last['collect'](state));
     }
     if (last['init']) {
       res.vars.push(state.returnValueId, last['init'](state));

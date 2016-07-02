@@ -31,8 +31,12 @@ export abstract class Transformable<I, O> implements Tracked<I, O> {
   key: string;
   id: number;
   level: TransformLevel = null;
+  globals:any = null;
+  inputs:any[] = null;
 
-  constructor(public input:any[], public globals?:any) {}
+  constructor(...inputs:any[]) {
+    this.inputs = inputs;
+  }
 
   abstract transformer<T>(state:T):TransformResponse;
   abstract manual(data:I):O;
