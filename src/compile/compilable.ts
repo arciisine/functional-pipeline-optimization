@@ -1,4 +1,4 @@
-import { Util } from '../../node_modules/ecma-ast-transform/src';
+import { Util } from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import { md5 } from './md5';
 import { Transformable } from '../transform';
 

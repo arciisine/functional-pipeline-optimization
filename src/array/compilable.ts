@@ -1,5 +1,5 @@
 import { Compilable } from '../compile';
-import {Macro as m} from '../../node_modules/ecma-ast-transform/src';
+import {Macro as m} from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import * as Transform from './transform';
 import { TransformState } from './types';
 

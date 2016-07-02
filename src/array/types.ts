@@ -1,4 +1,4 @@
-import { AST, Macro as m, Util } from '../../node_modules/ecma-ast-transform/src';
+import { AST, Macro as m, Util } from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Transformable } from '../transform';
 
 export interface TransformState {

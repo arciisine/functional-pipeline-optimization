@@ -1,4 +1,4 @@
-import {AST, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
+import {AST, Macro as m, Visitor} from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import {TransformReference, TransformResponse } from '../transform';
 
 export class ArrayUtil {

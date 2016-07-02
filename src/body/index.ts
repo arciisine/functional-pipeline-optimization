@@ -1,4 +1,4 @@
-import {AST, Util, Macro as m, Visitor} from '../../node_modules/ecma-ast-transform/src';
+import {AST, Util, Macro as m, Visitor} from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import {SUPPORTED} from '../array';
 
 let supported = {};
