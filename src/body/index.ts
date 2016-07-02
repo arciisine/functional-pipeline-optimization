@@ -5,8 +5,9 @@ import * as Transformers from '../array/transform';
 let supported = {};
 Object.keys(Transformers)
   .filter(x => x.endsWith('Transform'))
-  .map(x => (new Transformers[x]() as Transformers.ArrayTransformable<any, any, any>).manual.name)
-  .forEach(x => supported[x] = true)
+  .map(x => (new Transformers[x]() as Transformers.ArrayTransformable<any, any, any>))
+  .filter(x => !!x.manual)
+  .forEach(x => supported[x.manual.name] = true)
 
 console.log(supported);
 

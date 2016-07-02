@@ -13,7 +13,9 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
     let key = (this as any).constructor.name
     if (!BaseTransformable.cache[key]) {
-      BaseTransformable.cache[key] = Array.prototype[key.split('Transform')[0].toLowerCase()];
+      let fn = key.split('Transform')[0];
+      fn = fn.charAt(0).toLowerCase() + fn.substring(1);
+      BaseTransformable.cache[key] = Array.prototype[fn];
     }
 
     this.manual = BaseTransformable.cache[key];
