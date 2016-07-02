@@ -20,33 +20,33 @@ class ArrayProxy<T> implements TerminalProxy<T> {
 
   constructor(protected data:T[]) {}
 
-  filter(fn:(v:T, i?:number)=>boolean):ArrayProxy<T> {
-    this.compilable.add(new Transform.FilterTransform(fn, null));
+  filter(fn:(v:T, i?:number)=>boolean, context?:any):ArrayProxy<T> {
+    this.compilable.add(new Transform.FilterTransform(fn, context));
     return this;
   }
 
-  map<W>(fn:(v:T, i?:number)=>W):ArrayProxy<W> {
-    this.compilable.add(new Transform.MapTransform(fn, null));
+  map<W>(fn:(v:T, i?:number)=>W, context?:any):ArrayProxy<W> {
+    this.compilable.add(new Transform.MapTransform(fn, context));
     return this as any;
   }
 
-  reduce<W>(fn:(acc:W, v:T, i?:number, arr?:T[])=>W, init?:W):TerminalProxy<W> {
-    this.compilable.add(new Transform.ReduceTransform(fn, null, init));
+  reduce<W>(fn:(acc:W, v:T, i?:number, arr?:T[])=>W, init?:W, context?:any):TerminalProxy<W> {
+    this.compilable.add(new Transform.ReduceTransform(fn,init, context));
     return this as any;
   }
 
-  forEach(fn:(v:T, i?:number)=>void):TerminalProxy<void> {
-    this.compilable.add(new Transform.ForEachTransform(fn, null));
+  forEach(fn:(v:T, i?:number)=>void, context?:any):TerminalProxy<void> {
+    this.compilable.add(new Transform.ForEachTransform(fn,context));
     return this as any;
   }
 
-  find(fn:(v:T, i?:number, arr?:T[])=>boolean):TerminalProxy<T> {
-    this.compilable.add(new Transform.FindTransform(fn, null));
+  find(fn:(v:T, i?:number, arr?:T[])=>boolean, context?:any):TerminalProxy<T> {
+    this.compilable.add(new Transform.FindTransform(fn,context));
     return this as any;
   }
 
-  some(fn:(v:T, i?:number)=>boolean):TerminalProxy<boolean> {
-    this.compilable.add(new Transform.SomeTransform(fn, null));
+  some(fn:(v:T, i?:number)=>boolean, context?:any):TerminalProxy<boolean> {
+    this.compilable.add(new Transform.SomeTransform(fn,context));
     return this as any;
   }
 

@@ -22,10 +22,9 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
     if (last instanceof ArrayTransformable) {
       res.body.push(last.collect(state));
     }
-    if (last instanceof ScalarTransformable) {
-      res.vars.push(state.returnValueId, last.init(state));
+    if (last['init']) {
+      res.vars.push(state.returnValueId, last['init'](state));
     }
-    console.log(collector.chain.map(x => x.raw.toString()));
     return res;
   }
 

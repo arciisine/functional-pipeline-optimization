@@ -1,19 +1,24 @@
-import {AST, Macro as m, Visitor} from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import {TransformReference, TransformResponse } from '../transform';
+import {AST, Macro as m, Visitor, Util} from '../../node_modules/@arcsine/ecma-ast-transform/src';
+import {TransformResponse } from '../transform';
 
 export class ArrayUtil {
-  static standardTransformer(tr:TransformReference):TransformResponse {
-    let params:{[key:string]:AST.Identifier} = {};       
+  static standardTransformer(
+    callback : string|Function, 
+    params : AST.Identifier[], 
+    onReturn : (x:AST.ReturnStatement)=>AST.Node
+  ):TransformResponse {
+    let node = Util.parse(callback) as AST.Node;
+    let paramMap:{[key:string]:AST.Identifier} = {};       
     let pos = m.Id();
-    tr.params.push(pos);
+    params.push(pos);
 
-    if (tr.node.type === 'ExpressionStatement') {
-      tr.node = (tr.node as AST.ExpressionStatement).expression;
+    if (node.type === 'ExpressionStatement') {
+      node = (node as AST.ExpressionStatement).expression;
     }
 
     let res = new Visitor({
       FunctionExpression : (node:AST.FunctionExpression) => {
-        node.params.forEach((p,i) => params[(p as AST.Identifier).name] = tr.params[i]);
+        node.params.forEach((p,i) => paramMap[(p as AST.Identifier).name] = params[i]);
         return node;
       },
       ArrowFunctionExpression : (node:AST.ArrowExpression) => {
@@ -22,21 +27,21 @@ export class ArrayUtil {
         }
         node.params.forEach((p,i) => {
           let name = (p as AST.Identifier).name;
-          params[name] = tr.params[i]
+          paramMap[name] = params[i]
         })
         return node;
       },
       ReturnStatement : x => {
-        return tr.onReturn(x);
+        return onReturn(x);
       },
       Identifier : x => {
-        return params[x.name] || x;
+        return paramMap[x.name] || x;
       }
-    }).exec(tr.node) as (AST.FunctionExpression|AST.ArrowExpression);
+    }).exec(node) as (AST.FunctionExpression|AST.ArrowExpression);
 
-    let plen = Object.keys(params).length;
+    let plen = Object.keys(paramMap).length;
     let body = res.body
-    let min = tr.params.length - 1;
+    let min = params.length - 1;
 
     return {
       body : plen > min ? [body, m.Expr(m.Increment(pos))] : [body],

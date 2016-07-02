@@ -1,13 +1,7 @@
 import {AST} from '../../node_modules/@arcsine/ecma-ast-transform/src';
 
 export interface Transformer {
-  <T>(ref:TransformReference, state:T):TransformResponse
-}
-
-export interface TransformReference {
-  node:AST.Node,
-  params?:AST.Identifier[],
-  onReturn?:(node:AST.ReturnStatement)=>AST.Node
+  <T>(state:T):TransformResponse
 }
 
 export interface TransformResponse {
@@ -22,13 +16,24 @@ export enum TransformLevel {
   NO_DEPDENDENCE = 3
 }
 
-export abstract class Transformable<I, O> {
+export interface Tracked<I, O> {
+  key: string;
+  id: number;
+  level: TransformLevel;
+}
+
+export interface TrackedFunction<I, O> extends Function, Tracked<I,O> {
+
+}
+
+export abstract class Transformable<I, O> implements Tracked<I, O> {
 
   key: string;
   id: number;
   level: TransformLevel = null;
-  constructor(public raw:(...args:any[])=>any, public globals?:any) {}
 
-  abstract transformer<T>(ref:TransformReference, state:T):TransformResponse;
+  constructor(public input:any[], public globals?:any) {}
+
+  abstract transformer<T>(state:T):TransformResponse;
   abstract manual(data:I):O;
 }

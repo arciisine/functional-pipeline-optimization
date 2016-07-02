@@ -1,5 +1,5 @@
 import { AST, Macro as m, Util } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable } from '../transform';
+import { Transformable, TrackedFunction } from '../transform';
 
 export interface TransformState {
   elementId:AST.Identifier,
@@ -10,26 +10,15 @@ export interface TransformState {
   functionId:AST.Identifier
 }
 
-export abstract class ScalarTransformable<T, U> extends Transformable<T[], U> {
-
-  initRaw:string = null;
-
-  constructor(raw, globals, initValue:U = null) {
-    super(raw, globals);
-    if (initValue !== null) {
-      this.initRaw = JSON.stringify(initValue);
-    }
-  }
-
-  init(state:TransformState):AST.Node {
-    let decl = Util.parseExpression(`let a = ${this.initRaw}`) as AST.VariableDeclaration;
-    return decl.declarations[0].init;
+export abstract class ScalarTransformable<T, U, V> extends Transformable<T[], U> {
+  constructor(public callback:(el:T, i?:number, arr?:T[])=>V, public context?:any, globals?:any) {
+    super([callback, context], globals);
   }
 }
 
-export abstract class ArrayTransformable<T, U> extends ScalarTransformable<T, U[]> {
-  constructor(raw, globals) {
-    super(raw, globals);
+export abstract class ArrayTransformable<T, U, V> extends Transformable<T[], U[]> {
+  constructor(public callback:(el:T, i?:number, arr?:T[])=>V, public context?:any, globals?:any) {
+    super([callback, context], globals);
   }
 
   init(state:TransformState) {
