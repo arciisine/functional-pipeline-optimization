@@ -1,8 +1,14 @@
 import {AST, Util, Macro as m, Visitor} from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import {SUPPORTED} from '../array';
+import * as Transformers from '../array/transform';
 
+//Read name of manual fn from transformers
 let supported = {};
-SUPPORTED.forEach( k => supported[k] = true )
+Object.keys(Transformers)
+  .filter(x => x.endsWith('Transform'))
+  .map(x => (new Transformers[x]() as Transformers.ArrayTransformable<any, any, any>).manual.name)
+  .forEach(x => supported[x] = true)
+
+console.log(supported);
 
 export function rewriteBody(content:string) {
   let body = Util.parseExpression<AST.Node>(content);

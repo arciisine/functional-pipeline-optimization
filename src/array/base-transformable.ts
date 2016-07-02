@@ -6,7 +6,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   Transformable<T[], U> 
 {
   private static cache = {};
-  public fn:W;
+  public manual:W;
 
   constructor(public callback:V, public context?:any) {
     super(callback, context);
@@ -16,13 +16,13 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       BaseTransformable.cache[key] = Array.prototype[key.split('Transform')[0].toLowerCase()];
     }
 
-    this.fn = BaseTransformable.cache[key];
+    this.manual = BaseTransformable.cache[key];
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
   abstract getParams(state:TransformState):AST.Identifier[];
 
-  transformer(state:TransformState):TransformResponse  {
+  transform(state:TransformState):TransformResponse  {
     let node = Util.parse(this.callback) as AST.Node;
     let paramMap:{[key:string]:AST.Identifier} = {};       
     let pos = m.Id();
@@ -66,7 +66,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     }
   }
 
-  manual(data:T[]):U {
-    return this.fn.apply(data, this.inputs) as U; 
+  manualTransform(data:T[]):U {
+    return this.manual.apply(data, this.inputs) as U; 
   }
 }

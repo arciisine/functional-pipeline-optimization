@@ -3,7 +3,7 @@ import { Transformable, TransformLevel, TransformUtil } from '../transform';
 export class Compilable<I,O>  {
   
   key:string = '~';
-  level:TransformLevel = null;
+  level:TransformLevel = TransformLevel.NO_DEPENDENCE;
   chain:Transformable<any, any>[] = []
 
   constructor(compilable?:Compilable<any, any>, toAdd?:Transformable<any, O>) {

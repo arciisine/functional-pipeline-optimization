@@ -27,7 +27,7 @@ export class TransformUtil {
   static annotateTracked<I, O>(fn:TrackedFunction<I,O>):TrackedFunction<I,O> {
     if (fn.level === null) {
       fn.level = Util.isPureFunction(fn) ? 
-        TransformLevel.NO_DEPDENDENCE : 
+        TransformLevel.NO_DEPENDENCE : 
         TransformLevel.UNKNOWN
     }        
 
@@ -46,7 +46,7 @@ export class TransformUtil {
       fn.level = fn.inputs
         .filter(TransformUtil.isFunction)
         .map(TransformUtil.annotateTracked)
-        .reduce((acc, l) => acc < l.level ? acc : l.level, TransformLevel.NO_DEPDENDENCE);
+        .reduce((acc, l) => acc < l.level ? acc : l.level, TransformLevel.NO_DEPENDENCE);
     } 
 
     if (fn.level >= TransformLevel.READ_DEPENDENCE) {

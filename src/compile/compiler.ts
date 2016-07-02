@@ -13,7 +13,7 @@ export abstract class Compiler<I,O,T> {
   }
 
   execManual(collector:Compilable<I, O>, data:I):O {
-    return collector.chain.reduce((data, fn) => fn.manual(data), data) as any as O;
+    return collector.chain.reduce((data, fn) => fn.manualTransform(data), data) as any as O;
   }  
 
   generate(collector:Compilable<I, O>, state:T):TransformResponse {
@@ -22,7 +22,7 @@ export abstract class Compiler<I,O,T> {
          
     collector.chain.slice()
       .reverse()
-      .map(t => t.transformer(state))
+      .map(t => t.transform(state))
       .reverse()
       .forEach(e => {
         body.push(...e.body)

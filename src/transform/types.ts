@@ -13,7 +13,7 @@ export enum TransformLevel {
   UNKNOWN = 0,
   WRITE_DEPENDENCE = 1,
   READ_DEPENDENCE = 2,
-  NO_DEPDENDENCE = 3
+  NO_DEPENDENCE = 3
 }
 
 export interface Tracked<I, O> {
@@ -38,6 +38,6 @@ export abstract class Transformable<I, O> implements Tracked<I, O> {
     this.inputs = inputs;
   }
 
-  abstract transformer<T>(state:T):TransformResponse;
-  abstract manual(data:I):O;
+  abstract transform<T>(state:T):TransformResponse;
+  abstract manualTransform(data:I):O;
 }

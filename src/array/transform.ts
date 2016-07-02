@@ -2,36 +2,16 @@ import { AST, Macro as m, Util } from '../../node_modules/@arcsine/ecma-ast-tran
 import { BaseTransformable } from './base-transformable';
 import { TransformState } from './types';
 
-export const SUPPORTED = ['filter', 'map', 'reduce', 'forEach', 'find' ,'some'];
-
-export abstract class ScalarTransformable<T, U, V> extends 
+export abstract class ArrayTransformable<T, U, V> extends 
   BaseTransformable<T, U, (el:T, i?:number, arr?:T[])=>V, 
     (callback:(el:T, i?:number, arr?:T[])=>V, context?:any)=>U> 
 {
-  constructor(public callback:(el:T, i?:number, arr?:T[])=>V, public context?:any) {
-    super(callback, context);
-  }
-
   getParams(state:TransformState) {
     return [state.elementId];
   }
 }
 
-export abstract class ReduceTransformable<T, U, V> extends 
-  BaseTransformable<T, U, (acc:U, el:T, i?:number, arr?:T[])=>V, 
-    (callback:(acc:U, el:T, i?:number, arr?:T[])=>V, context?:any)=>U> 
-{
-  constructor(callback:(acc:U, el:T, i?:number, arr?:T[])=>V, public initValue?:U, context?:any) {
-    super(callback, context);
-    this.inputs.splice(1, 0, this.initValue); //put init value in the right position
-  }
-
-  getParams(state:TransformState) {
-    return [state.returnValueId, state.elementId];
-  }
-}
-
-export class FilterTransform<T> extends ScalarTransformable<T, T[], boolean> {
+export class FilterTransform<T> extends ArrayTransformable<T, T[], boolean> {
   init(state:TransformState) {
     return m.Array();
   }
@@ -45,7 +25,7 @@ export class FilterTransform<T> extends ScalarTransformable<T, T[], boolean> {
   }
 }
 
-export class MapTransform<T, U> extends ScalarTransformable<T, U[], U> {
+export class MapTransform<T, U> extends ArrayTransformable<T, U[], U> {
   init(state:TransformState) {
     return m.Array();
   }
@@ -59,25 +39,36 @@ export class MapTransform<T, U> extends ScalarTransformable<T, U[], U> {
   }
 }
 
-export class ForEachTransform<T> extends ScalarTransformable<T, void, void> {
+export class ForEachTransform<T> extends ArrayTransformable<T, void, void> {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.Continue(state.continueLabel);
   }
 }
 
-export class FindTransform<T> extends ScalarTransformable<T, T, boolean> {
+export class FindTransform<T> extends ArrayTransformable<T, T, boolean> {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.IfThen(node.argument, [m.Return(state.elementId)]);
   }
 }
 
-export class SomeTransform<T> extends ScalarTransformable<T, boolean, boolean> {
+export class SomeTransform<T> extends ArrayTransformable<T, boolean, boolean> {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.IfThen(node.argument, [m.Return(m.Literal(true))]);
   }
 }
 
-export class ReduceTransform<T, U> extends ReduceTransformable<T, U, U> {
+export class ReduceTransform<T, U>  extends 
+  BaseTransformable<T, U, (acc:U, el:T, i?:number, arr?:T[])=>U, 
+    (callback:(acc:U, el:T, i?:number, arr?:T[])=>U, context?:any)=>U> 
+{
+  constructor(callback:(acc:U, el:T, i?:number, arr?:T[])=>U, public initValue?:U, context?:any) {
+    super(callback, context);
+    this.inputs.splice(1, 0, this.initValue); //put init value in the right position
+  }
+
+  getParams(state:TransformState) {
+    return [state.returnValueId, state.elementId];
+  }
 
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.Expr(m.Assign(state.returnValueId, node.argument));
