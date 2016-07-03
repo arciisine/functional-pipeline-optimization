@@ -16,9 +16,9 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
     }
   }
 
-  generate(collector:Compilable<I[], O>, state:TransformState):TransformResponse {
-    let res = super.generate(collector, state);
-    let last = collector.chain[collector.chain.length-1];
+  generate(compilable:Compilable<I[], O>, state:TransformState):TransformResponse {
+    let res = super.generate(compilable, state);
+    let last = compilable.chain[compilable.chain.length-1];
     if (last['collect']) {
       res.body.push(last['collect'](state));
     }
@@ -28,8 +28,8 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
     return res;
   }
 
-  compile(collector:Compilable<I[], O>, state:TransformState):AST.Node {
-    let {vars, body} = this.generate(collector, state);
+  compile(compilable:Compilable<I[], O>, state:TransformState):AST.Node {
+    let {vars, body} = this.generate(compilable, state);
 
     return m.Func(state.functionId, [state.arrayId], [
       m.Vars('let', ...vars),
