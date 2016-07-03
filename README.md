@@ -1,3 +1,10 @@
+**Running**
+
+* Install NodeJS v 6.0.0 or later
+* `npm install`
+* `./build.sh`
+* `node dist/src/test/basic`
+
 **Outstanding Tasks**
 
 * Handle Closed Variables
