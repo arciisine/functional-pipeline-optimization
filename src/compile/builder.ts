@@ -1,5 +1,6 @@
 import {Compilable} from './compilable';
 import {Compiler} from './compiler';
+import {CompilerUtil} from './util';
 import {Transformable} from '../transform';
 
 export class Builder<I, O> {
@@ -20,10 +21,10 @@ export class Builder<I, O> {
   }
 
   exec():O {
-    return this.compiler.exec(this.compilable, this.data);
+    return CompilerUtil.compile(this.compiler, this.compilable)(this.data);
   }
 
   execManual():O {
-    return this.compiler.execManual(this.compilable, this.data);
+    return CompilerUtil.manual(this.compilable, this.data);
   }
 }

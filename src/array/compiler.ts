@@ -1,11 +1,11 @@
 import { AST, Macro as m} from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Compiler, Compilable } from '../compile';
+import { Compiler, Compilable, CompilerUtil } from '../compile';
 import { TransformState } from './types';
 import { TransformResponse } from '../transform';
 
-export class ArrayCompiler extends Compiler<TransformState> {
+export class ArrayCompiler implements Compiler<TransformState> {
 
-  prepareState():TransformState {
+  createState():TransformState {
     return {
       elementId : m.Id(),
       returnValueId : m.Id(),
@@ -17,7 +17,7 @@ export class ArrayCompiler extends Compiler<TransformState> {
   }
 
   compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
-    let {vars, body} = this.readChain(compilable, state);
+    let {vars, body} = CompilerUtil.readChain(compilable, state);
 
     let last = compilable.chain[compilable.chain.length-1];
     if (last['collect']) {
