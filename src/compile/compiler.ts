@@ -6,21 +6,21 @@ export abstract class Compiler<I,O,T> {
   private static computed:{[key:string]:(...args:any[])=>any} = {};
 
   abstract prepareState():T;
-  abstract compile(collector:Compilable<I, O>, state:T):AST.Node;
+  abstract compile(compilable:Compilable<I, O>, state:T):AST.Node;
 
-  exec(collector:Compilable<I, O>, data:I):O {
-    return this.getCompiled(collector)(data);
+  exec(compilable:Compilable<I, O>, data:I):O {
+    return this.getCompiled(compilable)(data);
   }
 
-  execManual(collector:Compilable<I, O>, data:I):O {
-    return collector.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
+  execManual(compilable:Compilable<I, O>, data:I):O {
+    return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
   }  
 
-  generate(collector:Compilable<I, O>, state:T):TransformResponse {
+  generate(compilable:Compilable<I, O>, state:T):TransformResponse {
     let vars:AST.Node[] = []
     let body:AST.Node[] = []
          
-    collector.chain.slice()
+    compilable.chain.slice()
       .reverse()
       .map(t => t.transform(state))
       .reverse()
@@ -32,12 +32,12 @@ export abstract class Compiler<I,O,T> {
     return { vars, body };
   }
 
-  getCompiled(collector:Compilable<I, O>):(i:I)=>O {
-    if (Compiler.computed[collector.key]) {
-      return Compiler.computed[collector.key];
+  getCompiled(compilable:Compilable<I, O>):(i:I)=>O {
+    if (Compiler.computed[compilable.key]) {
+      return Compiler.computed[compilable.key];
     } 
-    let res = Util.compile(this.compile(collector, this.prepareState()) as any, {}) as (i:I)=>O;
-    Compiler.computed[collector.key] = res;
+    let res = Util.compile(this.compile(compilable, this.prepareState()) as any, {}) as (i:I)=>O;
+    Compiler.computed[compilable.key] = res;
     return res;
   }
 }
