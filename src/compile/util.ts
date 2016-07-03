@@ -21,7 +21,7 @@ export class CompilerUtil {
   }
 
   static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):(i:I)=>O {
-    let key = compilable.tag.key;
+    let key = compilable.tag.key + "~" + compiler.constructor.name;
     if (CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
     } 
