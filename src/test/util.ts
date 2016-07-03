@@ -47,10 +47,10 @@ function areEqual(a, b):boolean {
     return false;
   }
   switch (typeof a) {
+    case 'boolean':
     case 'string':
-      return a === b
     case 'number':
-      return a === b;
+      return a === b
     case 'function':
       return areEqual(a.toString(), b.toString());
     default:
@@ -82,12 +82,13 @@ function areEqual(a, b):boolean {
 export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
   let out:any[][] = [];
   let keys = Object.keys(tests);
+  out.push(['Mixed', test(tests)]);
+
   keys.forEach(k => {
     let o:{[key:string]:(nums:number[])=>void} = {};
     o[k] = tests[k];
     out.push([`All ${k}`, test(o)])
   })
-  out.push(['Mixed', test(tests)]);
 
   out.forEach(p => {
     log(p[0], p[1]);
