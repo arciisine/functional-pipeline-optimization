@@ -1,10 +1,5 @@
 import {AST, Util} from '../../node_modules/@arcsine/ecma-ast-transform/src';
 
-
-export interface Transformer {
-  <T>(state:T):TransformResponse
-}
-
 export interface TransformResponse {
   body:AST.Node[],
   vars:AST.Node[]
