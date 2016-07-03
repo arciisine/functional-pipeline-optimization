@@ -25,7 +25,10 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
-  abstract getParams(state:TransformState):AST.Identifier[];
+
+  getParams(state:TransformState):AST.Identifier[] {
+    return [state.elementId];
+  }
 
   transform(state:TransformState):TransformResponse  {
     let node = Util.parse(this.callback) as AST.Node;

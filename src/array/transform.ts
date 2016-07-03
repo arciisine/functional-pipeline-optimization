@@ -1,17 +1,10 @@
 import { AST, Macro as m, Util } from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import { BaseTransformable } from './base-transformable';
-import { TransformState, Callback } from './types';
+import { TransformState, Callback, Handler } from './types';
 
-export abstract class ArrayTransformable<T, U, V> extends 
-  BaseTransformable<T, U, (el:T, i?:number, arr?:T[])=>V, 
-    (callback:(el:T, i?:number, arr?:T[])=>V, context?:any)=>U> 
+export class FilterTransform<T> extends 
+  BaseTransformable<T, T[], Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
 {
-  getParams(state:TransformState) {
-    return [state.elementId];
-  }
-}
-
-export class FilterTransform<T> extends ArrayTransformable<T, T[], boolean> {
   init(state:TransformState) {
     return m.Array();
   }
@@ -25,7 +18,9 @@ export class FilterTransform<T> extends ArrayTransformable<T, T[], boolean> {
   }
 }
 
-export class MapTransform<T, U> extends ArrayTransformable<T, U[], U> {
+export class MapTransform<T, U> extends 
+  BaseTransformable<T, T[], Callback.Map<T, U>, Handler.Standard<T, T, U>> 
+{
   init(state:TransformState) {
     return m.Array();
   }
@@ -39,27 +34,32 @@ export class MapTransform<T, U> extends ArrayTransformable<T, U[], U> {
   }
 }
 
-export class ForEachTransform<T> extends ArrayTransformable<T, void, void> {
+export class ForEachTransform<T> extends 
+  BaseTransformable<T, T[], Callback.Void<T>, Handler.Standard<T, T, void>>
+{
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.Continue(state.continueLabel);
   }
 }
 
-export class FindTransform<T> extends ArrayTransformable<T, T, boolean> {
+export class FindTransform<T> extends
+  BaseTransformable<T, T, Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
+{
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.IfThen(node.argument, [m.Return(state.elementId)]);
   }
 }
 
-export class SomeTransform<T> extends ArrayTransformable<T, boolean, boolean> {
+export class SomeTransform<T> extends 
+  BaseTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>> 
+{
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.IfThen(node.argument, [m.Return(m.Literal(true))]);
   }
 }
 
 export class ReduceTransform<T, U>  extends 
-  BaseTransformable<T, U, Callback.Reduce<T, U>, 
-    (callback:Callback.Reduce<T, U>, context?:any)=>U> 
+  BaseTransformable<T, U, Callback.Reduce<T, U>, Handler.Reduce<T, U>>
 {
   constructor(callback:Callback.Reduce<T, U>, public initValue?:U, context?:any) {
     super(callback, context);

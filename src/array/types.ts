@@ -26,3 +26,13 @@ export namespace Callback {
     (acc:W, v:T, i?:number, arr?:T[]):W
   }
 }
+
+export namespace Handler {
+  export interface Standard<T, U, V> {
+    (callback:(v:T, i?:number, arr?:T[])=>V, context?:any):U
+  }
+
+  export interface Reduce<T, U> {
+    (callback:(acc:U, v:T, i?:number, arr?:T[])=>U, init:U, context?:any):U
+  }
+}
