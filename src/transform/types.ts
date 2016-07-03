@@ -1,4 +1,5 @@
-import {AST} from '../../node_modules/@arcsine/ecma-ast-transform/src';
+import {AST, Util} from '../../node_modules/@arcsine/ecma-ast-transform/src';
+
 
 export interface Transformer {
   <T>(state:T):TransformResponse
@@ -20,10 +21,6 @@ export interface Tracked<I, O> {
   key: string;
   id: number;
   level: TransformLevel;
-}
-
-export interface TrackedFunction<I, O> extends Function, Tracked<I,O> {
-
 }
 
 export abstract class Transformable<I, O> implements Tracked<I, O> {

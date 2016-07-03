@@ -5,7 +5,7 @@ import { TransformResponse } from '../transform';
 
 export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
 
-  createState():TransformState {
+  prepareState():TransformState {
     return {
       elementId : m.Id(),
       returnValueId : m.Id(),

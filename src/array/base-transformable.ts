@@ -1,5 +1,5 @@
 import { AST, Macro as m, Util, Visitor } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TrackedFunction, TransformResponse } from '../transform';
+import { Transformable, TransformResponse } from '../transform';
 import {TransformState} from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> extends 
