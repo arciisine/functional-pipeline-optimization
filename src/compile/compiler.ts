@@ -6,7 +6,7 @@ export abstract class Compiler<T> {
   private static computed:{[key:string]:(...args:any[])=>any} = {};
 
   abstract prepareState():T;
-  abstract compile<I, O>(compilable:Compilable<I, O>, state:T):AST.Node;
+  abstract compile<I, O>(compilable:Compilable<I, O>, state:T):AST.Node
 
   exec<I, O>(compilable:Compilable<I, O>, data:I):O {
     return this.getCompiled(compilable)(data);
@@ -16,7 +16,7 @@ export abstract class Compiler<T> {
     return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
   }  
 
-  generate<I, O>(compilable:Compilable<I, O>, state:T):TransformResponse {
+  readChain<I, O>(compilable:Compilable<I, O>, state:T):TransformResponse {
     return compilable.chain
       .map(t => t.transform(state))
       .reduce((res, e) => {
@@ -31,7 +31,9 @@ export abstract class Compiler<T> {
     if (Compiler.computed[key]) {
       return Compiler.computed[key];
     } 
-    let res = Util.compile(this.compile(compilable, this.prepareState()) as any, {}) as (i:I)=>O;
+    let state = this.prepareState();
+    let ast = this.compile(compilable, state);
+    let res = Util.compile(ast as any, {}) as (i:I)=>O;
     Compiler.computed[key] = res;
     return res;
   }

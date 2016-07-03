@@ -16,20 +16,16 @@ export class ArrayCompiler extends Compiler<TransformState> {
     }
   }
 
-  generate<I, O>(compilable:Compilable<I[], O>, state:TransformState):TransformResponse {
-    let res = super.generate(compilable, state);
+  compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
+    let {vars, body} = this.readChain(compilable, state);
+
     let last = compilable.chain[compilable.chain.length-1];
     if (last['collect']) {
-      res.body.push(last['collect'](state));
+      body.push(last['collect'](state));
     }
     if (last['init']) {
-      res.vars.push(state.returnValueId, last['init'](state));
+      vars.push(state.returnValueId, last['init'](state));
     }
-    return res;
-  }
-
-  compile<I, O>(compilable:Compilable<I[], O>, state:TransformState):AST.Node {
-    let {vars, body} = this.generate(compilable, state);
 
     return m.Func(state.functionId, [state.arrayId], [
       m.Vars('let', ...vars),
