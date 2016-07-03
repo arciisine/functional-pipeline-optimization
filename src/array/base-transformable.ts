@@ -7,8 +7,8 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 {
   private static cache = {};
   
-  private static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:V) {
-    let key = (this as any).constructor.name
+  private static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
+    let key = inst.constructor.name
     if (!BaseTransformable.cache[key]) {
       let fn = key.split('Transform')[0];
       fn = fn.charAt(0).toLowerCase() + fn.substring(1);
