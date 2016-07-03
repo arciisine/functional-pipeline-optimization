@@ -60,12 +60,8 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         })
         return node;
       },
-      ReturnStatement : x => {
-        return this.onReturn(state, x);
-      },
-      Identifier : x => {
-        return paramMap[x.name] || x;
-      }
+      ReturnStatement : x =>  this.onReturn(state, x),
+      Identifier : x => paramMap[x.name] || x
     }).exec(node) as (AST.FunctionExpression|AST.ArrowExpression);
 
     let plen = Object.keys(paramMap).length;
