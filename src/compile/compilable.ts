@@ -13,11 +13,11 @@ export class Compilable<I,O>  {
     }
   }
 
-  add(toAdd?:Transformable<any, any>):this {
+  add<V>(toAdd?:Transformable<O, V>):Compilable<I, V> {
     this.chain.push(Analyzer.analyze(toAdd));
     let tag = toAdd.tag;
     this.level = Math.min(this.level, tag.level);
     this.key = `${this.key}|${tag.id}`;
-    return this;
+    return this as any as Compilable<I, V>;
   }
 }

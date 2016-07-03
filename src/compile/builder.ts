@@ -14,7 +14,7 @@ export class Builder<I, O> {
     }
   }
 
-  chain<V>(op:Transformable<I, V>):Builder<I,V> {
+  chain<V>(op:Transformable<O, V>):Builder<I, V> {
     this.compilable.add(op);
     return this as any as Builder<I, V>;
   }

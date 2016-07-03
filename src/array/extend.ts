@@ -2,7 +2,7 @@ import  {ArrayBuilder} from './builder';
 
 declare global {
   interface Array<T> {
-    r:ArrayBuilder<T, any>;
+    r:ArrayBuilder<T, T>;
   }
 }
 

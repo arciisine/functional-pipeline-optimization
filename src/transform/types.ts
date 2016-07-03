@@ -18,9 +18,9 @@ export enum TransformLevel {
 }
 
 export interface TransformTag {
-  id?: number;
   key: string;
-  level: TransformLevel;
+  id?: number;
+  level?: TransformLevel;
   closed?:{[key:string]:any};
 }
 

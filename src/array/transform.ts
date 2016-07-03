@@ -35,7 +35,7 @@ export class MapTransform<T, U> extends
 }
 
 export class ForEachTransform<T> extends 
-  BaseTransformable<T, T[], Callback.Void<T>, Handler.Standard<T, T, void>>
+  BaseTransformable<T, void, Callback.Void<T>, Handler.Standard<T, T, void>>
 {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.Continue(state.continueLabel);
