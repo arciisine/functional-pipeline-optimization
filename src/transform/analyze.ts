@@ -14,12 +14,11 @@ export class Analyzer {
     while (p.type === 'MemberExpression') {
       p = (p as AST.MemberExpression).object;
     }
-    if (p.type === 'ThisExpression') {
-      return 'this';
-    } else if (p.type === "Identifier") {
-      return (p as AST.Identifier).name;
-    } else {
-      return null;
+    switch (p.type) {
+      case 'VariableDeclarator': return (p as AST.VariableDeclarator).id['name'];
+      case 'ThisExpression': return 'this';
+      case 'Identifier': return (p as AST.Identifier).name;
+      default: return null;
     }
   }
 
@@ -28,42 +27,44 @@ export class Analyzer {
     let ast:AST.ASTFunction = Util.parse(fn);
 
     let res:{[key:string]:AccessType} = {};
-    let declared:{};
+    let declared:{} = {};
     let hasNested = false;
     let hasExpression = false;
 
-    let init = (ds:AST.VariableDeclaration, kinds:{[key:string]:boolean}) => {
-      if (kinds[ds.kind]) {
-        ds.declarations.forEach(p => { 
-          let id = Analyzer.readVariable(p); 
-          declared[id] = true;
-        });
-      }
-      return ds;
+    let init = (ds:AST.Pattern[]) => {
+      ds.forEach(p => { 
+        let id = Analyzer.readVariable(p); 
+        declared[id] = true;
+      });
     }
 
     let processVariableSite = (node:AST.Node|string, type:AccessType) =>  {
       let id = typeof node === 'string' ? node : Analyzer.readVariable(node);
-      if (!declared[id] && !globals[id]) { //If access before read and not global
+      if (id && !declared[id] && !globals[id]) { //If access before read and not global
         res[id] = Math.max(res[id] || 0, type);  
       }
-    }
+    }    
+    init(ast['params'] as AST.Pattern[]);
 
     //Hoist vars, remove nested functions
-    ast = new Visitor({
+    let body = new Visitor({
       FunctionStart : (x:AST.ASTFunction) => {
         //Ignore sub children
         hasNested = true;
         return false; //Do not process
       },
-      VariableDeclaration : (x:AST.VariableDeclaration) => init(x, {'var':true})
-    }).exec(ast);
+      VariableDeclaration : (x:AST.VariableDeclaration) => {
+        if (x.kind === 'var') init(x.declarations);
+      }
+    }).exec(ast['body']);
 
     //Find all variable usages
     new Visitor({
       FunctionStart : (x:AST.ASTFunction) => false, //Do not process
 
-      VariableDeclaration : (x:AST.VariableDeclaration) => init(x, {'const':true, 'let':true}),
+      VariableDeclaration : (x:AST.VariableDeclaration) => {
+        if (x.kind !== 'var') init(x.declarations);
+      },
 
       //Handle reads/property access
       MemberExpressionStart : (x:AST.MemberExpression) => {
@@ -83,12 +84,30 @@ export class Analyzer {
         processVariableSite(x.left, AccessType.WRITE);
       },
 
+      BinaryExpression : (x:AST.BinaryExpression) => {
+        processVariableSite(x.left, AccessType.READ);
+        processVariableSite(x.right, AccessType.READ);
+      },
+
+      UnaryExpression : (x:AST.UnaryExpression) => {
+        processVariableSite(x.argument, AccessType.READ);
+      },
+
+      LogicalExpression : (x:AST.LogicalExpression) => {
+        processVariableSite(x.left, AccessType.READ);
+        processVariableSite(x.right, AccessType.READ);
+      },
+
       //Handle invocation
       CallExpression : (x:AST.CallExpression) => {
         processVariableSite(x.callee, AccessType.INVOKE);
+      },
+
+      Identifier : (x:AST.Identifier) => {
+        //Do nothing, handled in expression checking
       }
-    }).exec(ast);
-    
+    }).exec(body);
+
     return res;
   }
 
