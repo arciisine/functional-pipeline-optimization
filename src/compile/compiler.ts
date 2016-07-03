@@ -2,37 +2,31 @@ import { Util, AST, Macro as m } from '../../node_modules/@arcsine/ecma-ast-tran
 import { Compilable } from './compilable';
 import { TransformResponse } from '../transform';
 
-export abstract class Compiler<I,O,T> {
+export abstract class Compiler<T> {
   private static computed:{[key:string]:(...args:any[])=>any} = {};
 
   abstract prepareState():T;
-  abstract compile(compilable:Compilable<I, O>, state:T):AST.Node;
+  abstract compile<I, O>(compilable:Compilable<I, O>, state:T):AST.Node;
 
-  exec(compilable:Compilable<I, O>, data:I):O {
+  exec<I, O>(compilable:Compilable<I, O>, data:I):O {
     return this.getCompiled(compilable)(data);
   }
 
-  execManual(compilable:Compilable<I, O>, data:I):O {
+  execManual<I, O>(compilable:Compilable<I, O>, data:I):O {
     return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
   }  
 
-  generate(compilable:Compilable<I, O>, state:T):TransformResponse {
-    let vars:AST.Node[] = []
-    let body:AST.Node[] = []
-         
-    compilable.chain.slice()
-      .reverse()
+  generate<I, O>(compilable:Compilable<I, O>, state:T):TransformResponse {
+    return compilable.chain
       .map(t => t.transform(state))
-      .reverse()
-      .forEach(e => {
-        body.push(...e.body)
-        vars.push(...e.vars);
-      });
-    
-    return { vars, body };
+      .reduce((res, e) => {
+        res.body.push(...e.body)
+        res.vars.push(...e.vars);
+        return res;
+      }, {vars:[], body:[]});
   }
 
-  getCompiled(compilable:Compilable<I, O>):(i:I)=>O {
+  getCompiled<I, O>(compilable:Compilable<I, O>):(i:I)=>O {
     if (Compiler.computed[compilable.key]) {
       return Compiler.computed[compilable.key];
     } 

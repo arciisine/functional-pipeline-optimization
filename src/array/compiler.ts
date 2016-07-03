@@ -3,7 +3,7 @@ import { Compiler, Compilable } from '../compile';
 import { TransformState } from './types';
 import { TransformResponse } from '../transform';
 
-export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
+export class ArrayCompiler extends Compiler<TransformState> {
 
   prepareState():TransformState {
     return {
@@ -16,7 +16,7 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
     }
   }
 
-  generate(compilable:Compilable<I[], O>, state:TransformState):TransformResponse {
+  generate<I, O>(compilable:Compilable<I[], O>, state:TransformState):TransformResponse {
     let res = super.generate(compilable, state);
     let last = compilable.chain[compilable.chain.length-1];
     if (last['collect']) {
@@ -28,7 +28,7 @@ export class ArrayCompiler<I, O> extends Compiler<I[], O, TransformState> {
     return res;
   }
 
-  compile(compilable:Compilable<I[], O>, state:TransformState):AST.Node {
+  compile<I, O>(compilable:Compilable<I[], O>, state:TransformState):AST.Node {
     let {vars, body} = this.generate(compilable, state);
 
     return m.Func(state.functionId, [state.arrayId], [

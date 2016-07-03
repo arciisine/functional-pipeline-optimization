@@ -6,7 +6,7 @@ export class Builder<I, O> {
   
   constructor(
     private data:I, 
-    private compiler:Compiler<I, O, any>, 
+    private compiler:Compiler<any>, 
     private compilable:Compilable<I,O> = null
   ) {
     if (compilable === null) {
@@ -20,10 +20,10 @@ export class Builder<I, O> {
   }
 
   exec():O {
-    return this.compiler.exec(this.compilable, this.data as any);
+    return this.compiler.exec(this.compilable, this.data);
   }
 
   execManual():O {
-    return this.compiler.execManual(this.compilable, this.data as any);
+    return this.compiler.execManual(this.compilable, this.data);
   }
 }

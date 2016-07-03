@@ -6,7 +6,7 @@ import {Transformable} from '../transform';
 
 export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
   constructor(data:I[]) {
-    super(data, new ArrayCompiler<I, O[]>());
+    super(data, new ArrayCompiler());
   }
 
   filter(fn:Callback.Predicate<O>, context?:any):ArrayBuilder<I, O> {
