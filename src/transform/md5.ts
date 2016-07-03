@@ -160,7 +160,7 @@ export function hex(x) {
 }
 
 export function md5(s) {
-  return hex(md51(s));
+  return hex(md51(s)) as string;
 }
 
 /* this function is much faster,

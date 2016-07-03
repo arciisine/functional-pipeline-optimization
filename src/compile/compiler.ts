@@ -27,11 +27,12 @@ export abstract class Compiler<T> {
   }
 
   getCompiled<I, O>(compilable:Compilable<I, O>):(i:I)=>O {
-    if (Compiler.computed[compilable.key]) {
-      return Compiler.computed[compilable.key];
+    let key = compilable.tag.key;
+    if (Compiler.computed[key]) {
+      return Compiler.computed[key];
     } 
     let res = Util.compile(this.compile(compilable, this.prepareState()) as any, {}) as (i:I)=>O;
-    Compiler.computed[compilable.key] = res;
+    Compiler.computed[key] = res;
     return res;
   }
 }

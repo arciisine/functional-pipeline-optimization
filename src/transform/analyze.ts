@@ -6,35 +6,40 @@ export class Analyzer {
   private static tagged:{[key:string]:TransformTag} = {};
   private static id:number = 0;
   
-  static analyzeFunction(el:Function) {
+  static getFunctionTag(el:Function):TransformTag {
     //Try to lookup remaining information
-    if (Analyzer.tagged[el.tag && el.tag.key]) {
-      el.tag = Analyzer.tagged[el.tag.key];
-    } else {
-      //Compute information
-      let tag = {
-        key : md5(el.toString()) as string,
-        id : Analyzer.id++,
+    let checksum = md5(el.toString());
+    let tag = Analyzer.tagged[checksum]; 
+    if (!tag) {
+      tag = {
+        key : `${Analyzer.id++}`,
+        check : checksum,
         level : Util.isPureFunction(el) ? 
           TransformLevel.NO_DEPENDENCE : 
           TransformLevel.UNKNOWN,      
         closed : {}
       };
-      Analyzer.tagged[tag.key] = tag;
-      el.tag = tag;
+      Analyzer.tagged[checksum] = tag;
     }      
+    return tag;
   }
 
-  static analyze<I, O, T extends Transformable<I,O>>(el:T):T {
-    let tag = el.tag = {
+  static mergeTags(tag:TransformTag, i:{tag?:TransformTag}) {
+    tag.key += "|" +  i.tag.key;
+    tag.level = Math.min(tag.level, i.tag.level);
+    return tag;
+  }
+
+  static getTransformableTag<I, O, T extends Transformable<I,O>>(el:T):TransformTag {
+    return el.callbacks.reduce(Analyzer.mergeTags, {
       key : "~",
       level : TransformLevel.NO_DEPENDENCE,
-    }
-    el.callbacks.forEach(x => {
-      Analyzer.analyzeFunction(x);
-      tag.key = tag.key + "|" +  x.tag.id;
-      tag.level = Math.min(tag.level, x.tag.level); 
     });
+  }
+
+  static tag<I, O, T extends Transformable<I,O>>(el:T):T {
+    el.callbacks.forEach(x => x.tag = Analyzer.getFunctionTag(x))
+    el.tag = Analyzer.getTransformableTag(el);
     return el;
   }
 }
