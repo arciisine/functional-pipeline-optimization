@@ -8,3 +8,21 @@ export interface TransformState {
   arrayId:AST.Identifier,
   functionId:AST.Identifier
 }
+
+export namespace Callback { 
+  export interface Predicate<T> {
+    (v:T, i?:number, arr?:T[]):boolean
+  }
+
+  export interface Void<T> {
+    (v:T, i?:number, arr?:T[]):void
+  }
+
+  export interface Map<T, W> {
+    (v:T, i?:number, arr?:T[]):W
+  }
+
+  export interface Reduce<T, W> {
+    (acc:W, v:T, i?:number, arr?:T[]):W
+  }
+}

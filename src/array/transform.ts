@@ -1,6 +1,6 @@
 import { AST, Macro as m, Util } from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import { BaseTransformable } from './base-transformable';
-import { TransformState } from './types';
+import { TransformState, Callback } from './types';
 
 export abstract class ArrayTransformable<T, U, V> extends 
   BaseTransformable<T, U, (el:T, i?:number, arr?:T[])=>V, 
@@ -58,10 +58,10 @@ export class SomeTransform<T> extends ArrayTransformable<T, boolean, boolean> {
 }
 
 export class ReduceTransform<T, U>  extends 
-  BaseTransformable<T, U, (acc:U, el:T, i?:number, arr?:T[])=>U, 
-    (callback:(acc:U, el:T, i?:number, arr?:T[])=>U, context?:any)=>U> 
+  BaseTransformable<T, U, Callback.Reduce<T, U>, 
+    (callback:Callback.Reduce<T, U>, context?:any)=>U> 
 {
-  constructor(callback:(acc:U, el:T, i?:number, arr?:T[])=>U, public initValue?:U, context?:any) {
+  constructor(callback:Callback.Reduce<T, U>, public initValue?:U, context?:any) {
     super(callback, context);
     this.inputs.splice(1, 0, this.initValue); //put init value in the right position
   }

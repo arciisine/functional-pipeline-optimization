@@ -1,5 +1,6 @@
 import  {ArrayCompiler} from './compiler';
 import * as Transform from './transform';
+import {Callback} from './types';
 import {Compilable} from '../compile';
 
 declare global {
@@ -20,32 +21,32 @@ class ArrayProxy<T> implements TerminalProxy<T> {
 
   constructor(protected data:T[]) {}
 
-  filter(fn:(v:T, i?:number)=>boolean, context?:any):ArrayProxy<T> {
+  filter(fn:Callback.Predicate<T>, context?:any):ArrayProxy<T> {
     this.compilable.add(new Transform.FilterTransform(fn, context));
     return this;
   }
 
-  map<W>(fn:(v:T, i?:number)=>W, context?:any):ArrayProxy<W> {
+  map<W>(fn:Callback.Map<T, W>, context?:any):ArrayProxy<W> {
     this.compilable.add(new Transform.MapTransform(fn, context));
     return this as any;
   }
 
-  reduce<W>(fn:(acc:W, v:T, i?:number, arr?:T[])=>W, init?:W, context?:any):TerminalProxy<W> {
+  reduce<W>(fn:Callback.Reduce<T, W>, init?:W, context?:any):TerminalProxy<W> {
     this.compilable.add(new Transform.ReduceTransform(fn, init, context));
     return this as any;
   }
 
-  forEach(fn:(v:T, i?:number)=>void, context?:any):TerminalProxy<void> {
+  forEach(fn:Callback.Void<T>, context?:any):TerminalProxy<void> {
     this.compilable.add(new Transform.ForEachTransform(fn,context));
     return this as any;
   }
 
-  find(fn:(v:T, i?:number, arr?:T[])=>boolean, context?:any):TerminalProxy<T> {
+  find(fn:Callback.Predicate<T>, context?:any):TerminalProxy<T> {
     this.compilable.add(new Transform.FindTransform(fn,context));
     return this as any;
   }
 
-  some(fn:(v:T, i?:number)=>boolean, context?:any):TerminalProxy<boolean> {
+  some(fn:Callback.Predicate<T>, context?:any):TerminalProxy<boolean> {
     this.compilable.add(new Transform.SomeTransform(fn,context));
     return this as any;
   }

@@ -21,18 +21,21 @@ export interface Tracked<I, O> {
   key: string;
   id: number;
   level: TransformLevel;
+  closed:{[key:string]:number};
 }
+
+export interface TrackedCallback<I,O> extends Function, Tracked<any, any> {}
 
 export abstract class Transformable<I, O> implements Tracked<I, O> {
 
   key: string;
   id: number;
   level: TransformLevel = null;
-  globals:any = null;
-  inputs:any[] = null;
+  closed:{[key:string]:number};
+  callbacks:TrackedCallback<I, O>[];
 
-  constructor(...inputs:any[]) {
-    this.inputs = inputs;
+  constructor(public inputs:any[], callbacks:Function[]) {
+    this.callbacks = callbacks as TrackedCallback<I, O>[];
   }
 
   abstract transform<T>(state:T):TransformResponse;

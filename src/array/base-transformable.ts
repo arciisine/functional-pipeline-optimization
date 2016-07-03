@@ -6,19 +6,22 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   Transformable<T[], U> 
 {
   private static cache = {};
-  public manual:W;
-
-  constructor(public callback:V, public context?:any) {
-    super(callback, context);
-
+  
+  private static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:V) {
     let key = (this as any).constructor.name
     if (!BaseTransformable.cache[key]) {
       let fn = key.split('Transform')[0];
       fn = fn.charAt(0).toLowerCase() + fn.substring(1);
       BaseTransformable.cache[key] = Array.prototype[fn];
     }
+    return BaseTransformable.cache[key];
+  }
 
-    this.manual = BaseTransformable.cache[key];
+  public manual:W;
+
+  constructor(public callback:V, public context?:any) {
+    super([callback, context], [callback]);
+    this.manual = BaseTransformable.getArrayFunction(this);
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
