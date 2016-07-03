@@ -11,12 +11,10 @@
     * This context
     * Reduce's init value
     * Any allowed variables from the scope
-
 * Calculate Transform Levels
     * Look for write dependences (function calls, assignments)
     * White list functions known to be pure (Globals, Math, String, etc)
     * Allow User to set minimum threshold for transform level (defaults to no external dependences)  
-
 * Chained Call Analysis 
     * Find expression ranges for arr.filter().map().filter().reduce()....
     * Collect available globals per filter
