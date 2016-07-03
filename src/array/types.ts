@@ -18,11 +18,11 @@ export namespace Callback {
     (v:T, i?:number, arr?:T[]):void
   }
 
-  export interface Map<T, W> {
+  export interface Transform<T, W> {
     (v:T, i?:number, arr?:T[]):W
   }
 
-  export interface Reduce<T, W> {
+  export interface Accumulate<T, W> {
     (acc:W, v:T, i?:number, arr?:T[]):W
   }
 }

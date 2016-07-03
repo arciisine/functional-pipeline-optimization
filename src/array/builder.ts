@@ -13,11 +13,11 @@ export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
     return this.chain(new Transform.FilterTransform(fn, context)) as any;
   }
 
-  map<V>(fn:Callback.Map<O, V>, context?:any):ArrayBuilder<I, V> {
+  map<V>(fn:Callback.Transform<O, V>, context?:any):ArrayBuilder<I, V> {
     return this.chain(new Transform.MapTransform(fn, context)) as any;
   }
 
-  reduce<V>(fn:Callback.Reduce<O, V>, init?:V, context?:any)  {
+  reduce<V>(fn:Callback.Accumulate<O, V>, init?:V, context?:any)  {
     return this.chain(new Transform.ReduceTransform(fn, init, context));
   }
 

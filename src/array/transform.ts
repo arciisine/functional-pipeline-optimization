@@ -19,7 +19,7 @@ export class FilterTransform<T> extends
 }
 
 export class MapTransform<T, U> extends 
-  BaseTransformable<T, T[], Callback.Map<T, U>, Handler.Standard<T, T, U>> 
+  BaseTransformable<T, T[], Callback.Transform<T, U>, Handler.Standard<T, T, U>> 
 {
   init(state:TransformState) {
     return m.Array();
@@ -59,9 +59,9 @@ export class SomeTransform<T> extends
 }
 
 export class ReduceTransform<T, U>  extends 
-  BaseTransformable<T, U, Callback.Reduce<T, U>, Handler.Reduce<T, U>>
+  BaseTransformable<T, U, Callback.Accumulate<T, U>, Handler.Reduce<T, U>>
 {
-  constructor(callback:Callback.Reduce<T, U>, public initValue?:U, context?:any) {
+  constructor(callback:Callback.Accumulate<T, U>, public initValue?:U, context?:any) {
     super(callback, context);
     this.inputs.splice(1, 0, this.initValue); //put init value in the right position
   }
