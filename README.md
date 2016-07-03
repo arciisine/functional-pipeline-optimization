@@ -16,8 +16,9 @@
     * White list functions known to be pure (Globals, Math, String, etc)
     * Allow User to set minimum threshold for transform level (defaults to no external dependences)  
 * Chained Call Analysis 
-    * Find expression ranges for arr.filter().map().filter().reduce()....
+    * Find expression ranges for `arr.filter().map().filter().reduce()...`
     * Collect available globals per filter
     * Assign globals on inbound
     * Restore globals on outbound
-    * Do an array.isarray check at runtime to determine if we should run the code
+    * Do an `Array.isArray` check at runtime to determine if we should run the code
+    * If the input to `reduce` is an Array literal, consider allowing chaining of self
