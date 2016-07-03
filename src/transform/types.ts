@@ -17,27 +17,24 @@ export enum TransformLevel {
   NO_DEPENDENCE = 3
 }
 
-export interface Tracked<I, O> {
+export interface TransformTag {
+  id?: number;
   key: string;
-  id: number;
   level: TransformLevel;
-  closed:{[key:string]:number};
+  closed?:{[key:string]:any};
 }
 
-export interface TrackedCallback<I,O> extends Function, Tracked<any, any> {}
-
-export abstract class Transformable<I, O> implements Tracked<I, O> {
-
-  key: string;
-  id: number;
-  level: TransformLevel = null;
-  closed:{[key:string]:number};
-  callbacks:TrackedCallback<I, O>[];
-
-  constructor(public inputs:any[], callbacks:Function[]) {
-    this.callbacks = callbacks as TrackedCallback<I, O>[];
+declare global {
+  interface Function {
+    tag:TransformTag
   }
+}
 
-  abstract transform<T>(state:T):TransformResponse;
-  abstract manualTransform(data:I):O;
+export interface Transformable<I, O> {
+  tag:TransformTag
+  inputs:any[];
+  callbacks:Function[]
+  
+  transform<T>(state:T):TransformResponse;
+  manualTransform(data:I):O;
 }

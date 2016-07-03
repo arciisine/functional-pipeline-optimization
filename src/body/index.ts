@@ -15,7 +15,7 @@ console.log(supported);
 export function rewriteBody(content:string) {
   let body = Util.parseExpression<AST.Node>(content);
 
-  const containers = ['FunctionExpression', 'ArrowFunctionExpression'];
+  const containers = {'FunctionExpression':true, 'ArrowFunctionExpression':true};
 
   body = new Visitor({
     MemberExpression : (x:AST.MemberExpression, visitor:Visitor) => {

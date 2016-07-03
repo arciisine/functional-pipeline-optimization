@@ -1,9 +1,9 @@
 import { AST, Macro as m, Util, Visitor } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse } from '../transform';
+import { Transformable, TransformResponse, TransformTag } from '../transform';
 import {TransformState} from './types';
 
-export abstract class BaseTransformable<T, U, V extends Function, W extends Function> extends 
-  Transformable<T[], U> 
+export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
+  implements Transformable<T[], U> 
 {
   private static cache = {};
   
@@ -18,9 +18,13 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   public manual:W;
+  public inputs:any[];
+  public callbacks:Function[];
+  public tag:TransformTag = null;
 
   constructor(public callback:V, public context?:any) {
-    super([callback, context], [callback]);
+    this.inputs = [callback, context];
+    this.callbacks = [callback];
     this.manual = BaseTransformable.getArrayFunction(this);
   }
 
