@@ -1,11 +1,12 @@
 import {AST, Util, Macro as m, Visitor} from '../../node_modules/@arcsine/ecma-ast-transform/src';
 import * as Transformers from '../array/transform';
+import {BaseTransformable} from '../array/base-transformable';
 
 //Read name of manual fn from transformers
 let supported = {};
 Object.keys(Transformers)
   .filter(x => x.endsWith('Transform'))
-  .map(x => (new Transformers[x]() as Transformers.ArrayTransformable<any, any, any>))
+  .map(x => (new Transformers[x]() as BaseTransformable<any, any, any, any>))
   .filter(x => !!x.manual)
   .forEach(x => supported[x.manual.name] = true)
 

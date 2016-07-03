@@ -2,11 +2,11 @@ import {Compilable} from './compilable';
 import {Compiler} from './compiler';
 import {Transformable} from '../transform';
 
-export class Builder<I, O, T extends Compiler<I, O, any>> {
+export class Builder<I, O> {
   
   constructor(
     private data:I, 
-    private compiler:T, 
+    private compiler:Compiler<I, O, any>, 
     private compilable:Compilable<I,O> = null
   ) {
     if (compilable === null) {
@@ -14,9 +14,9 @@ export class Builder<I, O, T extends Compiler<I, O, any>> {
     }
   }
 
-  chain<V>(op:Transformable<I, V>):this {
+  chain<V>(op:Transformable<I, V>):Builder<I,V> {
     this.compilable.add(op);
-    return this as any;
+    return this as any as Builder<I, V>;
   }
 
   exec():O {

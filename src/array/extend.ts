@@ -1,13 +1,13 @@
-import  {ArrayProxy} from './proxy';
+import  {ArrayBuilder} from './builder';
 
 declare global {
   interface Array<T> {
-    r:ArrayProxy<T>;
+    r:ArrayBuilder<T, any>;
   }
 }
 
 Object.defineProperty(Array.prototype, 'r', {
   get : function() {
-    return new ArrayProxy(this);
+    return new ArrayBuilder(this);
   }
 });
