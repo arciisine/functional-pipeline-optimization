@@ -1,14 +1,11 @@
 import { Util, AST, Visitor } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, Analysis, Analyzable, AccessType } from './types';
+import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
 
 declare var global, window;
 
-const ANALYSIS_BOOLEAN_FIELDS = [
-  'Assignment', 'NestedFunction', 'ThisExpression', 'MemberExpression', 'CallExpression', 'NewExpression'
-];
-
-export class Analyzer {
+export class FunctionAnalyzer {
+  
   private static analyzed:{[key:string]:Analysis} = {};
   private static id:number = 0;
 
@@ -28,7 +25,7 @@ export class Analyzer {
     let {declared} = analysis;
     
     ds.forEach(p => { 
-      let id = Analyzer.getVariableName(p); 
+      let id = FunctionAnalyzer.getVariableName(p); 
       analysis.declared[id] = true;
     });
   }
@@ -36,7 +33,7 @@ export class Analyzer {
   static processVariableSite(analysis:Analysis, node:AST.Node|string, type:AccessType) {
     let {globals, closed, declared} = analysis;
 
-    let id = typeof node === 'string' ? node : Analyzer.getVariableName(node);
+    let id = typeof node === 'string' ? node : FunctionAnalyzer.getVariableName(node);
     if (id && !declared[id] && !globals[id]) { //If access before read and not global
       closed[id] = Math.max(closed[id] || 0, type);  
     }
@@ -51,7 +48,7 @@ export class Analyzer {
         return false; //Do not process
       },
       VariableDeclaration : (x:AST.VariableDeclaration) => {
-        if (x.kind === 'var') Analyzer.processVariableDeclarations(analysis, x.declarations);
+        if (x.kind === 'var') FunctionAnalyzer.processVariableDeclarations(analysis, x.declarations);
       }
     }).exec(node);
   }
@@ -63,52 +60,52 @@ export class Analyzer {
       FunctionStart : (x:AST.ASTFunction) => false, //Do not process
 
       VariableDeclaration : (x:AST.VariableDeclaration) => {
-        if (x.kind !== 'var') Analyzer.processVariableDeclarations(analysis, x.declarations);
+        if (x.kind !== 'var') FunctionAnalyzer.processVariableDeclarations(analysis, x.declarations);
       },
 
       //Handle reads
       MemberExpression : (x:AST.MemberExpression) => {
         analysis.hasMemberExpression = true;
         if (x.object.type === 'Identifier') {
-          Analyzer.processVariableSite(analysis, x.object, AccessType.READ);
+          FunctionAnalyzer.processVariableSite(analysis, x.object, AccessType.READ);
         }          
       },
 
       BinaryExpression : (x:AST.BinaryExpression) => {
-        Analyzer.processVariableSite(analysis, x.left, AccessType.READ);
-        Analyzer.processVariableSite(analysis, x.right, AccessType.READ);
+        FunctionAnalyzer.processVariableSite(analysis, x.left, AccessType.READ);
+        FunctionAnalyzer.processVariableSite(analysis, x.right, AccessType.READ);
       },
 
       UnaryExpression : (x:AST.UnaryExpression) => {
-        Analyzer.processVariableSite(analysis, x.argument, AccessType.READ);
+        FunctionAnalyzer.processVariableSite(analysis, x.argument, AccessType.READ);
       },
 
       LogicalExpression : (x:AST.LogicalExpression) => {
-        Analyzer.processVariableSite(analysis, x.left, AccessType.READ);
-        Analyzer.processVariableSite(analysis, x.right, AccessType.READ);
+        FunctionAnalyzer.processVariableSite(analysis, x.left, AccessType.READ);
+        FunctionAnalyzer.processVariableSite(analysis, x.right, AccessType.READ);
       },
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
         analysis.hasAssignment = true;
-        Analyzer.processVariableSite(analysis, x.argument, AccessType.WRITE);
+        FunctionAnalyzer.processVariableSite(analysis, x.argument, AccessType.WRITE);
       },
 
       AssignmentExpression : (x:AST.AssignmentExpression) => {
         analysis.hasAssignment = true;
-        Analyzer.processVariableSite(analysis, x.left, AccessType.WRITE);
+        FunctionAnalyzer.processVariableSite(analysis, x.left, AccessType.WRITE);
       },
 
       //Handle invocation
       CallExpression : (x:AST.CallExpression) => {
         analysis.hasCallExpression = true;
-        Analyzer.processVariableSite(analysis, x.callee, AccessType.INVOKE);
+        FunctionAnalyzer.processVariableSite(analysis, x.callee, AccessType.INVOKE);
       },
 
       //New
       NewExpression : (x:AST.NewExpression) => {
         analysis.hasNewExpression = true;
-        Analyzer.processVariableSite(analysis, x.callee, AccessType.INVOKE);
+        FunctionAnalyzer.processVariableSite(analysis, x.callee, AccessType.INVOKE);
       },
 
       //This
@@ -122,10 +119,10 @@ export class Analyzer {
     }).exec(node);
   }
 
-  static getFunctionAnalysis(fn:Function, globals?:any):Analysis {
+  static analyze(fn:Function, globals?:any):Analysis {
     let src = fn.toString();
     let check = md5(src);
-    let analysis = Analyzer.analyzed[check];
+    let analysis = FunctionAnalyzer.analyzed[check];
 
     if (analysis) { //return if already computed
       return analysis;
@@ -136,37 +133,16 @@ export class Analyzer {
 
     let ast:AST.ASTFunction = Util.parse(src);
 
-    analysis = {
-      key : `${Analyzer.id++}`,
-      check,
-      closed : {},
-      declared : {},
-      globals : globals || {}
-    }
+    analysis = new Analysis(`${FunctionAnalyzer.id++}`);
+    analysis.check = check;
+    analysis.globals = globals || {};
 
-    Analyzer.processVariableDeclarations(analysis, ast.params);
-    Analyzer.findVarDeclarations(analysis, ast.body);
-    Analyzer.findVariableSites(analysis, ast.body);
+    FunctionAnalyzer.processVariableDeclarations(analysis, ast.params);
+    FunctionAnalyzer.findVarDeclarations(analysis, ast.body);
+    FunctionAnalyzer.findVariableSites(analysis, ast.body);
 
-    Analyzer.analyzed[check] = analysis;
+    FunctionAnalyzer.analyzed[check] = analysis;
 
     return analysis;
-  }
-
-  static mergeAnalyses(i:Analyzable, o:Analyzable) {
-    let ia = i.analysis;
-    let oa = o.analysis;
-
-    ia.key = `${ia.key}|${oa.key}`;
-    ANALYSIS_BOOLEAN_FIELDS
-      .forEach(k => { ia[k] = ia[k] || oa[k];})
-    return i;
-  }
-
-  static analyze<I, O, T extends Transformable<I,O>>(el:T):T {
-    el.analysis = { key : "~" };
-    el.callbacks.forEach(x => x.analysis = Analyzer.getFunctionAnalysis(x))
-    el.callbacks.reduce(Analyzer.mergeAnalyses, el)
-    return el;
   }
 }

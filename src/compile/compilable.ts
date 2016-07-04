@@ -1,19 +1,20 @@
-import { Transformable, Analysis, Analyzer, Analyzable } from '../transform';
+import { Transformable, TransformUtil } from '../transform';
+import { Analysis, Analyzable } from '../analyze';
 
 export class Compilable<I,O> implements Analyzable {
   chain:Transformable<any, any>[] = []
-  analysis:Analysis = { key : '~' };
+  analysis:Analysis = new Analysis('~');
 
   constructor(compilable?:Compilable<any, any>) {
     if (compilable) {
       this.chain = compilable.chain.slice();
-      Analyzer.mergeAnalyses(this, compilable);
+      this.analysis.merge(compilable);
     }
   }
 
   add<V>(op?:Transformable<O, V>):Compilable<I, V> {
-    this.chain.push(Analyzer.analyze(op));
-    Analyzer.mergeAnalyses(this, op)
+    this.chain.push(TransformUtil.analyze(op));
+    this.analysis.merge(op);
     return this as any as Compilable<I, V>;
   }
 }
