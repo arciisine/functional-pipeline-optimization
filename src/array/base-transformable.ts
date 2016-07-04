@@ -1,5 +1,5 @@
 import { AST, Macro as m, Util, Visitor } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse, TransformTag } from '../transform';
+import { Transformable, TransformResponse, Analysis } from '../transform';
 import {TransformState} from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
@@ -20,7 +20,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   public manual:W;
   public inputs:any[];
   public callbacks:Function[];
-  public tag:TransformTag = null;
+  public analysis:Analysis = null;
 
   constructor(public callback:V, public context?:any) {
     this.inputs = [callback, context];

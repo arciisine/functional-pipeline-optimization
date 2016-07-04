@@ -5,31 +5,36 @@ export interface TransformResponse {
   vars:AST.Node[]
 }
 
-export enum TransformLevel {
-  UNKNOWN = 0,
-  WRITE_DEPENDENCE = 1,
-  READ_DEPENDENCE = 2,
-  NO_DEPENDENCE = 3
+export enum AccessType {
+  NONE, READ, WRITE, INVOKE
 }
 
-export interface TransformTag {
+export interface Analysis {
   key: string;
   check? : string,
-  level?: TransformLevel;
-  closed?:{[key:string]:any};
+  closed?:{[key:string]:AccessType}
+  hasAssignment?:boolean
+  hasCallExpression?:boolean
+  hasThisExpression?:boolean
+  hasNestedFunction?:boolean
+  hasMemberExpression?:boolean
 }
 
-declare global {
-  interface Function {
-    tag:TransformTag
-  }
-}
+export interface Analyzable {
+  analysis?:Analysis
+};
 
-export interface Transformable<I, O> {
-  tag:TransformTag
+
+export interface Transformable<I, O> extends Analyzable {
   inputs:any[];
   callbacks:Function[]
   
   transform<T>(state:T):TransformResponse;
   manualTransform(data:I):O;
+}
+
+declare global {
+  interface Function {
+    analysis?:Analysis
+  }
 }

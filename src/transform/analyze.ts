@@ -1,13 +1,15 @@
 import { Util, AST, Visitor } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { TransformLevel, Transformable, TransformTag } from './types';
+import { Transformable, Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
 
-enum AccessType {
-  NONE, READ, WRITE, INVOKE
-}
+declare var global, window;
+
+const ANALYSIS_BOOLEAN_FIELDS = [
+  'Assignment', 'NestedFunction', 'ThisExpression', 'MemberExpression', 'CallExpression'
+];
 
 export class Analyzer {
-  private static tagged:{[key:string]:TransformTag} = {};
+  private static analyzed:{[key:string]:Analysis} = {};
   private static id:number = 0;
 
   static readVariable(p:AST.Pattern):string { 
@@ -22,14 +24,27 @@ export class Analyzer {
     }
   }
 
-  static findClosedVariables(fn:Function, globals:any = {}) {
+  static getFunctionAnalysis(fn:Function, globals?:any):Analysis {
+    let check = md5(fn.toString());
+    let analysis = Analyzer.analyzed[check];
+
+    if (analysis) { //return if already computed
+      return analysis;
+    } 
+
 
     let ast:AST.ASTFunction = Util.parse(fn);
 
-    let res:{[key:string]:AccessType} = {};
+    let closed:{[key:string]:AccessType} = {};
     let declared:{} = {};
-    let hasNested = false;
-    let hasExpression = false;
+
+    let hasNestedFunction = false;
+    let hasMemberExpression = false;
+    let hasThisExpression = false;
+    let hasCallExpression = false;
+    let hasAssignment = false;
+
+    globals = globals || {};
 
     let init = (ds:AST.Pattern[]) => {
       ds.forEach(p => { 
@@ -41,22 +56,23 @@ export class Analyzer {
     let processVariableSite = (node:AST.Node|string, type:AccessType) =>  {
       let id = typeof node === 'string' ? node : Analyzer.readVariable(node);
       if (id && !declared[id] && !globals[id]) { //If access before read and not global
-        res[id] = Math.max(res[id] || 0, type);  
+        closed[id] = Math.max(closed[id] || 0, type);  
       }
-    }    
-    init(ast['params'] as AST.Pattern[]);
+    }  
+
+    init(ast.params);
 
     //Hoist vars, remove nested functions
     let body = new Visitor({
       FunctionStart : (x:AST.ASTFunction) => {
         //Ignore sub children
-        hasNested = true;
+        hasNestedFunction = true;
         return false; //Do not process
       },
       VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind === 'var') init(x.declarations);
       }
-    }).exec(ast['body']);
+    }).exec(ast.body);
 
     //Find all variable usages
     new Visitor({
@@ -68,7 +84,7 @@ export class Analyzer {
 
       //Handle reads/property access
       MemberExpressionStart : (x:AST.MemberExpression) => {
-        hasExpression = true;
+        hasMemberExpression = true;
         //If top level expression
         if (x.object.type === 'Identifier') {
           processVariableSite(x.object, AccessType.READ);
@@ -77,10 +93,12 @@ export class Analyzer {
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
+        hasAssignment = true;
         processVariableSite(x.argument, AccessType.WRITE);
       },
 
       AssignmentExpression : (x:AST.AssignmentExpression) => {
+        hasAssignment = true;
         processVariableSite(x.left, AccessType.WRITE);
       },
 
@@ -100,7 +118,12 @@ export class Analyzer {
 
       //Handle invocation
       CallExpression : (x:AST.CallExpression) => {
+        hasCallExpression = false;
         processVariableSite(x.callee, AccessType.INVOKE);
+      },
+
+      ThisExpression : (x:AST.ThisExpression) => {
+        hasThisExpression = true;
       },
 
       Identifier : (x:AST.Identifier) => {
@@ -108,41 +131,36 @@ export class Analyzer {
       }
     }).exec(body);
 
-    return res;
+    return {
+      key : `${Analyzer.id++}`,
+      check : check,
+      closed,
+      hasAssignment,
+      hasCallExpression,
+      hasThisExpression,
+      hasNestedFunction,
+      hasMemberExpression
+    };
   }
 
-  static getFunctionTag(el:Function):TransformTag {
-    //Try to lookup remaining information
-    let checksum = md5(el.toString());
-    let tag = Analyzer.tagged[checksum]; 
-    if (!tag) {
-      tag = {
-        key : `${Analyzer.id++}`,
-        check : checksum,
-        closed : Analyzer.findClosedVariables(el),
-      };
-      tag.level = 0;//Compute level from closed variables
-      Analyzer.tagged[checksum] = tag;
-    }      
-    return tag;
+  static mergeAnalyses(i:Analyzable, o:Analyzable) {
+    let ia = i.analysis;
+    let oa = o.analysis;
+
+    ia.key += "|" +  oa.key;
+    for (let key of ANALYSIS_BOOLEAN_FIELDS) {
+      ia[key] = ia[key] || oa[key];
+    }
+    return i;
   }
 
-  static mergeTags(tag:TransformTag, i:{tag?:TransformTag}) {
-    tag.key += "|" +  i.tag.key;
-    tag.level = Math.min(tag.level, i.tag.level);
-    return tag;
+  static getTransformableAnalysis<I, O, T extends Transformable<I,O>>(el:T):Analysis {
+    return el.callbacks.reduce(Analyzer.mergeAnalyses, { analysis : { key : "~" }}).analysis;
   }
 
-  static getTransformableTag<I, O, T extends Transformable<I,O>>(el:T):TransformTag {
-    return el.callbacks.reduce(Analyzer.mergeTags, {
-      key : "~",
-      level : TransformLevel.NO_DEPENDENCE,
-    });
-  }
-
-  static tag<I, O, T extends Transformable<I,O>>(el:T):T {
-    el.callbacks.forEach(x => x.tag = Analyzer.getFunctionTag(x))
-    el.tag = Analyzer.getTransformableTag(el);
+  static analyze<I, O, T extends Transformable<I,O>>(el:T):T {
+    el.callbacks.forEach(x => x.analysis = Analyzer.getFunctionAnalysis(x))
+    el.analysis = Analyzer.getTransformableAnalysis(el);
     return el;
   }
 }
