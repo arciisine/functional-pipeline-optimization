@@ -5,7 +5,7 @@ import { md5 } from './md5';
 declare var global, window;
 
 const ANALYSIS_BOOLEAN_FIELDS = [
-  'Assignment', 'NestedFunction', 'ThisExpression', 'MemberExpression', 'CallExpression'
+  'Assignment', 'NestedFunction', 'ThisExpression', 'MemberExpression', 'CallExpression', 'NewExpression'
 ];
 
 export class Analyzer {
@@ -25,15 +25,15 @@ export class Analyzer {
   }
 
   static getFunctionAnalysis(fn:Function, globals?:any):Analysis {
-    let check = md5(fn.toString());
+    let src = fn.toString();
+    let check = md5(src);
     let analysis = Analyzer.analyzed[check];
 
     if (analysis) { //return if already computed
       return analysis;
     } 
 
-
-    let ast:AST.ASTFunction = Util.parse(fn);
+    let ast:AST.ASTFunction = Util.parse(src.startsWith('function') ? src : `function ${src}`);
 
     let closed:{[key:string]:AccessType} = {};
     let declared:{} = {};
@@ -43,6 +43,7 @@ export class Analyzer {
     let hasThisExpression = false;
     let hasCallExpression = false;
     let hasAssignment = false;
+    let hasNewExpression = false;
 
     globals = globals || {};
 
@@ -82,24 +83,12 @@ export class Analyzer {
         if (x.kind !== 'var') init(x.declarations);
       },
 
-      //Handle reads/property access
-      MemberExpressionStart : (x:AST.MemberExpression) => {
+      //Handle reads
+      MemberExpression : (x:AST.MemberExpression) => {
         hasMemberExpression = true;
-        //If top level expression
         if (x.object.type === 'Identifier') {
           processVariableSite(x.object, AccessType.READ);
-        }
-      },
-
-      //Handle assignment
-      UpdateExpression : (x:AST.UpdateExpression) => {
-        hasAssignment = true;
-        processVariableSite(x.argument, AccessType.WRITE);
-      },
-
-      AssignmentExpression : (x:AST.AssignmentExpression) => {
-        hasAssignment = true;
-        processVariableSite(x.left, AccessType.WRITE);
+        }          
       },
 
       BinaryExpression : (x:AST.BinaryExpression) => {
@@ -116,12 +105,30 @@ export class Analyzer {
         processVariableSite(x.right, AccessType.READ);
       },
 
+      //Handle assignment
+      UpdateExpression : (x:AST.UpdateExpression) => {
+        hasAssignment = true;
+        processVariableSite(x.argument, AccessType.WRITE);
+      },
+
+      AssignmentExpression : (x:AST.AssignmentExpression) => {
+        hasAssignment = true;
+        processVariableSite(x.left, AccessType.WRITE);
+      },
+
       //Handle invocation
       CallExpression : (x:AST.CallExpression) => {
         hasCallExpression = true;
         processVariableSite(x.callee, AccessType.INVOKE);
       },
 
+      //New
+      NewExpression : (x:AST.NewExpression) => {
+        hasNewExpression = true;
+        processVariableSite(x.callee, AccessType.INVOKE);
+      },
+
+      //This
       ThisExpression : (x:AST.ThisExpression) => {
         hasThisExpression = true;
       },
@@ -139,6 +146,7 @@ export class Analyzer {
       hasCallExpression,
       hasThisExpression,
       hasNestedFunction,
+      hasNewExpression,
       hasMemberExpression
     };
   }

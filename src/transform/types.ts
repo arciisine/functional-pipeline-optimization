@@ -17,7 +17,8 @@ export interface Analysis {
   hasCallExpression?:boolean
   hasThisExpression?:boolean
   hasNestedFunction?:boolean
-  hasMemberExpression?:boolean
+  hasMemberExpression?:boolean,
+  hasNewExpression?:boolean
 }
 
 export interface Analyzable {
