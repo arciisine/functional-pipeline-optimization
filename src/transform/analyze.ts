@@ -118,7 +118,7 @@ export class Analyzer {
 
       //Handle invocation
       CallExpression : (x:AST.CallExpression) => {
-        hasCallExpression = false;
+        hasCallExpression = true;
         processVariableSite(x.callee, AccessType.INVOKE);
       },
 
@@ -133,7 +133,7 @@ export class Analyzer {
 
     return {
       key : `${Analyzer.id++}`,
-      check : check,
+      check,
       closed,
       hasAssignment,
       hasCallExpression,
@@ -154,13 +154,9 @@ export class Analyzer {
     return i;
   }
 
-  static getTransformableAnalysis<I, O, T extends Transformable<I,O>>(el:T):Analysis {
-    return el.callbacks.reduce(Analyzer.mergeAnalyses, { analysis : { key : "~" }}).analysis;
-  }
-
   static analyze<I, O, T extends Transformable<I,O>>(el:T):T {
     el.callbacks.forEach(x => x.analysis = Analyzer.getFunctionAnalysis(x))
-    el.analysis = Analyzer.getTransformableAnalysis(el);
+    el.callbacks.reduce(Analyzer.mergeAnalyses, { analysis : { key : "~" }})
     return el;
   }
 }
