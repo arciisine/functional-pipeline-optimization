@@ -12,12 +12,14 @@ export enum AccessType {
 export interface Analysis {
   key: string;
   check? : string,
+  globals?:{[key:string]:any}
   closed?:{[key:string]:AccessType}
+  declared?:{[key:string]:boolean}
   hasAssignment?:boolean
   hasCallExpression?:boolean
   hasThisExpression?:boolean
   hasNestedFunction?:boolean
-  hasMemberExpression?:boolean,
+  hasMemberExpression?:boolean
   hasNewExpression?:boolean
 }
 

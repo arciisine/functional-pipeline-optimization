@@ -24,6 +24,100 @@ export class Analyzer {
     }
   }
 
+  static processVariableDeclarations(analysis:Analysis, ds:AST.Pattern[]) {
+    ds.forEach(p => { 
+      let id = Analyzer.readVariable(p); 
+      analysis.declared[id] = true;
+    });
+  }
+
+  static processVariableSite(analysis:Analysis, node:AST.Node|string, type:AccessType) {
+    let id = typeof node === 'string' ? node : Analyzer.readVariable(node);
+    if (id && !analysis.declared[id] && !analysis.globals[id]) { //If access before read and not global
+      closed[id] = Math.max(closed[id] || 0, type);  
+    }
+  }  
+
+  static findVarDeclarations(analysis:Analysis, node:AST.Node) {
+    //Hoist vars, remove nested functions
+    new Visitor({
+      FunctionStart : (x:AST.ASTFunction) => {
+        //Ignore sub children
+        analysis.hasNestedFunction = true;
+        return false; //Do not process
+      },
+      VariableDeclaration : (x:AST.VariableDeclaration) => {
+        if (x.kind === 'var') Analyzer.processVariableDeclarations(analysis, x.declarations);
+      }
+    }).exec(node);
+  }
+
+  static findVariableSites(analysis:Analysis, node:AST.Node) {
+
+    //Find all variable usages
+    new Visitor({
+      FunctionStart : (x:AST.ASTFunction) => false, //Do not process
+
+      VariableDeclaration : (x:AST.VariableDeclaration) => {
+        if (x.kind !== 'var') Analyzer.processVariableDeclarations(analysis, x.declarations);
+      },
+
+      //Handle reads
+      MemberExpression : (x:AST.MemberExpression) => {
+        analysis.hasMemberExpression = true;
+        if (x.object.type === 'Identifier') {
+          Analyzer.processVariableSite(analysis, x.object, AccessType.READ);
+        }          
+      },
+
+      BinaryExpression : (x:AST.BinaryExpression) => {
+        Analyzer.processVariableSite(analysis, x.left, AccessType.READ);
+        Analyzer.processVariableSite(analysis, x.right, AccessType.READ);
+      },
+
+      UnaryExpression : (x:AST.UnaryExpression) => {
+        Analyzer.processVariableSite(analysis, x.argument, AccessType.READ);
+      },
+
+      LogicalExpression : (x:AST.LogicalExpression) => {
+        Analyzer.processVariableSite(analysis, x.left, AccessType.READ);
+        Analyzer.processVariableSite(analysis, x.right, AccessType.READ);
+      },
+
+      //Handle assignment
+      UpdateExpression : (x:AST.UpdateExpression) => {
+        analysis.hasAssignment = true;
+        Analyzer.processVariableSite(analysis, x.argument, AccessType.WRITE);
+      },
+
+      AssignmentExpression : (x:AST.AssignmentExpression) => {
+        analysis.hasAssignment = true;
+        Analyzer.processVariableSite(analysis, x.left, AccessType.WRITE);
+      },
+
+      //Handle invocation
+      CallExpression : (x:AST.CallExpression) => {
+        analysis.hasCallExpression = true;
+        Analyzer.processVariableSite(analysis, x.callee, AccessType.INVOKE);
+      },
+
+      //New
+      NewExpression : (x:AST.NewExpression) => {
+        analysis.hasNewExpression = true;
+        Analyzer.processVariableSite(analysis, x.callee, AccessType.INVOKE);
+      },
+
+      //This
+      ThisExpression : (x:AST.ThisExpression) => {
+        analysis.hasThisExpression = true;
+      },
+
+      Identifier : (x:AST.Identifier) => {
+        //Do nothing, handled in expression checking
+      }
+    }).exec(node);
+  }
+
   static getFunctionAnalysis(fn:Function, globals?:any):Analysis {
     let src = fn.toString();
     let check = md5(src);
@@ -33,122 +127,23 @@ export class Analyzer {
       return analysis;
     } 
 
-    let ast:AST.ASTFunction = Util.parse(src.startsWith('function') ? src : `function ${src}`);
+    src = /^[A-Za-z0-9_$ ]+\(/.test(src) ? `function ${src}` : src
 
-    let closed:{[key:string]:AccessType} = {};
-    let declared:{} = {};
+    let ast:AST.ASTFunction = Util.parse(src);
 
-    let hasNestedFunction = false;
-    let hasMemberExpression = false;
-    let hasThisExpression = false;
-    let hasCallExpression = false;
-    let hasAssignment = false;
-    let hasNewExpression = false;
-
-    globals = globals || {};
-
-    let init = (ds:AST.Pattern[]) => {
-      ds.forEach(p => { 
-        let id = Analyzer.readVariable(p); 
-        declared[id] = true;
-      });
-    }
-
-    let processVariableSite = (node:AST.Node|string, type:AccessType) =>  {
-      let id = typeof node === 'string' ? node : Analyzer.readVariable(node);
-      if (id && !declared[id] && !globals[id]) { //If access before read and not global
-        closed[id] = Math.max(closed[id] || 0, type);  
-      }
-    }  
-
-    init(ast.params);
-
-    //Hoist vars, remove nested functions
-    let body = new Visitor({
-      FunctionStart : (x:AST.ASTFunction) => {
-        //Ignore sub children
-        hasNestedFunction = true;
-        return false; //Do not process
-      },
-      VariableDeclaration : (x:AST.VariableDeclaration) => {
-        if (x.kind === 'var') init(x.declarations);
-      }
-    }).exec(ast.body);
-
-    //Find all variable usages
-    new Visitor({
-      FunctionStart : (x:AST.ASTFunction) => false, //Do not process
-
-      VariableDeclaration : (x:AST.VariableDeclaration) => {
-        if (x.kind !== 'var') init(x.declarations);
-      },
-
-      //Handle reads
-      MemberExpression : (x:AST.MemberExpression) => {
-        hasMemberExpression = true;
-        if (x.object.type === 'Identifier') {
-          processVariableSite(x.object, AccessType.READ);
-        }          
-      },
-
-      BinaryExpression : (x:AST.BinaryExpression) => {
-        processVariableSite(x.left, AccessType.READ);
-        processVariableSite(x.right, AccessType.READ);
-      },
-
-      UnaryExpression : (x:AST.UnaryExpression) => {
-        processVariableSite(x.argument, AccessType.READ);
-      },
-
-      LogicalExpression : (x:AST.LogicalExpression) => {
-        processVariableSite(x.left, AccessType.READ);
-        processVariableSite(x.right, AccessType.READ);
-      },
-
-      //Handle assignment
-      UpdateExpression : (x:AST.UpdateExpression) => {
-        hasAssignment = true;
-        processVariableSite(x.argument, AccessType.WRITE);
-      },
-
-      AssignmentExpression : (x:AST.AssignmentExpression) => {
-        hasAssignment = true;
-        processVariableSite(x.left, AccessType.WRITE);
-      },
-
-      //Handle invocation
-      CallExpression : (x:AST.CallExpression) => {
-        hasCallExpression = true;
-        processVariableSite(x.callee, AccessType.INVOKE);
-      },
-
-      //New
-      NewExpression : (x:AST.NewExpression) => {
-        hasNewExpression = true;
-        processVariableSite(x.callee, AccessType.INVOKE);
-      },
-
-      //This
-      ThisExpression : (x:AST.ThisExpression) => {
-        hasThisExpression = true;
-      },
-
-      Identifier : (x:AST.Identifier) => {
-        //Do nothing, handled in expression checking
-      }
-    }).exec(body);
-
-    return {
+    analysis = {
       key : `${Analyzer.id++}`,
       check,
-      closed,
-      hasAssignment,
-      hasCallExpression,
-      hasThisExpression,
-      hasNestedFunction,
-      hasNewExpression,
-      hasMemberExpression
-    };
+      closed : {},
+      declared : {},
+      globals : globals || {}
+    }
+
+    Analyzer.processVariableDeclarations(analysis, ast.params);
+    Analyzer.findVarDeclarations(analysis, ast.body);
+    Analyzer.findVariableSites(analysis, ast.body);
+
+    return analysis;
   }
 
   static mergeAnalyses(i:Analyzable, o:Analyzable) {
