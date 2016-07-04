@@ -12,7 +12,7 @@ export class Analyzer {
   private static analyzed:{[key:string]:Analysis} = {};
   private static id:number = 0;
 
-  static readVariable(p:AST.Pattern):string { 
+  static getVariableName(p:AST.Node):string { 
     while (p.type === 'MemberExpression') {
       p = (p as AST.MemberExpression).object;
     }
@@ -25,15 +25,19 @@ export class Analyzer {
   }
 
   static processVariableDeclarations(analysis:Analysis, ds:AST.Pattern[]) {
+    let {declared} = analysis;
+    
     ds.forEach(p => { 
-      let id = Analyzer.readVariable(p); 
+      let id = Analyzer.getVariableName(p); 
       analysis.declared[id] = true;
     });
   }
 
   static processVariableSite(analysis:Analysis, node:AST.Node|string, type:AccessType) {
-    let id = typeof node === 'string' ? node : Analyzer.readVariable(node);
-    if (id && !analysis.declared[id] && !analysis.globals[id]) { //If access before read and not global
+    let {globals, closed, declared} = analysis;
+
+    let id = typeof node === 'string' ? node : Analyzer.getVariableName(node);
+    if (id && !declared[id] && !globals[id]) { //If access before read and not global
       closed[id] = Math.max(closed[id] || 0, type);  
     }
   }  
@@ -127,6 +131,7 @@ export class Analyzer {
       return analysis;
     } 
 
+    //Handle class static methods
     src = /^[A-Za-z0-9_$ ]+\(/.test(src) ? `function ${src}` : src
 
     let ast:AST.ASTFunction = Util.parse(src);
@@ -143,6 +148,8 @@ export class Analyzer {
     Analyzer.findVarDeclarations(analysis, ast.body);
     Analyzer.findVariableSites(analysis, ast.body);
 
+    Analyzer.analyzed[check] = analysis;
+
     return analysis;
   }
 
@@ -150,16 +157,16 @@ export class Analyzer {
     let ia = i.analysis;
     let oa = o.analysis;
 
-    ia.key += "|" +  oa.key;
-    for (let key of ANALYSIS_BOOLEAN_FIELDS) {
-      ia[key] = ia[key] || oa[key];
-    }
+    ia.key = `${ia.key}|${oa.key}`;
+    ANALYSIS_BOOLEAN_FIELDS
+      .forEach(k => { ia[k] = ia[k] || oa[k];})
     return i;
   }
 
   static analyze<I, O, T extends Transformable<I,O>>(el:T):T {
+    el.analysis = { key : "~" };
     el.callbacks.forEach(x => x.analysis = Analyzer.getFunctionAnalysis(x))
-    el.callbacks.reduce(Analyzer.mergeAnalyses, { analysis : { key : "~" }})
+    el.callbacks.reduce(Analyzer.mergeAnalyses, el)
     return el;
   }
 }
