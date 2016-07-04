@@ -1,7 +1,6 @@
-import { AST, Macro as m} from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Compiler, Compilable, CompilerUtil } from '../compile';
+import { AST, Macro as m} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../core';
 import { TransformState } from './types';
-import { TransformResponse } from '../transform';
 
 export class ArrayCompiler implements Compiler<TransformState> {
 

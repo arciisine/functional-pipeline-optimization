@@ -1,6 +1,6 @@
-import { AST, Macro as m, Util, Visitor } from '../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse, Analysis } from '../transform';
-import {TransformState} from './types';
+import { AST, Macro as m, Util, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { Transformable, TransformResponse, Analysis } from '../../core';
+import { TransformState } from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
   implements Transformable<T[], U> 

@@ -1,4 +1,4 @@
-import {AST} from '../../node_modules/@arcsine/ecma-ast-transform/src';
+import {AST} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import {Analysis, Analyzable} from '../analyze';
 
 export interface TransformResponse {

@@ -1,4 +1,4 @@
-import { Util, AST, Visitor } from '../../node_modules/@arcsine/ecma-ast-transform/src';
+import { Util, AST, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
 

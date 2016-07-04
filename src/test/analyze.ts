@@ -1,5 +1,5 @@
-import { Analyzer } from '../transform';
+import { FunctionAnalyzer } from '../core';
 
-let res = Analyzer.getFunctionAnalysis(Analyzer.getFunctionAnalysis);
+let res = FunctionAnalyzer.analyze(FunctionAnalyzer.analyze);
 
 console.log(res);

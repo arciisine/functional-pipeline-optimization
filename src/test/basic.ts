@@ -1,6 +1,6 @@
 import {doTest} from './util';
-import {rewriteBody} from '../body';
-import '../array/extend'
+import {rewriteBody} from '../impl/body';
+import '../impl/array/extend'
 
 export function functional(data:number[]) {    
   let hist = data.r
