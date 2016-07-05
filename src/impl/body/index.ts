@@ -3,46 +3,43 @@ import * as Transformers from '../array/transform';
 import {BaseTransformable} from '../array/base-transformable';
 
 //Read name of manual fn from transformers
-let supported = {};
-Object.keys(Transformers)
+let supported = Object.keys(Transformers)
   .filter(x => x.endsWith('Transform'))
   .map(x => (new Transformers[x]() as BaseTransformable<any, any, any, any>))
   .filter(x => !!x.manual)
-  .forEach(x => supported[x.manual.name] = true)
+  .reduce((acc,x) => (acc[x.manual.name] = true) && acc, {});
 
-console.log(supported);
+const REWRITE = m.genSymbol();
+
+const containers = {
+  FunctionExpression:true, 
+  ArrowFunctionExpression:true, 
+  FunctionDeclaration:true
+};
 
 export function rewriteBody(content:string) {
   let body = Util.parseExpression<AST.Node>(content);
-
-  const containers = {'FunctionExpression':true, 'ArrowFunctionExpression':true};
-
+  
   body = new Visitor({
     MemberExpression : (x:AST.MemberExpression, visitor:Visitor) => {
       if (x.property.type === 'Identifier'){ 
         let name = (x.property as AST.Identifier).name;
         if (supported[name]) {
           let container = visitor.findParent(x => !Array.isArray(x.node) && containers[(x.node as AST.Node).type] )
-          container['rewrite'] = true;
+          if (container && !container.node[REWRITE]) {
+            container.node[REWRITE] = true;
+          }
         }
       }
     },
     CallExpression : (x : AST.CallExpression, visitor:Visitor) => {
       
+    },    
+    FunctionStart : (x : AST.ASTFunction, visitor:Visitor) => {
+      console.log("HI");
     },
-    FunctionExpressionStart : (x : AST.FunctionExpression, visitor:Visitor) => {
-
-    },
-    FunctionExpressionEnd : (x : AST.FunctionExpression, visitor:Visitor) => {
-      if (x['rewrite']) {
-        console.log("Rewriting")
-      }
-    },
-    ArrowFunctionExpressionStart : (x : AST.ArrowExpression, visitor:Visitor) => {
-
-    },
-    ArrowFunctionExpressionEnd : (x : AST.ArrowExpression, visitor:Visitor) => {
-      if (x['rewrite']) {
+    FunctionEnd : (x : AST.ASTFunction, visitor:Visitor) => {
+      if (x[REWRITE]) {
         console.log("Rewriting")
       }
     }

@@ -45,7 +45,7 @@ export class FunctionAnalyzer {
       FunctionStart : (x:AST.ASTFunction) => {
         //Ignore sub children
         analysis.hasNestedFunction = true;
-        return false; //Do not process
+        x[Visitor.SKIP_FLAG] = true; //Do not process
       },
       VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind === 'var') FunctionAnalyzer.processVariableDeclarations(analysis, x.declarations);
@@ -57,7 +57,7 @@ export class FunctionAnalyzer {
 
     //Find all variable usages
     new Visitor({
-      FunctionStart : (x:AST.ASTFunction) => false, //Do not process
+      FunctionStart : (x:AST.ASTFunction) => x[Visitor.SKIP_FLAG] = true, //Do not process
 
       VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind !== 'var') FunctionAnalyzer.processVariableDeclarations(analysis, x.declarations);
