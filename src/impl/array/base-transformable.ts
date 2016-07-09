@@ -64,13 +64,10 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       Identifier : x => paramMap[x.name] || x
     }).exec(node) as (AST.FunctionExpression|AST.ArrowExpression);
 
-    let plen = Object.keys(paramMap).length;
-    let body = res.body
-    let min = params.length - 1;
-
+    let hasIndex = Object.keys(paramMap).length > params.length; //If requesting index
     return {
-      body : plen > min ? [body, m.Expr(m.Increment(pos))] : [body],
-      vars : plen > min ? [pos, m.Literal(0)] : []
+      body : hasIndex ? [res.body, m.Expr(m.Increment(pos))] : [res.body],
+      vars : hasIndex ? [pos,  m.Literal(0)] : []
     }
   }
 

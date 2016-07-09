@@ -11,11 +11,11 @@ let supported = Object.keys(Transformers)
 
 const REWRITE = m.genSymbol();
 
-const containers = {
-  FunctionExpression:true, 
-  ArrowFunctionExpression:true, 
-  FunctionDeclaration:true
-};
+const containers = [
+  'FunctionExpression',
+  'ArrowFunctionExpression',
+  'FunctionDeclaration'
+].reduce((acc, x) => acc[x] = true && acc, {});
 
 export function rewriteBody(content:string) {
   let body = Util.parseExpression<AST.Node>(content);
@@ -25,7 +25,9 @@ export function rewriteBody(content:string) {
       if (x.property.type === 'Identifier'){ 
         let name = (x.property as AST.Identifier).name;
         if (supported[name]) {
-          let container = visitor.findParent(x => !Array.isArray(x.node) && containers[(x.node as AST.Node).type] )
+          let container = visitor.findParent(x => 
+            !Array.isArray(x.node) && containers[(x.node as AST.Node).type] 
+          );
           if (container && !container.node[REWRITE]) {
             container.node[REWRITE] = true;
           }

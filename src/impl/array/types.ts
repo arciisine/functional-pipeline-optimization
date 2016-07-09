@@ -10,17 +10,11 @@ export interface TransformState {
 }
 
 export namespace Callback { 
-  export interface Predicate<T> {
-    (v:T, i?:number, arr?:T[]):boolean
-  }
-
-  export interface Void<T> {
-    (v:T, i?:number, arr?:T[]):void
-  }
-
   export interface Transform<T, W> {
     (v:T, i?:number, arr?:T[]):W
   }
+  export interface Predicate<T> extends Transform<T, boolean> {}
+  export interface Void<T> extends Transform<T, void> {}
 
   export interface Accumulate<T, W> {
     (acc:W, v:T, i?:number, arr?:T[]):W
