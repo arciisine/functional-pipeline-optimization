@@ -1,4 +1,4 @@
-import { AST, Macro as m, Util, Visitor, Guard as g } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Macro as m, Util, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse, Analysis } from '../../core';
 import { TransformState } from './types';
 
@@ -42,7 +42,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     params.push(pos);
 
     let test = node;
-    if (g.isExpressionStatement(test)) {
+    if (AST.isExpressionStatement(test)) {
       node = test.expression
     }
 
@@ -51,20 +51,20 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         node.params.forEach((p,i) => paramMap[(p as AST.Identifier).name] = params[i]);
         return node;
       },
-      ArrowFunctionExpression : (node:AST.ArrowExpression) => {
-        if (!g.isBlockStatement(node.body)) {
+      ArrowFunctionExpression : (node:AST.ArrowFunctionExpression) => {
+        if (!AST.isBlockStatement(node.body)) {
           node.body = m.Block(m.Return(node.body))          
         }
 
         node.params.forEach((p,i) => {
-          let name = g.isIdentifier(p) ? p.name : null;
+          let name = AST.isIdentifier(p) ? p.name : null;
           paramMap[name] = params[i]
         })
         return node;
       },
       ReturnStatement : x =>  this.onReturn(state, x),
       Identifier : x => paramMap[x.name] || x
-    }).exec(node) as (AST.FunctionExpression|AST.ArrowExpression);
+    }).exec(node) as (AST.FunctionExpression|AST.ArrowFunctionExpression);
 
     let hasIndex = Object.keys(paramMap).length > params.length; //If requesting index
     return {

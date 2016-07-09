@@ -1,4 +1,4 @@
-import { Util, AST, Visitor, Guard as g } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { Util, AST, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
 
@@ -10,16 +10,16 @@ export class FunctionAnalyzer {
   private static id:number = 0;
 
   static getVariableName(p:AST.Node):string { 
-      while (g.isMemberExpression(p)) {
+      while (AST.isMemberExpression(p)) {
         p = (p as AST.MemberExpression).object
     }
 
-    if (g.isVariableDeclarator(p)) {
+    if (AST.isVariableDeclarator(p)) {
       let id = p.id;
-      return g.isIdentifier(id) ? id.name : null;
-    } else if (g.isThisExpression(p)) {
+      return AST.isIdentifier(id) ? id.name : null;
+    } else if (AST.isThisExpression(p)) {
       return 'this';
-    } else if (g.isIdentifier(p)) {
+    } else if (AST.isIdentifier(p)) {
       return p.name;
     }
     return null;
@@ -46,7 +46,7 @@ export class FunctionAnalyzer {
   static findVarDeclarations(analysis:Analysis, node:AST.Node) {
     //Hoist vars, remove nested functions
     new Visitor({
-      FunctionStart : (x:AST.ASTFunction) => {
+      FunctionStart : (x:AST.BaseFunction) => {
         //Ignore sub children
         analysis.hasNestedFunction = true;
         x[Visitor.SKIP_FLAG] = true; //Do not process
@@ -61,7 +61,7 @@ export class FunctionAnalyzer {
 
     //Find all variable usages
     new Visitor({
-      FunctionStart : (x:AST.ASTFunction) => x[Visitor.SKIP_FLAG] = true, //Do not process
+      FunctionStart : (x:AST.BaseFunction) => x[Visitor.SKIP_FLAG] = true, //Do not process
 
       VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind !== 'var') FunctionAnalyzer.processVariableDeclarations(analysis, x.declarations);
@@ -71,7 +71,7 @@ export class FunctionAnalyzer {
       MemberExpression : (x:AST.MemberExpression) => {
         analysis.hasMemberExpression = true;
         let obj = x.object;
-        if (g.isIdentifier(obj)) {
+        if (AST.isIdentifier(obj)) {
           FunctionAnalyzer.processVariableSite(analysis, obj, AccessType.READ);
         }          
       },
@@ -136,15 +136,17 @@ export class FunctionAnalyzer {
     //Handle class static methods
     src = /^[A-Za-z0-9_$ ]+\(/.test(src) ? `function ${src}` : src
 
-    let ast:AST.ASTFunction = Util.parse(src);
+    let ast:AST.BaseFunction = Util.parse(src);
 
     analysis = new Analysis(`${FunctionAnalyzer.id++}`);
     analysis.check = check;
     analysis.globals = globals || {};
 
     FunctionAnalyzer.processVariableDeclarations(analysis, ast.params);
-    FunctionAnalyzer.findVarDeclarations(analysis, ast.body);
-    FunctionAnalyzer.findVariableSites(analysis, ast.body);
+    if (AST.isFunctionDeclaration(ast) || AST.isFunctionExpression(ast) || AST.isArrowFunctionExpression(ast)) {
+      FunctionAnalyzer.findVarDeclarations(analysis, ast.body);
+      FunctionAnalyzer.findVariableSites(analysis, ast.body);
+    }
 
     FunctionAnalyzer.analyzed[check] = analysis;
 
