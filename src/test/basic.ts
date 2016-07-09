@@ -1,28 +1,26 @@
 import {doTest} from './util';
 import {rewriteBody} from '../impl/body';
-import '../impl/array/extend'
+import {exec,wrap} from '../impl/array'
+import {Builder} from '../core';
 
 export function functional(data:number[]) {    
-  let hist = data.r
-    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
+  let hist = exec(wrap(data)
+    .filter(x =>  x >= 65 && x < 91 || x >= 97 && x < 123) 
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
       acc[x] = (acc[x] || 0) + 1;
       return acc;
-    }, {} as {[key:string]:number})
-    .exec();
+    }, {} as {[key:string]:number}))
       
-  let count = data.r
+  let count = exec(wrap(data)
     .filter(x => x > 100)
     .map(x => x - 10)
-    .reduce((acc, x) => acc + x, 0)
-    .exec();
+    .reduce((acc, x) => acc + x, 0));
 
-  let evens = data.r
+  let evens = exec(wrap(data)
     .filter(x => x % 2 === 0)
-    .map(x => x << 2)
-    .exec();
+    .map(x => x << 2));
       
   return [hist, count, evens];
 }
@@ -54,30 +52,27 @@ export function functionalRaw(data:number[]) {
 
 
 export function functionalManual(data:number[]) {    
-  let hist = data.r
+  let hist = exec(data
     .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x > 91 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
       acc[x] = (acc[x] || 0) + 1;
       return acc;
-    }, {} as {[key:string]:number})
-    .execManual();
+    }, {} as {[key:string]:number}));
       
-  let count = data.r
+  let count = exec(data
     .filter(x => x > 100)
     .map(x => x - 10)
-    .reduce((acc, x) => acc + x, 0)
-    .execManual();
+    .reduce((acc, x) => acc + x, 0));
 
-  let evens = data.r
+  let evens = exec(data
     .filter(x => x % 2 === 0)
-    .map(x => x << 2)
-    .execManual();
+    .map(x => x << 2));
       
   return [hist, count, evens];
 }
 
-console.log(rewriteBody(functional.toString()))
+//console.log(rewriteBody(functional.toString()))
 
-//doTest({functionalManual, functional, functionalRaw})
+doTest({functionalManual, functional, functionalRaw})

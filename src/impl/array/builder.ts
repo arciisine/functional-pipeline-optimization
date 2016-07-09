@@ -8,27 +8,27 @@ export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
     super(data, new ArrayCompiler());
   }
 
-  filter(fn:Callback.Predicate<O>, context?:any):ArrayBuilder<I, O> {
+  filter(fn:Callback.Predicate<O>, context?:any, globals?:any):ArrayBuilder<I, O> {
     return this.chain(new Transform.FilterTransform(fn, context)) as any;
   }
 
-  map<V>(fn:Callback.Transform<O, V>, context?:any):ArrayBuilder<I, V> {
+  map<V>(fn:Callback.Transform<O, V>, context?:any, globals?:any):ArrayBuilder<I, V> {
     return this.chain(new Transform.MapTransform(fn, context)) as any;
   }
 
-  reduce<V>(fn:Callback.Accumulate<O, V>, init?:V, context?:any)  {
+  reduce<V>(fn:Callback.Accumulate<O, V>, init?:V, context?:any, globals?:any)  {
     return this.chain(new Transform.ReduceTransform(fn, init, context));
   }
 
-  forEach(fn:Callback.Void<O>, context?:any)  {
+  forEach(fn:Callback.Void<O>, context?:any, globals?:any)  {
     return this.chain(new Transform.ForEachTransform(fn,context));
   }
 
-  find(fn:Callback.Predicate<O>, context?:any) {
+  find(fn:Callback.Predicate<O>, context?:any, globals?:any) {
     return this.chain(new Transform.FindTransform(fn,context));
   }
 
-  some(fn:Callback.Predicate<O>, context?:any) {
+  some(fn:Callback.Predicate<O>, context?:any, globals?:any) {
     return this.chain(new Transform.SomeTransform(fn,context));
   }
 }
