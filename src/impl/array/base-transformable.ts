@@ -1,4 +1,4 @@
-import { AST, Macro as m, Util, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Macro as m, Util, Visitor, Guard as g } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse, Analysis } from '../../core';
 import { TransformState } from './types';
 
@@ -41,8 +41,9 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     let params = this.getParams(state);
     params.push(pos);
 
-    if (node.type === 'ExpressionStatement') {
-      node = (node as AST.ExpressionStatement).expression;
+    let test = node;
+    if (g.isExpressionStatement(test)) {
+      node = test.expression
     }
 
     let res = new Visitor({
@@ -51,11 +52,12 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         return node;
       },
       ArrowFunctionExpression : (node:AST.ArrowExpression) => {
-        if (node.body.type !== 'BlockStatement') {
+        if (!g.isBlockStatement(node.body)) {
           node.body = m.Block(m.Return(node.body))          
         }
+
         node.params.forEach((p,i) => {
-          let name = (p as AST.Identifier).name;
+          let name = g.isIdentifier(p) ? p.name : null;
           paramMap[name] = params[i]
         })
         return node;

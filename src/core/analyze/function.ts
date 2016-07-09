@@ -1,4 +1,4 @@
-import { Util, AST, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { Util, AST, Visitor, Guard as g } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
 
@@ -10,15 +10,19 @@ export class FunctionAnalyzer {
   private static id:number = 0;
 
   static getVariableName(p:AST.Node):string { 
-    while (p.type === 'MemberExpression') {
-      p = (p as AST.MemberExpression).object;
+      while (g.isMemberExpression(p)) {
+        p = (p as AST.MemberExpression).object
     }
-    switch (p.type) {
-      case 'VariableDeclarator': return (p as AST.VariableDeclarator).id['name'];
-      case 'ThisExpression': return 'this';
-      case 'Identifier': return (p as AST.Identifier).name;
-      default: return null;
+
+    if (g.isVariableDeclarator(p)) {
+      let id = p.id;
+      return g.isIdentifier(id) ? id.name : null;
+    } else if (g.isThisExpression(p)) {
+      return 'this';
+    } else if (g.isIdentifier(p)) {
+      return p.name;
     }
+    return null;
   }
 
   static processVariableDeclarations(analysis:Analysis, ds:AST.Pattern[]) {
@@ -66,8 +70,9 @@ export class FunctionAnalyzer {
       //Handle reads
       MemberExpression : (x:AST.MemberExpression) => {
         analysis.hasMemberExpression = true;
-        if (x.object.type === 'Identifier') {
-          FunctionAnalyzer.processVariableSite(analysis, x.object, AccessType.READ);
+        let obj = x.object;
+        if (g.isIdentifier(obj)) {
+          FunctionAnalyzer.processVariableSite(analysis, obj, AccessType.READ);
         }          
       },
 

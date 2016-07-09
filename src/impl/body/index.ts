@@ -1,4 +1,4 @@
-import {AST, Util, Macro as m, Visitor} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import {AST, Util, Macro as m, Visitor, Guard as g} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import * as Transformers from '../array/transform';
 import {BaseTransformable} from '../array/base-transformable';
 
@@ -22,16 +22,12 @@ export function rewriteBody(content:string) {
   
   body = new Visitor({
     MemberExpression : (x:AST.MemberExpression, visitor:Visitor) => {
-      if (x.property.type === 'Identifier'){ 
-        let name = (x.property as AST.Identifier).name;
-        if (supported[name]) {
-          let container = visitor.findParent(x => 
-            !Array.isArray(x.node) && containers[(x.node as AST.Node).type] 
-          );
-          if (container && !container.node[REWRITE]) {
-            container.node[REWRITE] = true;
-          }
-        }
+      let p = x.property;
+      if (g.isIdentifier(p) && supported[p.name]) {
+        let container = visitor.findParent(x =>  !Array.isArray(x.node) && g.isFunction((x.node as AST.Node)));
+        if (container && !container.node[REWRITE]) {
+          container.node[REWRITE] = true;
+        }        
       }
     },
     CallExpression : (x : AST.CallExpression, visitor:Visitor) => {
