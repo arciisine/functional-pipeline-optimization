@@ -1,6 +1,6 @@
 import {AST, Util, Macro as m, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import * as Transformers from '../array/transform';
-import {Helper as h} from '../array';
+import {SYMBOL} from '../array/bootstrap';
 import {BaseTransformable} from '../array/base-transformable';
 import {FunctionAnalyzer, AccessType} from '../../core';
 
@@ -17,20 +17,11 @@ const CANDIDATE_FUNCTIONS = m.genSymbol();
 const CANDIDATE_RELATED = m.genSymbol();
 const ANALYSIS = m.genSymbol();
 
-const Helpers = Object.keys(h)
-  .reduce((acc, k) => {
-    acc[k] = { id : m.Id(), body : Util.parse(h[k]) }
-    let ast = acc[k].body;
-    if (AST.isFunctionDeclaration(ast)) {
-      ast.id = acc[k].id
-    }  
-    return acc
-  }, {})
-
-const EXEC = Helpers['exec'].id;
-const LOCAL = Helpers['local'].id;
-const WRAP = Helpers['wrap'].id;
-const FIRST = Helpers['first'].id;
+const EXEC = m.GetProperty(m.Id(SYMBOL), 'exec');
+const LOCAL = m.GetProperty(m.Id(SYMBOL), 'local');
+const WRAP = m.GetProperty(m.Id(SYMBOL), 'wrap');
+const FIRST = m.GetProperty(m.Id(SYMBOL), 'first');
+const GENERIC_ASSIGN = m.Id();
 
 export function rewriteBody(content:string) {
   let body = Util.parseProgram<AST.Node>(content);
@@ -119,22 +110,21 @@ export function rewriteBody(content:string) {
             type : "AssignmentExpression",
             left : {
               type : "ArrayPattern",
-              elements : [m.Id(), ...assignedIds]
+              elements : [GENERIC_ASSIGN, ...assignedIds]
             } as AST.ArrayPattern,
             operator : '=',
             right : m.Call(EXEC, x, allIds) 
           };
           ret = m.Call(FIRST, assign);
         } else {
-          ret = m.Call(EXEC, x, allIds);
+          ret = m.Call(FIRST, m.Call(EXEC, x, allIds));
         }
         return ret;
       }
     }
   }).exec(body);
 
-  //Add helpers
-  body.body.push(...Object.keys(Helpers).map(x => Helpers[x].body));
+  body.body.push(m.Vars(GENERIC_ASSIGN, null))
 
   return Util.compileExpression(body);
 }

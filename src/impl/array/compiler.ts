@@ -3,6 +3,26 @@ import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../cor
 import { TransformState } from './types';
 import { AccessType } from '../../core'; 
 
+function exprStmt(x:AST.Expression):AST.ExpressionStatement {
+  return {
+    type: "ExpressionStatement",
+    expression : x
+  }
+};
+
+function reduceBlocks(body:AST.Node[]):AST.Node[] {
+  let out = [];
+  for (let i = 0; i < body.length; i++) {
+    let node = body[i];
+    if (AST.isBlockStatement(node) && !node.body.some(y => AST.isVariableDeclaration(y) && y.kind !== 'var')) {
+      out.push(...reduceBlocks(node.body))
+    } else {
+      out.push(node);
+    }
+  }
+  return out;
+}
+
 export class ArrayCompiler implements Compiler<TransformState> {
 
   createState():TransformState {
@@ -41,13 +61,9 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let closedIds =  Object.keys(closed).sort().map(m.Id);
     let assignedIds = Object.keys(assigned).sort().map(m.Id);
 
-    function exprStmt(x:AST.Expression):AST.ExpressionStatement {
-      return {
-        type: "ExpressionStatement",
-        expression : x
-      }
-    };
-
+    if (vars.length === 0) {
+      vars.push(state.returnValueId, undefined);
+    }
 
     let invoke:AST.CallExpression = {
       type : "CallExpression",
@@ -57,7 +73,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
           m.ForLoop(state.iteratorId, m.Literal(0), m.GetProperty(state.arrayId, "length"),
             [
               m.Vars('let', state.elementId, m.GetProperty(state.arrayId, state.iteratorId)),
-              ...body
+              ...reduceBlocks(body)
             ]        
           )
         ),

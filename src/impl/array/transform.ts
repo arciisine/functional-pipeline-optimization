@@ -38,7 +38,7 @@ export class ForEachTransform<T> extends
   BaseTransformable<T, void, Callback.Void<T>, Handler.Standard<T, T, void>>
 {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
-    return m.Continue(state.continueLabel);
+    return m.Block(node.argument, m.Continue(state.continueLabel));
   }
 }
 

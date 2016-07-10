@@ -66,7 +66,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         })
         return node;
       },
-      ReturnStatement : x =>  this.onReturn(state, x),
+      ReturnStatementEnd : x =>  this.onReturn(state, x),
       Identifier : x => paramMap[x.name] || declaredMapping[x.name] || x
     }).exec(node) as (AST.FunctionExpression|AST.ArrowFunctionExpression);
 
