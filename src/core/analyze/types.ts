@@ -11,7 +11,7 @@ export class Analysis {
   globals:{[key:string]:any};
   closed:{[key:string]:number} = {};
   declared:{[key:string]:boolean} = {};
-  all:number;
+  all:number = 0;
 
   hasThisExpression:boolean
   hasNestedFunction:boolean
@@ -24,6 +24,14 @@ export class Analysis {
     if (!obj) return this;
 
     let o:Analysis = obj instanceof Analysis ? obj : obj.analysis;
+
+    this.all = this.all | o.all;
+    for (var k in o.declared) {
+      this.declared[k] = o.declared[k];
+    }
+    for (var k in o.closed) {
+      this.closed[k] = (this.closed[k] || 0) | o.closed[k];
+    }
     
     this.key = `${this.key}|${o.key}`;
     ANALYSIS_BOOLEAN_FIELDS

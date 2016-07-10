@@ -34,12 +34,16 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return [state.elementId];
   }
 
-  transform(state:TransformState):TransformResponse  {
+  transform(state:TransformState):TransformResponse  {    
     let node = Util.parse(this.callback) as AST.Node;
-    let paramMap:{[key:string]:AST.Identifier} = {};       
+    let paramMap:{[key:string]:AST.Identifier} = {};
     let pos = m.Id();
     let params = this.getParams(state);
     params.push(pos);
+
+    let declaredMapping = Object
+      .keys(this.analysis.declared)
+      .reduce((acc, k) => acc[k] = m.Id(), {});
 
     let test = node;
     if (AST.isExpressionStatement(test)) {
@@ -63,7 +67,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         return node;
       },
       ReturnStatement : x =>  this.onReturn(state, x),
-      Identifier : x => paramMap[x.name] || x
+      Identifier : x => paramMap[x.name] || declaredMapping[x.name] || x
     }).exec(node) as (AST.FunctionExpression|AST.ArrowFunctionExpression);
 
     let hasIndex = Object.keys(paramMap).length > params.length; //If requesting index

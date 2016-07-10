@@ -1,6 +1,7 @@
 import { AST, Macro as m} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../core';
 import { TransformState } from './types';
+import { AccessType } from '../../core'; 
 
 export class ArrayCompiler implements Compiler<TransformState> {
 
@@ -26,17 +27,51 @@ export class ArrayCompiler implements Compiler<TransformState> {
       vars.push(state.returnValueId, last['init'](state));
     }
 
-    return m.Func(state.functionId, [state.arrayId], [
-      m.Vars('let', ...vars),
-      m.Labeled(state.continueLabel,
-        m.ForLoop(state.iteratorId, m.Literal(0), m.GetProperty(state.arrayId, "length"),
-          [
-            m.Vars('let', state.elementId, m.GetProperty(state.arrayId, state.iteratorId)),
-            ...body
-          ]        
-        )
-      ),
-      m.Return(state.returnValueId)
+    let x = compilable.analysis.closed;
+    let assigned = {};
+    let closed = {}
+    for (var k in x) {
+      if ((x[k] & AccessType.WRITE) > 0) {
+        assigned[k] = true;
+      } else if (x[k] > 0) {
+        closed[k] = true;
+      }
+    }
+        //Define call site
+    let closedIds =  Object.keys(closed).sort().map(m.Id);
+    let assignedIds = Object.keys(assigned).sort().map(m.Id);
+
+    function exprStmt(x:AST.Expression):AST.ExpressionStatement {
+      return {
+        type: "ExpressionStatement",
+        expression : x
+      }
+    };
+
+
+    let invoke:AST.CallExpression = {
+      type : "CallExpression",
+      callee : m.FuncExpr(state.functionId, [state.arrayId], [
+        m.Vars('let', ...vars),
+        m.Labeled(state.continueLabel,
+          m.ForLoop(state.iteratorId, m.Literal(0), m.GetProperty(state.arrayId, "length"),
+            [
+              m.Vars('let', state.elementId, m.GetProperty(state.arrayId, state.iteratorId)),
+              ...body
+            ]        
+          )
+        ),
+        m.Return(state.returnValueId)
+      ]),
+      arguments : [state.arrayId]
+    };
+
+    let wrapperId = m.Id();
+    let wrappedRet = m.Id();
+    
+    return m.Func(wrapperId, [state.arrayId, ...assignedIds, ...closedIds], [
+      m.Vars(wrappedRet, exprStmt(invoke)),
+      m.Return(m.Array(wrappedRet, ...assignedIds))
     ]);
   }
 }

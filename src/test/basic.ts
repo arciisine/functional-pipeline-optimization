@@ -1,7 +1,8 @@
 import {doTest} from './util';
-import {rewriteBody} from '../impl/body';
-import {exec,wrap} from '../impl/array'
+import {Helper} from '../impl/array'
 import {Builder} from '../core';
+
+var {exec,wrap} = Helper;
 
 export function functional(data:number[]) {    
   let hist = exec(wrap(data)
@@ -36,18 +37,18 @@ export function functionalRaw(data:number[]) {
       return acc;
     }, {} as {[key:string]:number});
       
-  let count = data
+  let evens = data
+    .filter(x => x % 2 === 0)
+    .map(x => x << 2);
+
+  /*let count = data
     .filter(x => x > 100)
     .map(function(x) {
       return x - 10
     })
-    .reduce((acc, x) => acc + x, 0);
+    .reduce((acc, x) => acc + x, 0);*/
 
-  let evens = data
-    .filter(x => x % 2 === 0)
-    .map(x => x << 2);
-      
-  return [hist, count, evens];
+  return [hist, /*count,*/ evens];
 }
 
 
@@ -86,6 +87,4 @@ export function sum(data:number[]) {
 }
 
 
-console.log(rewriteBody(sum.toString()))
-
-//doTest({functionalManual, functional, functionalRaw})
+doTest({functionalRaw})

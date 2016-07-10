@@ -20,7 +20,9 @@ export class Builder<I, O> {
     return this as any as Builder<I, V>;
   }
 
-  exec():O {
-    return CompilerUtil.compile(this.compiler, this.compilable)(this.data);
+  exec(closed:any[] = []):O {
+    let fn = CompilerUtil.compile(this.compiler, this.compilable);
+    let res = fn(this.data, ...closed)
+    return res;
   }
 }

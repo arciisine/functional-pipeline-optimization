@@ -20,14 +20,14 @@ export class CompilerUtil {
       }, {vars:[], body:[]});
   }
 
-  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):(i:I)=>O {
+  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):(i:I, ...closed:any[])=>O {
     let key = compilable.analysis.key + "~" + compiler.constructor.name;
     if (CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
     } 
     let state = compiler.createState();
     let ast = compiler.compile(compilable, state);
-    let res = Util.compile(ast as any, {}) as (i:I)=>O;
+    let res = Util.compile(ast as any, {}) as (i:I, ...closed:any[])=>O;
     CompilerUtil.computed[key] = res;
     return res;
   }

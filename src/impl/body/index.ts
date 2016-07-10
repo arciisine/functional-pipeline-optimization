@@ -1,5 +1,6 @@
 import {AST, Util, Macro as m, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import * as Transformers from '../array/transform';
+import {Helper as h} from '../array';
 import {BaseTransformable} from '../array/base-transformable';
 import {FunctionAnalyzer, AccessType} from '../../core';
 
@@ -10,22 +11,30 @@ let supported = Object.keys(Transformers)
   .filter(x => !!x.manual)
   .reduce((acc,x) => (acc[x.manual.name] = true) && acc, {});
 
-const REWRITE = m.genSymbol();
-
 //Function wrappers
 const CANDIDATE = m.genSymbol();
 const CANDIDATE_FUNCTIONS = m.genSymbol();
 const CANDIDATE_RELATED = m.genSymbol();
 const ANALYSIS = m.genSymbol();
 
-const WRAP = m.Id();
-const EXEC = m.Id();
-const LOCAL = m.Id();
-const LAST = m.Id();
+const Helpers = Object.keys(h)
+  .reduce((acc, k) => {
+    acc[k] = { id : m.Id(), body : Util.parse(h[k]) }
+    let ast = acc[k].body;
+    if (AST.isFunctionDeclaration(ast)) {
+      ast.id = acc[k].id
+    }  
+    return acc
+  }, {})
+
+const EXEC = Helpers['exec'].id;
+const LOCAL = Helpers['local'].id;
+const WRAP = Helpers['wrap'].id;
+const FIRST = Helpers['first'].id;
 
 export function rewriteBody(content:string) {
-  let body = Util.parseExpression<AST.Node>(content);
-  
+  let body = Util.parseProgram<AST.Node>(content);
+
   body = new Visitor({
     CallExpression : (x : AST.CallExpression, visitor:Visitor) => {
       let callee = x.callee;
@@ -49,7 +58,7 @@ export function rewriteBody(content:string) {
         x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg); //Analayze function
         x.arguments[0] = m.Call(LOCAL, arg);
       }
-
+      
       //Check for start of chain
       let callee = x.callee;
       if (AST.isMemberExpression(callee)) {
@@ -86,8 +95,6 @@ export function rewriteBody(content:string) {
             .filter( x=> !!x)
             .map(x => x.closed)
 
-        console.log(analyses)
-
         analyses
           .forEach(x => {
             for (var k in x) {
@@ -100,8 +107,9 @@ export function rewriteBody(content:string) {
           })
 
         //Define call site
-        let closedIds =  Object.keys(closed).map(m.Id);
-        let assignedIds = Object.keys(assigned).map(m.Id);
+        let closedIds =  Object.keys(closed).sort().map(m.Id);
+        let assignedIds = Object.keys(assigned).sort().map(m.Id);
+        let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
         let ret:AST.Node = null;
 
@@ -111,19 +119,22 @@ export function rewriteBody(content:string) {
             type : "AssignmentExpression",
             left : {
               type : "ArrayPattern",
-              elements : assignedIds
+              elements : [m.Id(), ...assignedIds]
             } as AST.ArrayPattern,
             operator : '=',
-            right : m.Call(EXEC, x, m.Array(...closedIds), m.Array(...assignedIds)) 
+            right : m.Call(EXEC, x, allIds) 
           };
-          ret = m.Call(LAST, assign);
+          ret = m.Call(FIRST, assign);
         } else {
-          ret = m.Call(EXEC, x, m.Array(...closedIds), m.Array(...assignedIds));
+          ret = m.Call(EXEC, x, allIds);
         }
         return ret;
       }
     }
   }).exec(body);
+
+  //Add helpers
+  body.body.push(...Object.keys(Helpers).map(x => Helpers[x].body));
 
   return Util.compileExpression(body);
 }
