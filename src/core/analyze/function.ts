@@ -30,18 +30,20 @@ export class FunctionAnalyzer {
     
     ds.forEach(p => { 
       let id = FunctionAnalyzer.getVariableName(p); 
-      analysis.declared[id] = true;
+      declared[id] = true;
     });
   }
 
   static processVariableSite(analysis:Analysis, node:AST.Node|string, type:AccessType) {
     let {globals, closed, declared} = analysis;
 
+    analysis.all = (analysis.all || 0) | type;  
+
     let id = typeof node === 'string' ? node : FunctionAnalyzer.getVariableName(node);
     if (id && !declared[id] && !globals[id]) { //If access before read and not global
-      closed[id] = Math.max(closed[id] || 0, type);  
+      closed[id] = (closed[id] || 0) | type;  
     }
-  }  
+  } 
 
   static findVarDeclarations(analysis:Analysis, node:AST.Node) {
     //Hoist vars, remove nested functions
@@ -92,18 +94,15 @@ export class FunctionAnalyzer {
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
-        analysis.hasAssignment = true;
         FunctionAnalyzer.processVariableSite(analysis, x.argument, AccessType.WRITE);
       },
 
       AssignmentExpression : (x:AST.AssignmentExpression) => {
-        analysis.hasAssignment = true;
         FunctionAnalyzer.processVariableSite(analysis, x.left, AccessType.WRITE);
       },
 
       //Handle invocation
       CallExpression : (x:AST.CallExpression) => {
-        analysis.hasCallExpression = true;
         FunctionAnalyzer.processVariableSite(analysis, x.callee, AccessType.INVOKE);
       },
 
@@ -124,6 +123,19 @@ export class FunctionAnalyzer {
     }).exec(node);
   }
 
+  static analyzeAST(ast:AST.BaseFunction, globals?:any):Analysis {
+    let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
+    analysis.globals = globals || {};
+
+    FunctionAnalyzer.processVariableDeclarations(analysis, ast.params);
+    if (AST.isFunctionDeclaration(ast) || AST.isFunctionExpression(ast) || AST.isArrowFunctionExpression(ast)) {
+      FunctionAnalyzer.findVarDeclarations(analysis, ast.body);
+      FunctionAnalyzer.findVariableSites(analysis, ast.body);
+    }
+
+    return analysis;
+  }
+
   static analyze(fn:Function, globals?:any):Analysis {
     let src = fn.toString();
     let check = md5(src);
@@ -137,19 +149,9 @@ export class FunctionAnalyzer {
     src = /^[A-Za-z0-9_$ ]+\(/.test(src) ? `function ${src}` : src
 
     let ast:AST.BaseFunction = Util.parse(src);
-
-    analysis = new Analysis(`${FunctionAnalyzer.id++}`);
+    analysis = FunctionAnalyzer.analyzeAST(ast, globals);
     analysis.check = check;
-    analysis.globals = globals || {};
-
-    FunctionAnalyzer.processVariableDeclarations(analysis, ast.params);
-    if (AST.isFunctionDeclaration(ast) || AST.isFunctionExpression(ast) || AST.isArrowFunctionExpression(ast)) {
-      FunctionAnalyzer.findVarDeclarations(analysis, ast.body);
-      FunctionAnalyzer.findVariableSites(analysis, ast.body);
-    }
-
     FunctionAnalyzer.analyzed[check] = analysis;
-
-    return analysis;
+    return analysis;    
   }
 }

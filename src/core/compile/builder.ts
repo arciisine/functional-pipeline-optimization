@@ -23,8 +23,4 @@ export class Builder<I, O> {
   exec():O {
     return CompilerUtil.compile(this.compiler, this.compilable)(this.data);
   }
-
-  execManual():O {
-    return CompilerUtil.manual(this.compilable, this.data);
-  }
 }

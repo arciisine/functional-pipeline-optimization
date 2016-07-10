@@ -73,6 +73,19 @@ export function functionalManual(data:number[]) {
   return [hist, count, evens];
 }
 
-//console.log(rewriteBody(functional.toString()))
+export function sum(data:number[]) {
+    
+  let count = 0;
 
-doTest({functionalManual, functional, functionalRaw})
+  data
+    .filter(x => x > 10)
+    .map(x => x * 2)
+    .forEach(x => count += x)
+      
+  return [count]
+}
+
+
+console.log(rewriteBody(sum.toString()))
+
+//doTest({functionalManual, functional, functionalRaw})

@@ -3,16 +3,16 @@ export const ANALYSIS_BOOLEAN_FIELDS = [
 ];
 
 export enum AccessType {
-  NONE, READ, WRITE, INVOKE
+  READ = 0b1, WRITE = 0b10, INVOKE = 0b100
 }
 
 export class Analysis {
   check : string;
   globals:{[key:string]:any};
-  closed:{[key:string]:AccessType} = {};
+  closed:{[key:string]:number} = {};
   declared:{[key:string]:boolean} = {};
-  hasAssignment:boolean
-  hasCallExpression:boolean
+  all:number;
+
   hasThisExpression:boolean
   hasNestedFunction:boolean
   hasMemberExpression:boolean
