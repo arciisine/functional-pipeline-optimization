@@ -21,5 +21,3 @@
 * Calculate Access Levels
     * Allow User to set minimum threshold for access level (defaults to no external dependences)
     * Apply access level verification
-* AST
-    * Build Macros for AST (should obviate most macros)
