@@ -2,8 +2,6 @@ import { Util, AST, Visitor } from '../../../node_modules/@arcsine/ecma-ast-tran
 import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
 
-declare var global, window;
-
 export class FunctionAnalyzer {
   
   private static analyzed:{[key:string]:Analysis} = {};

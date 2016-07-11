@@ -6,7 +6,6 @@ import {FunctionAnalyzer, AccessType} from '../../core';
 
 //Read name of manual fn from transformers
 let supported = Object.keys(Transformers)
-  .filter(x => x.endsWith('Transform'))
   .map(x => (new Transformers[x]() as BaseTransformable<any, any, any, any>))
   .filter(x => !!x.manual)
   .reduce((acc,x) => (acc[x.manual.name] = true) && acc, {});
@@ -30,8 +29,7 @@ export function rewriteBody(content:string) {
     CallExpression : (x : AST.CallExpression, visitor:Visitor) => {
       let callee = x.callee;
       if (AST.isMemberExpression(callee)) {
-        let prop = callee.property;
-        if (AST.isIdentifier(prop) && supported[prop.name] && x.arguments.length > 0) {
+        if (AST.isIdentifier(callee.property) && supported[callee.property.name] && x.arguments.length > 0) {
           x[CANDIDATE] = true; //Mark call as candidate
           callee[CANDIDATE_RELATED] = true;
           //At end
@@ -57,13 +55,12 @@ export function rewriteBody(content:string) {
         let done = true;
         let subCallee = null;
         //Chain is done
-        if (AST.isCallExpression(sub) && AST.isMemberExpression(sub.callee)) {
-          subCallee = sub.callee;
+        if (AST.isCallExpression(callee.object) && AST.isMemberExpression(callee.object.callee)) {
+          let subCallee = callee.object.callee;
           let prop = callee.property;
-          if (AST.isIdentifier(prop) && supported[prop.name]) {
-            prop = subCallee.property;
-            if (AST.isIdentifier(prop) && supported[prop.name]) {
-              done =false;
+          if (AST.isIdentifier(callee.property) && supported[callee.property.name]) {
+            if (AST.isIdentifier(subCallee.property) && supported[subCallee.property.name]) {
+              done = false;
             }
           }
         }
@@ -106,16 +103,13 @@ export function rewriteBody(content:string) {
 
         //Handle if we have to reassign closed variables
         if (assignedIds.length > 0) {
-          let assign:AST.AssignmentExpression = {
-            type : "AssignmentExpression",
-            left : {
-              type : "ArrayPattern",
+          ret = m.Call(FIRST, AST.AssignmentExpression({
+            left : AST.ArrayPattern({
               elements : [GENERIC_ASSIGN, ...assignedIds]
-            } as AST.ArrayPattern,
+            }),
             operator : '=',
             right : m.Call(EXEC, x, allIds) 
-          };
-          ret = m.Call(FIRST, assign);
+          }));
         } else {
           ret = m.Call(FIRST, m.Call(EXEC, x, allIds));
         }

@@ -1,4 +1,5 @@
 import {ArrayBuilder} from './builder';
+import {Util} from '../../core';
 
 export class Helper {
   static first<T>(args:any[]) { 
@@ -15,15 +16,5 @@ export class Helper {
   }
 } 
 
-declare var window;
-
 export let SYMBOL = "_zzx8";
-if (global) {
-  global[SYMBOL] = Helper;
-  [global.process.stdout, global.process.stderr].forEach((s:any) => {
-    s && s.isTTY && s._handle && s._handle.setBlocking &&
-      s._handle.setBlocking(true)
-    })
-} else if (window) {
-  window[SYMBOL] = Helper
-}
+Util.global[SYMBOL] = Helper;
