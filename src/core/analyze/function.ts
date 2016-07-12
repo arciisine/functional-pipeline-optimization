@@ -54,6 +54,8 @@ export class FunctionAnalyzer {
       return analysis;
     } 
 
+    console.log(src);
+
     //Handle class static methods
     src = /^[A-Za-z0-9_$ ]+\(/.test(src) ? `function ${src}` : src
 

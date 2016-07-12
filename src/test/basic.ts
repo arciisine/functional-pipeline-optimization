@@ -40,7 +40,7 @@ export function functionalRaw(data:number[]) {
 
   let count = data
     .filter(x => x > 100)
-    .map(function(x) {
+    .map(function z(x) {
       return x - 10
     })
     .reduce((acc, x) => acc + x, 0);

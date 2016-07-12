@@ -2,7 +2,7 @@ import {AST, Util, Macro as m, Visitor } from '../../../node_modules/@arcsine/ec
 import * as Transformers from '../array/transform';
 import {SYMBOL} from '../array/bootstrap';
 import {BaseTransformable} from '../array/base-transformable';
-import {FunctionAnalyzer, AccessType} from '../../core';
+import {FunctionAnalyzer, AccessType, Analysis} from '../../core';
 
 //Read name of manual fn from transformers
 let supported = Object.keys(Transformers)
@@ -16,11 +16,12 @@ const CANDIDATE_FUNCTIONS = m.genSymbol();
 const CANDIDATE_RELATED = m.genSymbol();
 const ANALYSIS = m.genSymbol();
 
-const EXEC = m.GetProperty(m.Id(SYMBOL), 'exec');
-const LOCAL = m.GetProperty(m.Id(SYMBOL), 'local');
-const WRAP = m.GetProperty(m.Id(SYMBOL), 'wrap');
-const FIRST = m.GetProperty(m.Id(SYMBOL), 'first');
+const EXEC = m.Id();
+const LOCAL = m.Id();
+const WRAP = m.Id();
+const FIRST = m.Id();
 const GENERIC_ASSIGN = m.Id();
+const REFS = {exec:EXEC,local:LOCAL,wrap:WRAP,first:FIRST}
 
 export function rewriteBody(content:string) {
   let body = Util.parseProgram<AST.Node>(content);
@@ -77,22 +78,19 @@ export function rewriteBody(content:string) {
       } else {        
         let closed = {};
         let assigned = {};
-        let analyses = 
-          x[CANDIDATE_FUNCTIONS]
+        let analysis = x[CANDIDATE_FUNCTIONS]
             .map(x => x[ANALYSIS])
-            .filter( x=> !!x)
-            .map(x => x.closed)
+            .filter(x => !!x)
+            .reduce((total:Analysis, x) => total.merge(x), new Analysis("~"))
 
-        analyses
-          .forEach(x => {
-            for (var k in x) {
-              if ((x[k] & AccessType.WRITE) > 0) {
-                assigned[k] = true;
-              } else if (x[k] > 0) {
-                closed[k] = true;
-              }
-            }
-          })
+        for (var k in analysis.closed) {
+          let v = analysis.closed[k];
+          if ((v & AccessType.WRITE) > 0) {
+            assigned[k] = true;
+          } else if (v > 0) {
+            closed[k] = true;
+          }
+        }
 
         //Define call site
         let closedIds =  Object.keys(closed).sort().map(m.Id);
@@ -118,7 +116,11 @@ export function rewriteBody(content:string) {
     }
   }).exec(body);
 
-  body.body.push(m.Vars(GENERIC_ASSIGN, null))
+  body.body.unshift(m.Vars(GENERIC_ASSIGN, null, 
+    ...Object.keys(REFS)
+      .map(k => [REFS[k], m.GetProperty(m.Id(SYMBOL), k)])
+      .reduce((acc, pair) => acc.concat(pair), [])));
+  
 
   return Util.compileExpression(body);
 }
