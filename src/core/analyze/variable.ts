@@ -1,7 +1,7 @@
 import { Util, AST, Visitor, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 
 export interface VariableHandler {
-  (name:string, node?:AST.Node):void;
+  (name:AST.Identifier, node?:AST.Node):void;
 }
 
 let noop = (...args:any[]) => {}
@@ -12,6 +12,7 @@ export interface VariableVisitHandler {
     onBlockStart?:(node?:AST.BlockStatement)=>void,
     onBlockEnd?:(node?:AST.BlockStatement)=>void,
     onDeclare?:VariableHandler,
+    onComputedAccess?:VariableHandler,
     onAccess?:VariableHandler,
     onWrite?:VariableHandler,
     onInvoke?:VariableHandler,
@@ -22,10 +23,53 @@ const DEFAULT_HANDLER:VariableVisitHandler = {
     onFunctionEnd:noop,
     onBlockStart:noop,
     onBlockEnd:noop,
+    onComputedAccess:noop,
     onDeclare:noop,
     onAccess:noop,
     onWrite:noop,
     onInvoke:noop
+}
+
+export class VariableStack {
+  top = null;
+  scope = [null];
+  length = 0;
+
+  register(name:string|AST.Identifier) {
+    if (this.top === null) {
+      this.scope[this.length] = (this.top = {});
+    }
+    if (typeof name === 'string') {
+      this.top[name] = true;
+    } else {
+      this.top[name.name] = true;
+    }
+  }
+
+  contains(name:string|AST.Identifier) {
+    if (typeof name === 'string') {
+      return !!this.top[name];
+    } else {
+      return !!this.top[name.name];
+    }
+  }
+
+  push() {
+    let out = {};
+    for (var k in this.top) {
+      out[k] = this.top[k];
+    }
+    this.length += 1
+    this.scope.unshift(this.top = out);
+  }
+
+  pop() {
+    if (this.scope.length > 0) {
+      this.scope.shift()
+      this.length -= 1     
+      this.top = this.scope[0];
+    }
+  }
 }
 
 export class VariableVisitor {
@@ -36,7 +80,7 @@ export class VariableVisitor {
     }
 
     if (AST.isIdentifier(target)) {
-      handler(target.name, root || target);
+      handler(target, root || target);
     } else if (AST.isObjectPattern(target)) {
       for (let prop of target.properties) {
         VariableVisitor.visitVariableNames(handler, prop.value, root || target);
@@ -52,7 +96,7 @@ export class VariableVisitor {
     //Hoist vars, remove nested functions
     new Visitor({
       FunctionDeclaration : (x:AST.FunctionDeclaration) => {
-        handler.onDeclare(x.id.name, x.id);
+        handler.onDeclare(x.id, x.id);
       },            
       FunctionStart : (x:AST.BaseFunction) => { 
         return Visitor.PREVENT_DESCENT //Only look at current function
@@ -66,7 +110,7 @@ export class VariableVisitor {
   }
 
   static visitIdentifier(handler:VariableVisitHandler, target:AST.Node, root:AST.Node) {
-    if (AST.isIdentifier(target))  handler.onAccess(target.name, root);
+    if (AST.isIdentifier(target))  handler.onAccess(target, root);
   }
 
   static getFunctionBlock(x:AST.BaseFunction):AST.BlockStatement {
@@ -87,12 +131,21 @@ export class VariableVisitor {
  /**
   * Find all variable usages
   */
-  static visit(handler:VariableVisitHandler, node:AST.Node) {
+  static visit(handler:VariableVisitHandler, node:AST.Node, stack?:VariableStack) {
     
     for (var k in DEFAULT_HANDLER) {
       if (!handler[k]) {
         handler[k] = DEFAULT_HANDLER[k];
       }
+    }
+
+    if (stack) {
+      let ogbs = handler.onBlockStart;
+      let ogbe = handler.onBlockEnd;
+      let ogd = handler.onDeclare;
+      handler.onBlockStart = (a) => { stack.push(); ogbs(a) }
+      handler.onBlockEnd = (a) => { stack.push(); ogbe(a) }
+      handler.onDeclare = (name, a) => { stack.register(name); ogd(name, a); }      
     }
 
     new Visitor({
@@ -128,7 +181,7 @@ export class VariableVisitor {
       },
 
       ClassDeclaration : (x:AST.ClassDeclaration) => {
-        handler.onDeclare(x.id.name, x);
+        handler.onDeclare(x.id, x);
       },
 
       CatchClause : (x:AST.CatchClause) => {
@@ -138,6 +191,9 @@ export class VariableVisitor {
       //Handle reads
       MemberExpression : (x:AST.MemberExpression) => {
         VariableVisitor.visitIdentifier(handler, x.object, x);
+        if (x.computed) {
+          handler.onComputedAccess(null, x);
+        }
       },
 
       //High level identifiers won't be picked up by member expressions
@@ -157,7 +213,7 @@ export class VariableVisitor {
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
-        VariableVisitor.visitVariableNames((name:string, node:AST.Node) => {
+        VariableVisitor.visitVariableNames((name:AST.Identifier, node:AST.Node) => {
           handler.onAccess(name, node)
           handler.onWrite(name, node);
         }, x, x)
@@ -180,7 +236,7 @@ export class VariableVisitor {
 
       //This
       ThisExpression : (x:AST.ThisExpression) => {
-        handler.onAccess('this');
+        handler.onAccess(AST.Identifier({name:'this'}));
       },
 
       Identifier : (x:AST.Identifier) => {

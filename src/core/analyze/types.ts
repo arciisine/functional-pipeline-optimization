@@ -1,5 +1,8 @@
 export const ANALYSIS_BOOLEAN_FIELDS = [
-  'Assignment', 'NestedFunction', 'ThisExpression', 'MemberExpression', 'CallExpression', 'NewExpression'
+   'ThisReference', 
+   'ComputedMemberAccess',
+   'MemberAccess', 
+   'Invocation'
 ];
 
 export enum AccessType {
@@ -10,13 +13,12 @@ export class Analysis {
   check : string;
   globals:{[key:string]:any};
   closed:{[key:string]:number} = {};
-  declared:{[key:string]:boolean} = {};
   all:number = 0;
 
-  hasThisExpression:boolean
-  hasNestedFunction:boolean
-  hasMemberExpression:boolean
-  hasNewExpression:boolean
+  hasThisReference:boolean
+  hasComputedMemberAccess:boolean;
+  hasMemberAccess:boolean;
+  hasInvocation:boolean
 
   constructor(public key: string) {}
 
@@ -26,9 +28,6 @@ export class Analysis {
     let o:Analysis = obj instanceof Analysis ? obj : obj.analysis;
 
     this.all = this.all | o.all;
-    for (var k in o.declared) {
-      this.declared[k] = o.declared[k];
-    }
     for (var k in o.closed) {
       this.closed[k] = (this.closed[k] || 0) | o.closed[k];
     }

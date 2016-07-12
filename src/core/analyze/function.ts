@@ -1,7 +1,7 @@
 import { Util, AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
-import {VariableVisitor} from './variable';
+import {VariableVisitor, VariableStack} from './variable';
 
 
 export class FunctionAnalyzer {
@@ -13,52 +13,34 @@ export class FunctionAnalyzer {
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
     analysis.globals = globals || {};
 
-    let scope = [{}];
-    let top = scope[0]
+    let stack = new VariableStack();
 
-    let checkClose = (name:string, level:AccessType) => {
-      if (!top[name]) analysis.closed[name] = (analysis.closed[name]  || 0) | level;
-    }
-
-    let nest = () => {
-      let out = {};
-      for (var k in top) {
-        out[k] = top[k];
+    let checkClosed = (name:AST.Identifier, access:AccessType) => {
+      if (!stack.contains(name)) {
+        analysis.closed[name.name] = (analysis.closed[name.name] || 0) | access;
       }
-      scope.push(top = out);
     }
-
-    let denest = () => {
-      scope.pop() 
-      top = scope[scope.length-1];
-    }    
 
     VariableVisitor.visit({
-      onBlockStart : nest,
-      onBlockEnd : denest,
-      onDeclare : name => {
-        top[name] = true;
+      onComputedAccess : (name:AST.Identifier) => {
+        analysis.hasComputedMemberAccess = true;
       },
-      onAccess : (name, node:AST.Node) => {
-        if (name === 'this') {
-          analysis.hasThisExpression = true;
-        } else {
-          checkClose(name, AccessType.ACCESS)
+      onAccess : (name:AST.Identifier, node:AST.Node) => {
+        if (name.name !== 'this') {
+          checkClosed(name, AccessType.ACCESS)
         }
         if (AST.isMemberExpression(node)) {
-          analysis.hasMemberExpression = true;
+          analysis.hasMemberAccess = true;
         }
       },
-      onWrite : name => {
-        checkClose(name, AccessType.WRITE)
+      onWrite : (name:AST.Identifier) => {
+        checkClosed(name, AccessType.WRITE)
       },
-      onInvoke : (name, node) => {
-        checkClose(name, AccessType.INVOKE)
-        if (AST.isNewExpression(node)) {
-          analysis.hasNewExpression = true;
-        }
+      onInvoke : (name:AST.Identifier) => {
+        checkClosed(name, AccessType.INVOKE)
+        analysis.hasInvocation = true;
       },
-    }, ast)
+    }, ast, stack)
 
     return analysis;
   }

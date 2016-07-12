@@ -1,5 +1,5 @@
 import { AST, Macro as m, Util, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse, Analysis } from '../../core';
+import { Transformable, TransformResponse, Analysis, VariableVisitor, VariableStack } from '../../core';
 import { TransformState } from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
@@ -36,45 +36,50 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
   transform(state:TransformState):TransformResponse  {    
     let node = Util.parse(this.callback) as AST.Node;
-    let paramMap:{[key:string]:AST.Identifier} = {};
     let pos = m.Id();
-    let params = this.getParams(state);
-    params.push(pos);
+    let params = [...this.getParams(state), pos];
 
-    let declaredMapping = Object
-      .keys(this.analysis.declared)
-      .reduce((acc, k) => acc[k] = m.Id(), {});
+    let fn:AST.FunctionExpression = null;
 
-    let test = node;
-    if (AST.isExpressionStatement(test)) {
-      node = test.expression
+    if (AST.isExpressionStatement(node)) {
+      node = node.expression;
     }
 
-    let res = new Visitor({
-      FunctionExpression : (node:AST.FunctionExpression) => {
-        node.params.forEach((p,i) => paramMap[(p as AST.Identifier).name] = params[i]);
-        return node;
-      },
-      ArrowFunctionExpression : (node:AST.ArrowFunctionExpression) => {
-        if (!AST.isBlockStatement(node.body)) {
-          node.body = m.Block(m.Return(node.body))          
-        }
-
-        node.params.forEach((p,i) => {
-          let name = AST.isIdentifier(p) ? p.name : null;
-          paramMap[name] = params[i]
-        })
-        return node;
-      },
-      ReturnStatementEnd : x =>  this.onReturn(state, x),
-      Identifier : x => paramMap[x.name] || declaredMapping[x.name] || x
-    }).exec(node) as (AST.FunctionExpression|AST.ArrowFunctionExpression);
-
-    let hasIndex = Object.keys(paramMap).length > params.length; //If requesting index
-    return {
-      body : hasIndex ? [res.body, m.Expr(m.Increment(pos))] : [res.body],
-      vars : hasIndex ? [pos,  m.Literal(0)] : []
+    if (AST.isArrowFunctionExpression(node) || AST.isFunctionExpression(node)) {
+      fn = node as AST.FunctionExpression;
+    } else {
+      throw new Error(`Invalid type: ${node.type}`);
     }
+
+    //Rewrite all variables
+    let stack = new VariableStack();
+    VariableVisitor.visit({
+      onDeclare:(name:AST.Identifier, parent:AST.Node) => {
+        stack.top[name.name] = m.Id();
+      },
+      onAccess:(name:AST.Identifier) => {
+        name.name = stack.top[name.name]; //Rewrite
+      }
+    }, fn, stack) 
+    
+    //Handle returns
+    new Visitor({
+      ReturnStatementEnd : (x:AST.ReturnStatement) =>  this.onReturn(state, x),
+    }).exec(fn)
+
+    let vars = [];
+    let body:AST.Node[] = [
+      AST.AssignmentExpression({ left: fn.params[fn.params.length-2], operator: '=', right: params[params.length-2] }),
+      ...fn.body.body
+    ];
+
+    if (fn.params.length === params.length) { //If using index
+      vars.push(pos, m.Literal(0))
+      body.unshift(AST.AssignmentExpression({ left: fn.params[fn.params.length-1], operator: '=', right: params[params.length-1] }))
+      body.push(m.Expr(m.Increment(pos)))      
+    }
+
+    return { body, vars };
   }
 
   manualTransform(data:T[]):U {
