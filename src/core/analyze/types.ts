@@ -3,7 +3,7 @@ export const ANALYSIS_BOOLEAN_FIELDS = [
 ];
 
 export enum AccessType {
-  READ = 0b1, WRITE = 0b10, INVOKE = 0b100
+  ACCESS = 0b1, WRITE = 0b10, INVOKE = 0b100
 }
 
 export class Analysis {
