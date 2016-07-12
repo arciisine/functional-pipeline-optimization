@@ -1,8 +1,10 @@
-import { Util, AST, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { Util, AST, Visitor, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 
 export interface VariableHandler {
   (name:string, node?:AST.Node):void;
 }
+
+let noop = (...args:any[]) => {}
 
 export interface VariableVisitHandler {
     onFunctionStart?:(node?:AST.BaseFunction)=>void,
@@ -13,6 +15,17 @@ export interface VariableVisitHandler {
     onAccess?:VariableHandler,
     onWrite?:VariableHandler,
     onInvoke?:VariableHandler,
+}
+
+const DEFAULT_HANDLER:VariableVisitHandler = {
+    onFunctionStart:noop,
+    onFunctionEnd:noop,
+    onBlockStart:noop,
+    onBlockEnd:noop,
+    onDeclare:noop,
+    onAccess:noop,
+    onWrite:noop,
+    onInvoke:noop
 }
 
 export class VariableVisitor {
@@ -56,26 +69,55 @@ export class VariableVisitor {
     if (AST.isIdentifier(target))  handler.onAccess(target.name, root);
   }
 
+  static getFunctionBlock(x:AST.BaseFunction):AST.BlockStatement {
+    if (AST.isFunctionDeclaration(x) || AST.isFunctionExpression(x)) {
+      return x.body;
+    } else if (AST.isArrowFunctionExpression(x)) {
+      if (AST.isBlockStatement(x.body)) {
+        return x.body;
+      } else {
+        let body = m.Block(m.Return(x.body));
+        x.body = body;
+        return body;
+      }
+    }
+  }
+
  /**
   * Find all variable usages
   */
   static visit(handler:VariableVisitHandler, node:AST.Node) {
+    
+    for (var k in DEFAULT_HANDLER) {
+      if (!handler[k]) {
+        handler[k] = DEFAULT_HANDLER[k];
+      }
+    }
+
     new Visitor({
       FunctionStart : (x:AST.BaseFunction) => {
-        handler.onFunctionStart();
-        handler.onBlockStart();
+        handler.onFunctionStart(x);
+        let block = VariableVisitor.getFunctionBlock(x);
+        handler.onBlockStart(block);
         VariableVisitor.findHoistedDeclarations(handler, x);
       },
+      
       FunctionEnd : (x:AST.BaseFunction) => {
-        handler.onBlockEnd();
-        handler.onFunctionEnd();        
+        let block = VariableVisitor.getFunctionBlock(x);
+        handler.onBlockEnd(block);
+        handler.onFunctionEnd(x);        
       },
-      BlockStatementStart : (x:AST.BlockStatement) => {
-        handler.onBlockStart();
+      
+      BlockStatementStart : (x:AST.BlockStatement, v:Visitor) => {
+        if (!AST.isFunction(v.parent.node as AST.Node)) {
+          handler.onBlockStart(x);
+        }
       },
 
-      BlockStatementEnd : (x:AST.BlockStatement) => {
-        handler.onBlockEnd();
+      BlockStatementEnd : (x:AST.BlockStatement, v:Visitor) => {
+        if (!AST.isFunction(v.parent.node as AST.Node)) {
+          handler.onBlockEnd(x);
+        }
       },
 
       VariableDeclaration : (x:AST.VariableDeclaration) => {

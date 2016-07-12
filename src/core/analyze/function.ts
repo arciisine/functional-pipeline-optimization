@@ -20,14 +20,22 @@ export class FunctionAnalyzer {
       if (!!top[name]) analysis.closed[name] = (analysis.closed[name]  || 0) | level;
     }
 
+    let nest = () => {
+      let out = {};
+      for (var k in top) {
+        out[k] = top[k];
+      }
+      scope.push(top = out);
+    }
+
+    let denest = () => {
+      scope.pop() 
+      top = scope[scope.length-1];
+    }    
+
     VariableVisitor.visit({
-      onBlockStart : () => {
-        scope.push(top = _.extend({}, scope[scope.length-1]));
-      },
-      onBlockEnd : () => {
-        scope.pop()
-        top = scope[scope.length-1];
-      },
+      onBlockStart : nest,
+      onBlockEnd : denest,
       onDeclare : name => {
         top[name] = true;
       },
