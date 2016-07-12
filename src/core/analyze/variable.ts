@@ -103,7 +103,10 @@ export class VariableVisitor {
       },
       VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind === 'var') {
-          x.declarations.forEach(d => VariableVisitor.visitVariableNames(handler.onDeclare, d, x));
+          x.declarations.forEach(d => {
+            VariableVisitor.visitVariableNames(handler.onDeclare, d, x);
+            VariableVisitor.visitVariableNames(handler.onAccess, d.init, x);
+          });
         }
       }
     }).exec(node);
@@ -164,13 +167,13 @@ export class VariableVisitor {
       },
       
       BlockStatementStart : (x:AST.BlockStatement, v:Visitor) => {
-        if (!AST.isFunction(v.parent.node as AST.Node)) {
+        if (!AST.isFunction(v.parent.container as AST.Node)) {
           handler.onBlockStart(x);
         }
       },
 
       BlockStatementEnd : (x:AST.BlockStatement, v:Visitor) => {
-        if (!AST.isFunction(v.parent.node as AST.Node)) {
+        if (!AST.isFunction(v.parent.container as AST.Node)) {
           handler.onBlockEnd(x);
         }
       },
@@ -191,37 +194,15 @@ export class VariableVisitor {
       //Handle reads
       MemberExpression : (x:AST.MemberExpression) => {
         VariableVisitor.visitIdentifier(handler, x.object, x);
-        if (x.computed) {
-          handler.onComputedAccess(null, x);
-        }
-      },
-
-      //High level identifiers won't be picked up by member expressions
-      BinaryExpression : (x:AST.BinaryExpression) => {
-        VariableVisitor.visitIdentifier(handler, x.left, x);
-        VariableVisitor.visitIdentifier(handler, x.right, x);
-      },
-
-      UnaryExpression : (x:AST.UnaryExpression) => {
-        VariableVisitor.visitIdentifier(handler, x.argument, x);
-      },
-
-      LogicalExpression : (x:AST.LogicalExpression) => {
-        VariableVisitor.visitIdentifier(handler, x.left, x);
-        VariableVisitor.visitIdentifier(handler, x.right, x);
       },
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
-        VariableVisitor.visitVariableNames((name:AST.Identifier, node:AST.Node) => {
-          handler.onAccess(name, node)
-          handler.onWrite(name, node);
-        }, x, x)
+        VariableVisitor.visitVariableNames(handler.onWrite, x.argument, x)
       },
 
       AssignmentExpression : (x:AST.AssignmentExpression) => {
         VariableVisitor.visitVariableNames(handler.onWrite, x.left, x)
-        VariableVisitor.visitVariableNames(handler.onAccess, x.right, x)
       },
 
       //Handle invocation
@@ -239,8 +220,12 @@ export class VariableVisitor {
         handler.onAccess(AST.Identifier({name:'this'}));
       },
 
-      Identifier : (x:AST.Identifier) => {
-        //Do nothing, handled in expression checking
+      //Only on parents //Handle reads
+      Identifier : (x:AST.Identifier, v:Visitor) => {
+        let node = v.parent.node;
+        if (!AST.isMemberExpression(node) || node.computed && node.property === x) {   
+          VariableVisitor.visitIdentifier(handler, x, node);
+        }
       }
     }).exec(node);
   }

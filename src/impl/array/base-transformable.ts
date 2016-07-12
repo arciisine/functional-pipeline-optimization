@@ -51,14 +51,16 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       throw new Error(`Invalid type: ${node.type}`);
     }
 
-    //Rewrite all variables
+    //Rename all variables to unique values
     let stack = new VariableStack();
     VariableVisitor.visit({
       onDeclare:(name:AST.Identifier, parent:AST.Node) => {
-        stack.top[name.name] = m.Id();
+        name.name = stack.top[name.name] = m.Id().name;
       },
       onAccess:(name:AST.Identifier) => {
-        name.name = stack.top[name.name]; //Rewrite
+        if (stack.contains(name)) {
+          name.name = stack.top[name.name]; //Rewrite
+        }
       }
     }, fn, stack) 
     
@@ -68,14 +70,19 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     }).exec(fn)
 
     let vars = [];
-    let body:AST.Node[] = [
-      AST.AssignmentExpression({ left: fn.params[fn.params.length-2], operator: '=', right: params[params.length-2] }),
-      ...fn.body.body
-    ];
+    let body:AST.Node[] = [...fn.body.body];
+    body.unshift(AST.VariableDeclaration({
+      kind : 'let',
+      declarations : fn.params.map((p, i) => {
+        return AST.VariableDeclarator({
+          id : p,
+          init : params[i]
+        })
+      })
+    }));
 
     if (fn.params.length === params.length) { //If using index
       vars.push(pos, m.Literal(0))
-      body.unshift(AST.AssignmentExpression({ left: fn.params[fn.params.length-1], operator: '=', right: params[params.length-1] }))
       body.push(m.Expr(m.Increment(pos)))      
     }
 
