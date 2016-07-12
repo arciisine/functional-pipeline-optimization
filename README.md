@@ -6,6 +6,7 @@
 * `node dist/src/test/basic`
 
 **Outstanding Tasks**
+
 * Bootstrapping
     * Figure out how to bootstrap config globally
 * Handle Closed Variables
