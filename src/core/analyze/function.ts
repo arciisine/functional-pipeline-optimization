@@ -17,7 +17,7 @@ export class FunctionAnalyzer {
     let top = scope[0]
 
     let checkClose = (name:string, level:AccessType) => {
-      if (!!top[name]) analysis.closed[name] = (analysis.closed[name]  || 0) | level;
+      if (!top[name]) analysis.closed[name] = (analysis.closed[name]  || 0) | level;
     }
 
     let nest = () => {
@@ -39,7 +39,7 @@ export class FunctionAnalyzer {
       onDeclare : name => {
         top[name] = true;
       },
-      onAccess : (name, node:AST.Node) => {        
+      onAccess : (name, node:AST.Node) => {
         if (name === 'this') {
           analysis.hasThisExpression = true;
         } else {

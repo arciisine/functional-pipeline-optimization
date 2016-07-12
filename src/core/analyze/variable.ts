@@ -77,6 +77,7 @@ export class VariableVisitor {
         return x.body;
       } else {
         let body = m.Block(m.Return(x.body));
+        x.expression = false;        
         x.body = body;
         return body;
       }
@@ -99,6 +100,7 @@ export class VariableVisitor {
         handler.onFunctionStart(x);
         let block = VariableVisitor.getFunctionBlock(x);
         handler.onBlockStart(block);
+        x.params.forEach(p => VariableVisitor.visitVariableNames(handler.onDeclare, p, x))
         VariableVisitor.findHoistedDeclarations(handler, x);
       },
       

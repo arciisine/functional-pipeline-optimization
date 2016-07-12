@@ -45,6 +45,7 @@ export function rewriteBody(content:string) {
       let arg = x.arguments[0];
       if (AST.isFunctionExpression(arg) || AST.isArrowFunctionExpression(arg)) {
         x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg); //Analayze function
+        console.log(x[ANALYSIS], arg.body['body'])
         x.arguments[0] = m.Call(LOCAL, arg);
       }
       

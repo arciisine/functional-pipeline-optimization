@@ -6,6 +6,8 @@ let content = fs.readFileSync(`${__dirname}/basic.js`).toString();
 
 let out = rewriteBody(content)
 
+console.log(out);
+
 fs.writeFileSync(`${__dirname}/basic.alt.js`, out);
 
 eval(out);
