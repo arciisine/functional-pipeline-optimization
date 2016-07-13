@@ -34,6 +34,27 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return [state.elementId];
   }
 
+  static rewritePatterns(node:AST.Pattern, stack:VariableStack) {
+    if (AST.isObjectPattern(node)) {
+      for (let p of node.properties) {
+        BaseTransformable.rewritePatterns(p, stack);
+      }
+    } else if (AST.isArrayPattern(node)) {
+      for (let p of node.elements) {
+        BaseTransformable.rewritePatterns(p, stack);
+      }
+    } else if (AST.isIdentifier(node)) {
+      stack.register(node);
+      node.name = stack.top[node.name] = m.Id().name
+    } else if (AST.isProperty(node)) {
+      node.shorthand = false;
+      node.value = {} as any;
+      for (var k in node.key) { node.value[k] = node.key[k] }
+      BaseTransformable.rewritePatterns(node.value, stack);      
+    }
+    return node;
+  }
+
   transform(state:TransformState):TransformResponse  {    
     let node = Util.parse(this.callback) as AST.Node;
     let pos = m.Id();
@@ -45,7 +66,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       node = node.expression;
     }
 
-    if (AST.isArrowFunctionExpression(node) || AST.isFunctionExpression(node)) {
+    if (AST.isFunction(node)) {
       fn = node as AST.FunctionExpression;
     } else {
       throw new Error(`Invalid type: ${node.type}`);
@@ -53,11 +74,36 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
     //Rename all variables to unique values
     let stack = new VariableStack();
+    let vars = [];
+    let body:AST.Node[] = [];
+
+    let fnparams = fn.params;
+    let assign = {};
+    for (let i = 0; i < fn.params.length;i++) {
+      let p = fn.params[i];
+      if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
+        body.unshift(AST.VariableDeclaration({
+          kind : 'let',
+          declarations : [AST.VariableDeclarator({
+              id : BaseTransformable.rewritePatterns(p, stack),
+              init : params[i]
+            })]
+        }));
+      } else if (AST.isIdentifier(p)) {
+        stack.register(p);
+        stack.top[p.name] = (params[i] as AST.Identifier).name;
+      }
+    }
+
     VariableVisitor.visit({
       onDeclare:(name:AST.Identifier, parent:AST.Node) => {
-        name.name = stack.top[name.name] = m.Id().name;
+        if (parent === fn) {
+          //Skip parents
+        } else {
+          name.name = stack.top[name.name] =  m.Id().name;
+        }
       },
-      onAccess:(name:AST.Identifier) => {
+      onAccess:(name:AST.Identifier, parent:AST.Node) => {
         if (stack.contains(name)) {
           name.name = stack.top[name.name]; //Rewrite
         }
@@ -69,17 +115,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       ReturnStatementEnd : (x:AST.ReturnStatement) =>  this.onReturn(state, x),
     }).exec(fn)
 
-    let vars = [];
-    let body:AST.Node[] = [...fn.body.body];
-    body.unshift(AST.VariableDeclaration({
-      kind : 'let',
-      declarations : fn.params.map((p, i) => {
-        return AST.VariableDeclarator({
-          id : p,
-          init : params[i]
-        })
-      })
-    }));
+    body.push(...fn.body.body);
 
     if (fn.params.length === params.length) { //If using index
       vars.push(pos, m.Literal(0))

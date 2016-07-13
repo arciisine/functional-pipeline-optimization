@@ -54,13 +54,9 @@ export class FunctionAnalyzer {
       return analysis;
     } 
 
-    console.log(src);
-
-    //Handle class static methods
-    src = /^[A-Za-z0-9_$ ]+\(/.test(src) ? `function ${src}` : src
-
     let ast:AST.BaseFunction = Util.parse(src);
     analysis = FunctionAnalyzer.analyzeAST(ast, globals);
+    
     analysis.check = check;
     FunctionAnalyzer.analyzed[check] = analysis;
     return analysis;    
