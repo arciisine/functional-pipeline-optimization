@@ -22,7 +22,7 @@ export class Builder<I, O> {
 
   exec(closed:any[] = []):O {
     let fn = CompilerUtil.compile(this.compiler, this.compilable);
-    //Expose context for use in functions
+    //Expose inputs for use in functions
     let ctx = this.compilable.chain.filter(tr => !!tr.id).reduce((acc, tr) => (acc[tr.id] = tr.inputs) && acc, {})
     let res = fn(this.data, ctx, ...closed)
     return res;

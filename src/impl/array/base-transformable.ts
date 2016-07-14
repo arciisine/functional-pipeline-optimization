@@ -39,6 +39,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   public id:string;
+  public inputArray:any[]
   public manual:W;
   public callbacks:Function[];
   public analysis:Analysis = null;
@@ -47,6 +48,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     this.callbacks = [inputs.callback];
     this.manual = BaseTransformable.getArrayFunction(this);
     this.id = m.genSymbol();
+    this.inputArray = [inputs.callback, inputs.context];
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
@@ -139,6 +141,6 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   manualTransform(data:T[]):U {
-    return this.manual.apply(data, this.inputs) as U; 
+    return this.manual.apply(data, this.inputArray) as U; 
   }
 }

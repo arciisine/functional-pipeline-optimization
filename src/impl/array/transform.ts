@@ -63,6 +63,11 @@ export class ReduceTransform<T, U>  extends
 {
   constructor(inputs:{callback:Callback.Accumulate<T, U>, initValue?:U, context?:any}) {
     super(inputs);
+    this.inputArray.unshift(inputs.initValue);
+  }
+
+  init(state:TransformState):AST.Node {
+    return this.getContextValue(state, 'initValue');
   }
 
   getParams(state:TransformState) {
@@ -71,10 +76,6 @@ export class ReduceTransform<T, U>  extends
 
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.Expr(m.Assign(state.returnValueId, node.argument));
-  }
-
-  init(state:TransformState):AST.Node {
-    return this.getContextValue(state, 'initValue');
   }
 }
 
