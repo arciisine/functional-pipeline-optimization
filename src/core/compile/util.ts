@@ -1,10 +1,10 @@
 import { CompileUtil, AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Compilable } from './compilable';
-import { Compiler } from './compiler';
+import { Compiler, ExecInput, ExecOutput, ExecHandler } from './types';
 import { TransformResponse } from '../transform';
 
 export class CompilerUtil {
-  private static computed:{[key:string]:(...args:any[])=>any} = {};
+  private static computed:{[key:string]:ExecHandler<any, any>} = {};
 
   static manual<I, O>(compilable:Compilable<I, O>, data:I):O {
     return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
@@ -20,14 +20,14 @@ export class CompilerUtil {
       }, {vars:[], body:[]});
   }
 
-  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):(i:I, ...closed:any[])=>O {
+  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):ExecHandler<I,O> {
     let key = compilable.analysis.key + "~" + compiler.constructor.name;
     if (CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
     } 
     let state = compiler.createState();
     let ast = compiler.compile(compilable, state);
-    let res = CompileUtil.compile(ast as any, {}) as (i:I, ...closed:any[])=>O;
+    let res = CompileUtil.compile(ast as any, {}) as ExecHandler<I,O>;
     console.log(res.toString())
     CompilerUtil.computed[key] = res;
     return res;

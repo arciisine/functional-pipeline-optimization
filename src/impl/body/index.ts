@@ -16,9 +16,8 @@ const ANALYSIS = m.genSymbol();
 const EXEC = m.Id();
 const LOCAL = m.Id();
 const WRAP = m.Id();
-const FIRST = m.Id();
 const GENERIC_ASSIGN = m.Id();
-const REFS = {exec:EXEC,local:LOCAL,wrap:WRAP,first:FIRST}
+const REFS = {exec:EXEC,local:LOCAL,wrap:WRAP}
 
 export function rewriteBody(content:string) {
   let body = ParseUtil.parseProgram<AST.Node>(content);
@@ -97,16 +96,24 @@ export function rewriteBody(content:string) {
         let ret:AST.Node = null;
 
         //Handle if we have to reassign closed variables
-        if (assignedIds.length > 0) {
-          ret = m.Call(FIRST, AST.AssignmentExpression({
-            left : AST.ArrayPattern({
-              elements : [GENERIC_ASSIGN, ...assignedIds]
-            }),
-            operator : '=',
-            right : m.Call(EXEC, x, allIds) 
-          }));
-        } else {
-          ret = m.Call(FIRST, m.Call(EXEC, x, allIds));
+        let execParams:any = [x];
+        if (allIds.elements.length > 0) {
+          execParams.push(allIds);
+          if (assignedIds.length > 0) {
+            let id = m.Id()
+            execParams.push(AST.ArrowFunctionExpression({
+              params : [id],
+              expression: true,
+              body : AST.AssignmentExpression({
+                left : AST.ArrayPattern({ elements : assignedIds }),
+                operator : '=',
+                right : id
+              }),
+              generator: false,
+              id: null
+            })); 
+          }
+          ret = m.Call(EXEC, ...execParams);
         }
         return ret;
       }

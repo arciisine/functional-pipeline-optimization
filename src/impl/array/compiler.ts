@@ -46,12 +46,13 @@ export class ArrayCompiler implements Compiler<TransformState> {
       vars.push(state.returnValueId, undefined);
     }
 
-    let invoke:AST.CallExpression = {
-      type : "CallExpression",
+    let lengthId = m.Id();
+
+    let invoke:AST.CallExpression = AST.CallExpression({
       callee : m.FuncExpr(state.functionId, [state.arrayId], [
-        m.Vars('let', ...vars),
+        m.Vars('let', ...vars, lengthId, m.GetProperty(state.arrayId, "length")),
         m.Labeled(state.continueLabel,
-          m.ForLoop(state.iteratorId, m.Literal(0), m.GetProperty(state.arrayId, "length"),
+          m.ForLoop(state.iteratorId, m.Literal(0), lengthId,
             [
               m.Vars('let', state.elementId, m.GetProperty(state.arrayId, state.iteratorId)),
               ...ASTUtil.reduceBlocks(body)
@@ -61,14 +62,17 @@ export class ArrayCompiler implements Compiler<TransformState> {
         m.Return(state.returnValueId)
       ]),
       arguments : [state.arrayId]
-    };
+    });
 
     let wrapperId = m.Id();
-    let wrappedRet = m.Id();
-    
-    return m.Func(wrapperId, [state.arrayId, state.contextId, ...assignedIds, ...closedIds], [
-      m.Vars(wrappedRet, AST.ExpressionStatement({expression:invoke})),
-      m.Return(m.Array(wrappedRet, ...assignedIds))
+    let closedId = m.Id();
+
+    return m.Func(wrapperId, [m.ObjectExpr({name:state.arrayId, context:state.contextId, closed:closedId})], [
+      m.Vars('let', AST.ArrayPattern({ elements:[...assignedIds, ...closedIds] }), closedId),
+      m.Return(m.ObjectExpr({
+        value : AST.ExpressionStatement({expression:invoke}), 
+        assigned : m.Array(...assignedIds)
+      }))
     ]);
   }
 }
