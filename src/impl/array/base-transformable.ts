@@ -75,7 +75,11 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     if (AST.isFunction(node)) {
       fn = node as AST.FunctionExpression;
     } else {
-      throw new Error(`Invalid type: ${node.type}`);
+      throw { message : `Invalid type: ${node.type}`, invalid : true };
+    }
+
+    if (fn.params.length > params.length) { //If using array notation
+      throw { message : "Array references are not supported", invalid : true };
     }
 
     let stack = new VariableStack();
@@ -91,10 +95,12 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
         body.unshift(AST.VariableDeclaration({
           kind : 'let',
-          declarations : [AST.VariableDeclarator({
+          declarations : [
+            AST.VariableDeclarator({
               id : BaseTransformable.rewritePatterns(p, stack),
               init : params[i]
-            })]
+            })
+          ]
         }));
       } else if (AST.isIdentifier(p)) {
         stack.register(p);
@@ -123,7 +129,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
           name.name = stack.top[name.name]; //Rewrite
         }
       }
-    }, fn, stack) 
+    }, fn, stack); 
     
     //Handle returns
     new Visitor({
@@ -134,7 +140,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
     if (fn.params.length === params.length) { //If using index
       vars.push(pos, m.Literal(0))
-      body.push(m.Expr(m.Increment(pos)))      
+      body.push(m.Expr(m.Increment(pos)))
     }
 
     return { body, vars };
