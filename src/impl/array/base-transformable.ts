@@ -38,7 +38,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return node;
   }
 
-
+  public id:string;
   public manual:W;
   public callbacks:Function[];
   public analysis:Analysis = null;

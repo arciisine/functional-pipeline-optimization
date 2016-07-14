@@ -7,6 +7,7 @@ export interface TransformResponse {
 }
 
 export interface Transformable<I, O> extends Analyzable {
+  id?:string;
   inputs:{[key:string]:any};
   callbacks:Function[]
   

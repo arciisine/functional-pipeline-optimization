@@ -7,6 +7,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
 
   createState():TransformState {
     return {
+      contextId: m.Id(),
       elementId : m.Id(),
       returnValueId : m.Id(),
       continueLabel : m.Id(),
@@ -65,7 +66,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let wrapperId = m.Id();
     let wrappedRet = m.Id();
     
-    return m.Func(wrapperId, [state.arrayId, ...assignedIds, ...closedIds], [
+    return m.Func(wrapperId, [state.arrayId, state.contextId, ...assignedIds, ...closedIds], [
       m.Vars(wrappedRet, AST.ExpressionStatement({expression:invoke})),
       m.Return(m.Array(wrappedRet, ...assignedIds))
     ]);
