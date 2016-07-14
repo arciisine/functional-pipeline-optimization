@@ -1,11 +1,12 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse, Analysis, VariableVisitor, VariableStack } from '../../core';
+import { Transformable, TransformResponse, Analysis, FunctionAnalyzer, VariableVisitor, VariableStack } from '../../core';
 import { TransformState } from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
   implements Transformable<T[], U> 
 {
   private static cache = {};
+  private static id = 0;
 
   static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
     let key = inst.constructor.name
@@ -38,30 +39,32 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return node;
   }
 
-  public id:string;
   public inputArray:any[]
   public manual:W;
   public callbacks:Function[];
   public analysis:Analysis = null;
+  public id = null;
 
   constructor(public inputs:{callback:V, context?:any}) {
     this.callbacks = [inputs.callback];
     this.manual = BaseTransformable.getArrayFunction(this);
-    this.id = m.genSymbol();
     this.inputArray = [inputs.callback, inputs.context];
   }
+
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
 
   getContextValue(state:TransformState, key:string):AST.MemberExpression {
-    return m.GetProperty(m.GetProperty(state.contextId, this.id), key);
+    return m.GetProperty(m.GetProperty(state.contextId, state.stepId.name), key);
   }
 
   getParams(state:TransformState):AST.Identifier[] {
     return [state.elementId];
   }
 
-  transform(state:TransformState):TransformResponse  {    
+  transform(state:TransformState):TransformResponse  {
+    this.id = state.stepId.name;
+
     let node = ParseUtil.parse(this.inputs.callback) as AST.Node;
     let pos = m.Id();
     let params = [...this.getParams(state), pos];

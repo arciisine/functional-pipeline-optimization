@@ -24,7 +24,7 @@ export class Builder<I, O> {
     try {
       let fn = CompilerUtil.compile(this.compiler, this.compilable);
       //Expose inputs for use in functions
-      let context = this.compilable.chain.reduce((acc, tr) => (acc[tr.id] = tr.inputs) && acc, {})     
+      let context = this.compilable.chain.reduce((acc, tr) => (acc[tr.id] = tr.inputs) && acc, {})      
       return fn({value:this.data, context, closed})
     } catch (e) {
       if (e.invalid) {
