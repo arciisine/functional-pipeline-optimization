@@ -11,4 +11,5 @@ export interface Transformable<I, O> extends Analyzable {
   callbacks:Function[]
   
   transform<T>(state:T):TransformResponse;
+  manualTransform(data:I):O;
 }

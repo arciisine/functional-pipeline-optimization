@@ -7,6 +7,16 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 {
   private static cache = {};
 
+  private static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
+    let key = inst.constructor.name
+    if (!BaseTransformable.cache[key]) {
+      let fn = key.split('Transform')[0];
+      fn = fn.charAt(0).toLowerCase() + fn.substring(1);
+      BaseTransformable.cache[key] = Array.prototype[fn];
+    }
+    return BaseTransformable.cache[key];
+  }
+
   static rewritePatterns(node:AST.Pattern, stack:VariableStack) {
     if (AST.isObjectPattern(node)) {
       for (let p of node.properties) {
@@ -28,11 +38,14 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return node;
   }
 
+
+  public manual:W;
   public callbacks:Function[];
   public analysis:Analysis = null;
 
   constructor(public inputs:{callback:V, context?:any}) {
     this.callbacks = [inputs.callback];
+    this.manual = BaseTransformable.getArrayFunction(this);
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
@@ -111,5 +124,9 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     }
 
     return { body, vars };
+  }
+
+  manualTransform(data:T[]):U {
+    return this.manual.apply(data, this.inputs) as U; 
   }
 }

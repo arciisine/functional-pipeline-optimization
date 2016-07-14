@@ -6,6 +6,10 @@ import { TransformResponse } from '../transform';
 export class CompilerUtil {
   private static computed:{[key:string]:(...args:any[])=>any} = {};
 
+  static manual<I, O>(compilable:Compilable<I, O>, data:I):O {
+    return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
+  }  
+
   static readChain<T, I, O>(compilable:Compilable<I, O>, state:T):TransformResponse {
     return compilable.chain
       .map(t => t.transform(state))
