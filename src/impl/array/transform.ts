@@ -61,9 +61,8 @@ export class SomeTransform<T> extends
 export class ReduceTransform<T, U>  extends 
   BaseTransformable<T, U, Callback.Accumulate<T, U>, Handler.Reduce<T, U>>
 {
-  constructor(callback:Callback.Accumulate<T, U>, public initValue?:U, context?:any) {
-    super(callback, context);
-    this.inputs.splice(1, 0, this.initValue); //put init value in the right position
+  constructor(inputs:{callback:Callback.Accumulate<T, U>, initValue?:U, context?:any}) {
+    super(inputs);
   }
 
   getParams(state:TransformState) {
@@ -75,7 +74,13 @@ export class ReduceTransform<T, U>  extends
   }
 
   init(state:TransformState):AST.Node {
-    let decl = Util.parseExpression(`let a = ${JSON.stringify(this.initValue)}`) as AST.VariableDeclaration;
-    return decl.declarations[0].init;
+    return null;
   }
 }
+
+export const MAPPING = [FilterTransform, MapTransform, FindTransform, SomeTransform, ReduceTransform, ForEachTransform]
+  .map(x => { 
+    let name = x.name.split('Transform')[0];
+    return [name.charAt(0).toLowerCase() + name.substring(1), x] as [string, Function]; 
+  })
+  .reduce((acc, pair) => (acc[pair[0]] = pair[1]) && acc, {});

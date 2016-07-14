@@ -1,27 +1,7 @@
-import { AST, Macro as m} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Macro as m, Util as ASTUtil} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../core';
 import { TransformState } from './types';
 import { AccessType } from '../../core'; 
-
-function exprStmt(x:AST.Expression):AST.ExpressionStatement {
-  return {
-    type: "ExpressionStatement",
-    expression : x
-  }
-};
-
-function reduceBlocks(body:AST.Node[]):AST.Node[] {
-  let out = [];
-  for (let i = 0; i < body.length; i++) {
-    let node = body[i];
-    if (AST.isBlockStatement(node) && !node.body.some(y => AST.isVariableDeclaration(y) && y.kind !== 'var')) {
-      out.push(...reduceBlocks(node.body))
-    } else {
-      out.push(node);
-    }
-  }
-  return out;
-}
 
 export class ArrayCompiler implements Compiler<TransformState> {
 
@@ -73,7 +53,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
           m.ForLoop(state.iteratorId, m.Literal(0), m.GetProperty(state.arrayId, "length"),
             [
               m.Vars('let', state.elementId, m.GetProperty(state.arrayId, state.iteratorId)),
-              ...reduceBlocks(body)
+              ...ASTUtil.reduceBlocks(body)
             ]        
           )
         ),
@@ -86,7 +66,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let wrappedRet = m.Id();
     
     return m.Func(wrapperId, [state.arrayId, ...assignedIds, ...closedIds], [
-      m.Vars(wrappedRet, exprStmt(invoke)),
+      m.Vars(wrappedRet, AST.ExpressionStatement({expression:invoke})),
       m.Return(m.Array(wrappedRet, ...assignedIds))
     ]);
   }

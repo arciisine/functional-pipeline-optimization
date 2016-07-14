@@ -7,9 +7,8 @@ export interface TransformResponse {
 }
 
 export interface Transformable<I, O> extends Analyzable {
-  inputs:any[];
+  inputs:{[key:string]:any};
   callbacks:Function[]
   
   transform<T>(state:T):TransformResponse;
-  manualTransform(data:I):O;
 }

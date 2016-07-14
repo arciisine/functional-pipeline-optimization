@@ -1,4 +1,4 @@
-import { AST, Macro as m, Util, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse, Analysis, VariableVisitor, VariableStack } from '../../core';
 import { TransformState } from './types';
 
@@ -6,33 +6,6 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   implements Transformable<T[], U> 
 {
   private static cache = {};
-  
-  private static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
-    let key = inst.constructor.name
-    if (!BaseTransformable.cache[key]) {
-      let fn = key.split('Transform')[0];
-      fn = fn.charAt(0).toLowerCase() + fn.substring(1);
-      BaseTransformable.cache[key] = Array.prototype[fn];
-    }
-    return BaseTransformable.cache[key];
-  }
-
-  public manual:W;
-  public inputs:any[];
-  public callbacks:Function[];
-  public analysis:Analysis = null;
-
-  constructor(public callback:V, public context?:any) {
-    this.inputs = [callback, context];
-    this.callbacks = [callback];
-    this.manual = BaseTransformable.getArrayFunction(this);
-  }
-
-  abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
-
-  getParams(state:TransformState):AST.Identifier[] {
-    return [state.elementId];
-  }
 
   static rewritePatterns(node:AST.Pattern, stack:VariableStack) {
     if (AST.isObjectPattern(node)) {
@@ -55,8 +28,21 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return node;
   }
 
+  public callbacks:Function[];
+  public analysis:Analysis = null;
+
+  constructor(public inputs:{callback:V, context?:any}) {
+    this.callbacks = [inputs.callback];
+  }
+
+  abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
+
+  getParams(state:TransformState):AST.Identifier[] {
+    return [state.elementId];
+  }
+
   transform(state:TransformState):TransformResponse  {    
-    let node = Util.parse(this.callback) as AST.Node;
+    let node = ParseUtil.parse(this.inputs.callback) as AST.Node;
     let pos = m.Id();
     let params = [...this.getParams(state), pos];
 
@@ -72,11 +58,12 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       throw new Error(`Invalid type: ${node.type}`);
     }
 
-    //Rename all variables to unique values
     let stack = new VariableStack();
     let vars = [];
     let body:AST.Node[] = [];
 
+    //Handle wether or not we can reference the element, or if we
+    //  we need to assign to leverage pattern usage
     let fnparams = fn.params;
     let assign = {};
     for (let i = 0; i < fn.params.length;i++) {
@@ -95,6 +82,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       }
     }
 
+    //Rename all variables to unique values
     VariableVisitor.visit({
       onDeclare:(name:AST.Identifier, parent:AST.Node) => {
         if (parent === fn) {
@@ -123,9 +111,5 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     }
 
     return { body, vars };
-  }
-
-  manualTransform(data:T[]):U {
-    return this.manual.apply(data, this.inputs) as U; 
   }
 }

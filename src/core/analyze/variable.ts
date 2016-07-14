@@ -1,4 +1,4 @@
-import { Util, AST, Visitor, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Visitor, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 
 export interface VariableHandler {
   (name:AST.Identifier, node?:AST.Node):void;

@@ -13,6 +13,8 @@
         * Reduce's init value
         * Original function
     * Differentiate closed variables from non-local functions in Analysis (right now mingled)
+* Handle Object Patterns and Spread Elements
+    * Need a cohesive story for visiting and for marking
 * Chain
     * Handle closed functions by invoking call to original fn, vs discarding chain
 * Calculate Access Levels

@@ -1,14 +1,11 @@
-import {AST, Util, Macro as m, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import {AST, ParseUtil, CompileUtil, Macro as m, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import * as Transformers from '../array/transform';
 import {SYMBOL} from '../array/bootstrap';
 import {BaseTransformable} from '../array/base-transformable';
 import {FunctionAnalyzer, AccessType, Analysis} from '../../core';
 
 //Read name of manual fn from transformers
-let supported = Object.keys(Transformers)
-  .map(x => (new Transformers[x]() as BaseTransformable<any, any, any, any>))
-  .filter(x => !!x.manual)
-  .reduce((acc,x) => (acc[x.manual.name] = true) && acc, {});
+let supported = Transformers.MAPPING
 
 //Function wrappers
 const CANDIDATE = m.genSymbol();
@@ -24,7 +21,7 @@ const GENERIC_ASSIGN = m.Id();
 const REFS = {exec:EXEC,local:LOCAL,wrap:WRAP,first:FIRST}
 
 export function rewriteBody(content:string) {
-  let body = Util.parseProgram<AST.Node>(content);
+  let body = ParseUtil.parseProgram<AST.Node>(content);
 
   body = new Visitor({
     CallExpression : (x : AST.CallExpression, visitor:Visitor) => {
@@ -122,5 +119,5 @@ export function rewriteBody(content:string) {
       .reduce((acc, pair) => acc.concat(pair), [])));
   
 
-  return Util.compileExpression(body);
+  return CompileUtil.compileExpression(body);
 }
