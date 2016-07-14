@@ -50,8 +50,9 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let wrapperId = m.Id();
     let closedId = m.Id();
 
-    let invoke:AST.CallExpression = AST.CallExpression({
-      callee : m.FuncExpr(state.functionId, [state.arrayId], [
+    return m.Func(wrapperId, [m.ObjectExpr({value:state.arrayId, context:state.contextId, closed:closedId})], [
+      m.Vars('let', AST.ArrayPattern({ elements:[...assignedIds, ...closedIds] }), closedId),
+      m.Func(state.functionId, [state.arrayId], [
         m.Vars('let', ...vars, lengthId, m.GetProperty(state.arrayId, "length")),
         m.Labeled(state.continueLabel,
           m.ForLoop(state.iteratorId, m.Literal(0), lengthId,
@@ -63,13 +64,11 @@ export class ArrayCompiler implements Compiler<TransformState> {
         ),
         m.Return(state.returnValueId)
       ]),
-      arguments : [state.arrayId]
-    });
-
-    return m.Func(wrapperId, [m.ObjectExpr({value:state.arrayId, context:state.contextId, closed:closedId})], [
-      m.Vars('let', AST.ArrayPattern({ elements:[...assignedIds, ...closedIds] }), closedId),
       m.Return(m.ObjectExpr({
-        value : invoke, 
+        value : AST.CallExpression({
+          callee : state.functionId,
+          arguments : [state.arrayId]
+        }), 
         assigned : m.Array(...assignedIds)
       }))
     ]);

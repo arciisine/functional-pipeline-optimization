@@ -66,7 +66,7 @@ export class ReduceTransform<T, U>  extends
     this.inputArray.unshift(inputs.initValue);
   }
 
-  init(state:TransformState):AST.Node {
+  init(state:TransformState):AST.Pattern {
     return this.getContextValue(state, 'initValue');
   }
 
