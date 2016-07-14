@@ -47,6 +47,8 @@ export class ArrayCompiler implements Compiler<TransformState> {
     }
 
     let lengthId = m.Id();
+    let wrapperId = m.Id();
+    let closedId = m.Id();
 
     let invoke:AST.CallExpression = AST.CallExpression({
       callee : m.FuncExpr(state.functionId, [state.arrayId], [
@@ -64,13 +66,10 @@ export class ArrayCompiler implements Compiler<TransformState> {
       arguments : [state.arrayId]
     });
 
-    let wrapperId = m.Id();
-    let closedId = m.Id();
-
-    return m.Func(wrapperId, [m.ObjectExpr({name:state.arrayId, context:state.contextId, closed:closedId})], [
+    return m.Func(wrapperId, [m.ObjectExpr({value:state.arrayId, context:state.contextId, closed:closedId})], [
       m.Vars('let', AST.ArrayPattern({ elements:[...assignedIds, ...closedIds] }), closedId),
       m.Return(m.ObjectExpr({
-        value : AST.ExpressionStatement({expression:invoke}), 
+        value : invoke, 
         assigned : m.Array(...assignedIds)
       }))
     ]);

@@ -7,7 +7,7 @@ export interface Compiler<T> {
 }
 
 export interface ExecInput<I> {
-  data: I,
+  value: I,
   context?: {},
   closed? : any[]
 }
