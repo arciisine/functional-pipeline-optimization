@@ -8,10 +8,6 @@
 **Outstanding Tasks**
 
 * Handle Closed Variables
-    * Pass in arguments as a context object 
-        * This context
-        * Reduce's init value
-        * Original function
     * Differentiate closed variables from non-local functions in Analysis (right now mingled)
 * Handle Object Patterns and Spread Elements
     * Need a cohesive story for visiting and for marking

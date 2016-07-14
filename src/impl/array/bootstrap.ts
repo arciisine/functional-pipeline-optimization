@@ -9,10 +9,10 @@ export class Helper {
     return ((el as any).local = true) && el; 
   }
   static wrap<T>(el:T):T { 
-    return (Array.isArray(el) ? new ArrayBuilder<any,any>(el as any) : el) as T; 
+    return (Array.isArray(el) ? new ArrayBuilder<T,T>(el) as any as T: el) ; 
   }
   static exec<T>(el:T, closed:any[]=[]):T {
-    return (el as any || {}).exec === ArrayBuilder.prototype.exec ? (el as any).exec(closed) as T : [el, ...closed] as any as T;
+    return (el instanceof ArrayBuilder ? el.exec(closed) : [el, ...closed]) as any as T;
   }
 } 
 
