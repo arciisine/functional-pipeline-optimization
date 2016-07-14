@@ -67,4 +67,4 @@ export function obj(data:number[]) {
   console.log(test);    
 }
 
-doTest({obj})
+doTest({functionalRaw})

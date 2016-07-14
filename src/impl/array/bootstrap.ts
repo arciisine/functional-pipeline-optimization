@@ -12,7 +12,7 @@ export class Helper {
     return (Array.isArray(el) ? new ArrayBuilder<any,any>(el as any) : el) as T; 
   }
   static exec<T>(el:T, closed:any[]=[]):T {
-    return (el as any).exec ? (el as any).exec(closed) as T : [el, ...closed] as any as T;
+    return (el as any || {}).exec === ArrayBuilder.prototype.exec ? (el as any).exec(closed) as T : [el, ...closed] as any as T;
   }
 } 
 

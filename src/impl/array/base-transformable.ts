@@ -46,6 +46,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   constructor(public inputs:{callback:V, context?:any}) {
     this.callbacks = [inputs.callback];
     this.manual = BaseTransformable.getArrayFunction(this);
+    this.id = m.genSymbol();
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
@@ -101,9 +102,6 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
     //Handle context variable
     if (this.inputs.context !== undefined) {
-      if (!this.id) {
-        this.id = m.genSymbol();
-      }
       let ctx = m.Id();
       vars.push(ctx, this.getContextValue(state, 'context'));
       stack.top['this'] = ctx;

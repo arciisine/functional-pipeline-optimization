@@ -28,6 +28,7 @@ export class CompilerUtil {
     let state = compiler.createState();
     let ast = compiler.compile(compilable, state);
     let res = CompileUtil.compile(ast as any, {}) as (i:I, ...closed:any[])=>O;
+    console.log(res.toString())
     CompilerUtil.computed[key] = res;
     return res;
   }
