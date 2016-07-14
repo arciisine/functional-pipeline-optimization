@@ -63,6 +63,7 @@ export class ReduceTransform<T, U>  extends
 {
   constructor(inputs:{callback:Callback.Accumulate<T, U>, initValue?:U, context?:any}) {
     super(inputs);
+    this.id = m.genSymbol();
   }
 
   getParams(state:TransformState) {
@@ -74,7 +75,7 @@ export class ReduceTransform<T, U>  extends
   }
 
   init(state:TransformState):AST.Node {
-    return null;
+    return this.getContextValue(state, 'initValue');
   }
 }
 

@@ -7,7 +7,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 {
   private static cache = {};
 
-  private static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
+  static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
     let key = inst.constructor.name
     if (!BaseTransformable.cache[key]) {
       let fn = key.split('Transform')[0];
@@ -49,6 +49,10 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
+
+  getContextValue(state:TransformState, key:string):AST.MemberExpression {
+    return m.GetProperty(m.GetProperty(state.contextId, this.id), key);
+  }
 
   getParams(state:TransformState):AST.Identifier[] {
     return [state.elementId];
@@ -93,6 +97,16 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         stack.register(p);
         stack.top[p.name] = (params[i] as AST.Identifier).name;
       }
+    }
+
+    //Handle context variable
+    if (this.inputs.context !== undefined) {
+      if (!this.id) {
+        this.id = m.genSymbol();
+      }
+      let ctx = m.Id();
+      vars.push(ctx, this.getContextValue(state, 'context'));
+      stack.top['this'] = ctx;
     }
 
     //Rename all variables to unique values
