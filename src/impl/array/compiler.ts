@@ -51,15 +51,21 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let lengthId = m.Id();
     let wrapperId = m.Id();
     let closedId = m.Id();
+    let inputId = m.Id();
 
-    return m.Func(wrapperId, [m.ObjectExpr({value:state.arrayId, context:state.contextId, closed:closedId})], [
-      m.Vars('let', AST.ArrayPattern({ elements:[...assignedIds, ...closedIds] }), closedId),
+    return m.Func(wrapperId, [inputId], [
+      m.Vars('var',
+        state.arrayId, m.GetProperty(inputId, 'value'),
+        state.contextId, m.GetProperty(inputId, 'context'),
+        closedId, m.GetProperty(inputId, 'closed'),
+      m.ObjectExpr({value:state.arrayId, context:state.contextId, closed:closedId}) 
+        AST.ArrayPattern({ elements:[...assignedIds, ...closedIds] }), closedId),
       m.Func(state.functionId, [state.arrayId], [
-        m.Vars('let', ...vars, lengthId, m.GetProperty(state.arrayId, "length")),
+        m.Vars('var', ...vars, lengthId, m.GetProperty(state.arrayId, "length")),
         m.Labeled(state.continueLabel,
           m.ForLoop(state.iteratorId, m.Literal(0), lengthId,
             [
-              m.Vars('let', state.elementId, m.GetProperty(state.arrayId, state.iteratorId)),
+              m.Vars('var', state.elementId, m.GetProperty(state.arrayId, state.iteratorId)),
               ...ASTUtil.reduceBlocks(body)
             ]        
           )
