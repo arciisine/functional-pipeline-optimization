@@ -39,6 +39,56 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return node;
   }
 
+  static rewriteVariables(stack:VariableStack, fn:AST. BaseFunction, params:AST.Identifier[]):TransformResponse {
+    //Handle wether or not we can reference the element, or if we
+    //  we need to assign to leverage pattern usage
+    let fnparams = fn.params;
+    let assign = {};
+
+    let body = [];
+
+    for (let i = 0; i < fn.params.length;i++) {
+      let p = fn.params[i];
+      if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
+        body.unshift(AST.VariableDeclaration({
+          kind : 'var',
+          declarations : [
+            AST.VariableDeclarator({
+              id : BaseTransformable.rewritePatterns(p, stack),
+              init : params[i]
+            })
+          ]
+        }));
+      } else if (AST.isIdentifier(p)) {
+        stack.register(p);
+        stack.top[p.name] = (params[i] as AST.Identifier).name;
+      }
+    }
+
+    //Rename all variables to unique values
+    VariableVisitor.visit({
+      onDeclare:(name:AST.Identifier, parent:AST.Node) => {
+        if (parent === fn) {
+          //Skip parents
+        } else {
+          let id = m.Id();
+          name.name = id.name;
+          stack.top[name.name] =  id.name;
+        }
+      },
+      onAccess:(name:AST.Identifier, parent:AST.Node) => {
+        if (stack.contains(name)) {
+          name.name = stack.top[name.name]; //Rewrite
+        }
+      }
+    }, fn, stack);
+
+    return {
+      body,
+      vars : []
+    } 
+  }
+
   public inputArray:any[]
   public manual:W;
   public callbacks:Function[];
@@ -83,64 +133,40 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       throw { message : "Array references are not supported", invalid : true };
     }
 
-    let stack = new VariableStack();
     let vars = [];
     let body:AST.Node[] = [];
 
-    //Handle wether or not we can reference the element, or if we
-    //  we need to assign to leverage pattern usage
-    let fnparams = fn.params;
-    let assign = {};
+    if (!fn['local'] || !!fn['local']) {
+      body.push(this.onReturn(state, 
+        m.Return(
+          m.Call(
+              m.GetProperty(this.getContextValue(state, 'callback'), 'call'),
+              this.getContextValue(state, 'context'),
+              ...params.slice(0, fn.params.length === params.length ? 0 : -1))
+          )
+        )
+      ); 
+    } else {
+      let stack = new VariableStack();
 
-    for (let i = 0; i < fn.params.length;i++) {
-      let p = fn.params[i];
-      if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
-        body.unshift(AST.VariableDeclaration({
-          kind : 'var',
-          declarations : [
-            AST.VariableDeclarator({
-              id : BaseTransformable.rewritePatterns(p, stack),
-              init : params[i]
-            })
-          ]
-        }));
-      } else if (AST.isIdentifier(p)) {
-        stack.register(p);
-        stack.top[p.name] = (params[i] as AST.Identifier).name;
+      //Handle context variable
+      if (this.inputs.context !== undefined) {
+        let ctx = m.Id();
+        vars.push(ctx, this.getContextValue(state, 'context'));
+        stack.top['this'] = ctx;
       }
+
+      let res = BaseTransformable.rewriteVariables(stack, fn, params);
+      vars.push(...res.vars);
+      body.unshift(...res.body);
+      
+      //Handle returns
+      new Visitor({
+        ReturnStatementEnd : (x:AST.ReturnStatement) =>  this.onReturn(state, x),
+      }).exec(fn)
+
+      body.push(...fn.body.body);
     }
-
-    //Handle context variable
-    if (this.inputs.context !== undefined) {
-      let ctx = m.Id();
-      vars.push(ctx, this.getContextValue(state, 'context'));
-      stack.top['this'] = ctx;
-    }
-
-    //Rename all variables to unique values
-    VariableVisitor.visit({
-      onDeclare:(name:AST.Identifier, parent:AST.Node) => {
-        if (parent === fn) {
-          //Skip parents
-        } else {
-          let id = m.Id();
-          name.name = id.name;
-          stack.top[name.name] =  id.name;
-        }
-      },
-      onAccess:(name:AST.Identifier, parent:AST.Node) => {
-        if (stack.contains(name)) {
-          name.name = stack.top[name.name]; //Rewrite
-        }
-      }
-    }, fn, stack); 
-    
-    //Handle returns
-    new Visitor({
-      ReturnStatementEnd : (x:AST.ReturnStatement) =>  this.onReturn(state, x),
-    }).exec(fn)
-
-    body.push(...fn.body.body);
 
     if (fn.params.length === params.length) { //If using index
       vars.push(pos, m.Literal(0))
