@@ -55,7 +55,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
 
   getContextValue(state:TransformState, key:string):AST.MemberExpression {
-    return m.GetProperty(m.GetProperty(state.contextId, state.stepId.name), key);
+    return m.GetProperty(m.GetProperty(state.contextId, m.Literal(state.stepIndex)), key);
   }
 
   getParams(state:TransformState):AST.Identifier[] {
@@ -63,8 +63,6 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   transform(state:TransformState):TransformResponse  {
-    this.id = state.stepId.name;
-
     let node = ParseUtil.parse(this.inputs.callback) as AST.Node;
     let pos = m.Id();
     let params = [...this.getParams(state), pos];
@@ -93,11 +91,12 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     //  we need to assign to leverage pattern usage
     let fnparams = fn.params;
     let assign = {};
+
     for (let i = 0; i < fn.params.length;i++) {
       let p = fn.params[i];
       if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
         body.unshift(AST.VariableDeclaration({
-          kind : 'let',
+          kind : 'var',
           declarations : [
             AST.VariableDeclarator({
               id : BaseTransformable.rewritePatterns(p, stack),
@@ -124,7 +123,9 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         if (parent === fn) {
           //Skip parents
         } else {
-          name.name = stack.top[name.name] =  m.Id().name;
+          let id = m.Id();
+          name.name = id.name;
+          stack.top[name.name] =  id.name;
         }
       },
       onAccess:(name:AST.Identifier, parent:AST.Node) => {

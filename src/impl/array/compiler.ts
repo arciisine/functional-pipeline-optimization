@@ -7,7 +7,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
 
   createState():TransformState {
     return {
-      stepId : null,
+      stepIndex : 0,
       contextId: m.Id(),
       elementId : m.Id(),
       returnValueId : m.Id(),
@@ -20,7 +20,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
 
   compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
     let pos = 0;
-    let {vars, body} = CompilerUtil.readChain(compilable, state, s => (s.stepId = m.Id(`__${pos++}`)) && s);
+    let {vars, body} = CompilerUtil.readChain(compilable, state, s => { (s.stepIndex = pos++); return s });
 
     let last = compilable.chain[compilable.chain.length-1];
     if (last['collect']) {
@@ -55,11 +55,12 @@ export class ArrayCompiler implements Compiler<TransformState> {
 
     return m.Func(wrapperId, [inputId], [
       m.Vars('var',
-        state.arrayId, m.GetProperty(inputId, 'value'),
-        state.contextId, m.GetProperty(inputId, 'context'),
-        closedId, m.GetProperty(inputId, 'closed'),
-      m.ObjectExpr({value:state.arrayId, context:state.contextId, closed:closedId}) 
-        AST.ArrayPattern({ elements:[...assignedIds, ...closedIds] }), closedId),
+        [state.arrayId, m.GetProperty(inputId, 'value')],
+        [state.contextId, m.GetProperty(inputId, 'context')],
+        [closedId, m.GetProperty(inputId, 'closed')],
+        ...[...assignedIds, ...closedIds].map((x,i) =>
+        [x, m.GetProperty(closedId, m.Literal(i))]),
+      ),
       m.Func(state.functionId, [state.arrayId], [
         m.Vars('var', ...vars, lengthId, m.GetProperty(state.arrayId, "length")),
         m.Labeled(state.continueLabel,

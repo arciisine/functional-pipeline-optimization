@@ -18,3 +18,4 @@
 * Calculate Access Levels
     * Allow User to set minimum threshold for access level (defaults to no external dependences)
     * Apply access level verification
+* Ensure generated code is ES5 compliant
