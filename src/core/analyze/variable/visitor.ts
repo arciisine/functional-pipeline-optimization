@@ -5,7 +5,6 @@ import {VariableVisitorUtil} from './util';
 
 let noop = (...args:any[]) => {}
 
-
 const DEFAULT_HANDLER:VariableVisitHandler = {
     onFunctionStart:null,
     onFunctionEnd:null,
@@ -51,12 +50,18 @@ export class VariableVisitor {
       handler.onDeclare = (name, a) => { stack.register(name); ogd(name, a); }      
     }
 
+    let declaring = false;
+
     new Visitor({
       FunctionStart : (x:AST.BaseFunction) => {
         handler.onFunctionStart(x);
         let block = VariableVisitorUtil.getFunctionBlock(x);
         handler.onBlockStart(block);
+        if (x.id) {
+          handler.onDeclare(x.id, x);
+        }
         VariableVisitorUtil.readPatternIds(x.params).forEach(id => {
+          id['param'] = true;
           handler.onDeclare(id, x);         
         })
         VariableVisitorUtil.findHoistedDeclarationIds(x).forEach(id => {
@@ -99,11 +104,6 @@ export class VariableVisitor {
         })
       },
 
-      //Handle reads
-      MemberExpression : (x:AST.MemberExpression) => {
-        VariableVisitor.visitIdentifier(handler, x.object, x);
-      },
-
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
         VariableVisitor.visitUsage(handler.onWrite, x.argument, x);
@@ -132,7 +132,8 @@ export class VariableVisitor {
       Identifier : (x:AST.Identifier, v:Visitor) => {
         let pnode = v.parent.node;
         let ptype = pnode.type;
-        if (ptype.endsWith('Expression') && !AST.isMemberExpression(pnode)) {
+        if (!x['param'] && !ptype.endsWith('Declaration') && (!AST.isMemberExpression(pnode) || x === pnode.object)) {
+          console.log(x, ptype, pnode)
           handler.onAccess(x, pnode);
         }
         //Do nothing

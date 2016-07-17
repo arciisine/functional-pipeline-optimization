@@ -31,15 +31,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     for (let i = 0; i < fn.params.length;i++) {
       let p = fn.params[i];
       if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
-        body.unshift(AST.VariableDeclaration({
-          kind : 'var',
-          declarations : [
-            AST.VariableDeclarator({
-              id : VariableVisitorUtil.rewritePatterns(p, stack),
-              init : params[i]
-            })
-          ]
-        }));
+        body.unshift(m.Vars(p, params[i]))
       } else if (AST.isIdentifier(p)) {
         stack.register(p);
         stack.top[p.name] = (params[i] as AST.Identifier).name;
@@ -49,7 +41,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     //Rename all variables to unique values
     VariableVisitor.visit({
       onDeclare:(name:AST.Identifier, parent:AST.Node) => {
-        if (parent === fn) {
+        if (parent === fn) {          
           //Skip parents
         } else {
           let id = m.Id();
@@ -122,7 +114,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     if (!this.inputs.callback.local && Object.keys(this.analysis.closed).length > 0) {
       let stepContextId = m.Id();
       let stepCallbackId = m.Id()
-      
+
       vars.push(
         stepContextId, this.getContextValue(state, 'context'), 
         stepCallbackId, m.GetProperty(this.getContextValue(state, 'callback'), 'call')
