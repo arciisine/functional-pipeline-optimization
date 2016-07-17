@@ -1,7 +1,7 @@
-import { ParseUtil, AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { ParseUtil, AST } from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
-import {VariableVisitor, VariableStack} from './variable';
+import {VariableVisitor, VariableStack} from '../variable';
 
 
 export class FunctionAnalyzer {
