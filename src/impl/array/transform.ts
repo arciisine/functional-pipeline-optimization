@@ -46,7 +46,7 @@ export class FindTransform<T> extends
   BaseTransformable<T, T, Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
 {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
-    return m.IfThen(node.argument, [m.Return(state.elementId)]);
+    return m.IfThen(node.argument, [state.buildReturn(state.elementId)]);
   }
 }
 
@@ -54,7 +54,7 @@ export class SomeTransform<T> extends
   BaseTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>> 
 {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
-    return m.IfThen(node.argument, [m.Return(m.Literal(true))]);
+    return m.IfThen(node.argument, [state.buildReturn(m.Literal(true))]);
   }
 }
 

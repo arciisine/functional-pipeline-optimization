@@ -13,9 +13,9 @@ const CANDIDATE_FUNCTIONS = m.genSymbol();
 const CANDIDATE_RELATED = m.genSymbol();
 const ANALYSIS = m.genSymbol();
 
-const EXEC = m.GetProperty(m.Id(SYMBOL), 'exec');
-const LOCAL = m.GetProperty(m.Id(SYMBOL), 'local');
-const WRAP = m.GetProperty(m.Id(SYMBOL), 'wrap');
+const EXEC = m.Id(`${SYMBOL}_exec`);
+const INLINE = m.Id(`${SYMBOL}_inline`)
+const WRAP = m.Id(`${SYMBOL}_wrap`)
 
 function getPragmas(nodes:AST.Node[]):string[] {
   let i = 0;
@@ -144,7 +144,7 @@ export function rewriteBody(content:string) {
       if (AST.isFunctionExpression(arg) || AST.isArrowFunctionExpression(arg)) {
         let analysis = x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg); //Analayze function
         if (Object.keys(analysis.closed).length > 0) {
-          x.arguments[0] = m.Call(LOCAL, arg);
+          x.arguments[0] = m.Call(INLINE, arg);
         }
       }
       //Check for start of chain

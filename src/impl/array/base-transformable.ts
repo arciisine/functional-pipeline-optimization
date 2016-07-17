@@ -122,9 +122,9 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     let vars = [];
     let body:AST.Node[] = [];
 
-    //If not locally defined, and it has closed variables
+    //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions
-    if (!this.inputs.callback.local && Object.keys(this.analysis.closed).length > 0) {
+    if (!this.inputs.callback.inline && Object.keys(this.analysis.closed).length > 0) {
       let stepContextId = m.Id();
       let stepCallbackId = m.Id()
 
@@ -158,7 +158,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       //Handle returns
       new Visitor({
         FunctionStart : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
-        ReturnStatementEnd : (x:AST.ReturnStatement) =>  this.onReturn(state, x),
+        ReturnStatementEnd : (x:AST.ReturnStatement) => this.onReturn(state, x)
       }).exec(fn)
 
       body.push(...fn.body.body);

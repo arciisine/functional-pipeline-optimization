@@ -4,10 +4,12 @@ export interface TransformState {
   contextId:AST.Identifier,
   elementId:AST.Identifier,
   returnValueId:AST.Identifier
+  returnFnId:AST.Identifier,
   continueLabel:AST.Identifier,
   iteratorId:AST.Identifier,
   arrayId:AST.Identifier,
-  functionId:AST.Identifier
+  functionId:AST.Identifier,
+  buildReturn:(val:AST.Node)=>AST.ReturnStatement
 }
 
 export namespace Callback { 

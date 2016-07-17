@@ -1,14 +1,12 @@
 import {ArrayBuilder} from './builder';
 import {Util} from '../../core';
 
-let enabled = true;
-
 export class Helper {
-  static local<T>(el:T):T { 
-    return ((el as any).local = true) && el; 
+  static inline<T>(el:T):T { 
+    return ((el as any).inline = true) && el; 
   }
   static wrap<T>(el:T):T { 
-    return (enabled && Array.isArray(el)) ? new ArrayBuilder<T,T>(el) as any as T: el; 
+    return Array.isArray(el) ? new ArrayBuilder<T,T>(el) as any as T: el; 
   }
   static exec<T>(el:T[], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
     if (el instanceof ArrayBuilder) {
@@ -19,10 +17,10 @@ export class Helper {
       return el;
     }
   }
-  static enable(on:boolean) {
-    enabled = on;
-  }
 } 
 
 export let SYMBOL = "_zzx8";
-Util.global[SYMBOL] = Helper;
+Util.global[`${SYMBOL}`] = Helper
+Util.global[`${SYMBOL}_inline`] = Helper.inline
+Util.global[`${SYMBOL}_wrap`] = Helper.wrap
+Util.global[`${SYMBOL}_exec`] = Helper.exec

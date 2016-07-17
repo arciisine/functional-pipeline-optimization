@@ -9,7 +9,8 @@
 
 * Handle Closed Variables
     * Differentiate closed variables from non-local functions in Analysis (right now mingled)
-    * Safe whitelist
+    * Allow whitelist via pragma
 * Calculate Access Levels
     * Allow User to set minimum threshold for access level (defaults to no external dependences)
     * Apply access level verification
+* Handle `this` properly

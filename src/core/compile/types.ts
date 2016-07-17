@@ -23,6 +23,6 @@ export interface ExecHandler<I, O>{
 
 declare global {
   interface Function {
-    local?:boolean
+    inline?:boolean
   }
 }
