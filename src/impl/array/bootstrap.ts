@@ -2,6 +2,7 @@ import {ArrayBuilder} from './builder';
 import {Util} from '../../core';
 
 const is_arr = Array.isArray;
+const cache = {};
 
 export class Helper {
   static inline<T>(el:T):T { 
@@ -12,9 +13,9 @@ export class Helper {
   }
   static exec<T>(el:T[], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
     if (el && el.constructor === ArrayBuilder) {
-      let res = (el as any as ArrayBuilder<T,T>).exec(closed);
-      if (post !== null) post(res.assigned);
-      return res.value;
+      let ret = (el as any as ArrayBuilder<T,T>).exec(closed)
+      if (post !== null) post(ret.assigned);
+      return ret.value;
     } else { 
       return el;
     }

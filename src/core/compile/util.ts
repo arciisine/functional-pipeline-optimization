@@ -4,7 +4,7 @@ import { Compiler, ExecInput, ExecOutput, ExecHandler } from './types';
 import { TransformResponse } from '../transform';
 
 export class CompilerUtil {
-  private static computed:{[key:string]:ExecHandler<any, any>} = {};
+  static computed:{[key:string]:ExecHandler<any, any>} = {};
 
   static manual<I, O>(compilable:Compilable<I, O>, data:I):O {
     return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
@@ -21,9 +21,7 @@ export class CompilerUtil {
   }
 
   static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null):ExecHandler<I,O> {
-    if (key === null) {
-      key = compilable.analysis.key;
-    }
+    key = key === null ? compilable.analysis.key : key;
 
     if (CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];

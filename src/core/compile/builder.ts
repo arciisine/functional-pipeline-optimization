@@ -1,17 +1,17 @@
 import {Compilable} from './compilable';
-import {Compiler, ExecOutput} from './types';
+import {Compiler, ExecOutput, ExecHandler} from './types';
 import {CompilerUtil} from './util';
 import {Transformable} from '../transform';
 
 export class Builder<I, O> {
 
-  private context:any[] = []
-  private key:string;
+  context:any[] = []
+  key:string;
 
   constructor(
-    private data:I, 
-    private compiler:Compiler<any>, 
-    private compilable:Compilable<I,O> = null
+    public data:I, 
+    public compiler:Compiler<any>, 
+    public compilable:Compilable<I,O> = null
   ) {
     if (compilable === null) {
       this.compilable = new Compilable<I,O>();
@@ -28,10 +28,13 @@ export class Builder<I, O> {
     return this as any as Builder<I, V>;
   }
 
+  compile():ExecHandler<I,O> {
+    return CompilerUtil.compile(this.compiler, this.compilable, this.key);
+  }
+
   exec(closed:any[] = []):ExecOutput<O> {
     try {
-      let fn = CompilerUtil.compile(this.compiler, this.compilable, this.key);
-      return fn.call(this, {value:this.data, context:this.context, closed})
+      return this.compile()({value:this.data, context:this.context, closed})
     } catch (e) {
       if (e.invalid) {
         return { value : CompilerUtil.manual(this.compilable, this.data) }
