@@ -38,14 +38,17 @@ export function sum(data:number[]) {
   return [count]
 }
 
-let out = [];
+let names = null;
 
 export function obj(data:number[]) {
+  if (names === null) {
+    names = data.reduce((acc, x) => (acc[x] = {age:x, name:`Bob${x}`}) && acc, {})
+  }
   let max_age = 9
   let test = data
-    .map(x => ({age:x, name:'Bob'}))
-    .filter(({age,name}) => age > max_age)
-    .map(({name}) => name.toUpperCase())
+    .map(x => names[x])
+    .filter(x => x.age > max_age)
+    .map(x => x.name)
   return test
 }
 
