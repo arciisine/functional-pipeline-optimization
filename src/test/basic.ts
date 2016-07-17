@@ -39,11 +39,14 @@ export function sum(data:number[]) {
 }
 
 export function obj(data:number[]) {
+  let max_age = 9
   let test = [{age:10, name:'Bob'}]
-    .filter(({age,name}) => age > 10)
-    .map(({name}) => name.toUpperCase())  
+    .filter(({age,name}) => age > max_age)
+    .map(({name}) => name.toUpperCase())
+
+  console.log(test);
 }
 
-doTest({functional})
-doTest({sum})
+//doTest({functional})
+//doTest({sum})
 doTest({obj})

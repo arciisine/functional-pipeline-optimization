@@ -16,14 +16,13 @@ const ANALYSIS = m.genSymbol();
 const EXEC = m.Id();
 const LOCAL = m.Id();
 const WRAP = m.Id();
-const GENERIC_ASSIGN = m.Id();
 const REFS = {exec:EXEC,local:LOCAL,wrap:WRAP}
 
 export function rewriteBody(content:string) {
   let body = ParseUtil.parseProgram<AST.Node>(content);
 
   body = new Visitor({
-    CallExpression : (x : AST.CallExpression, visitor:Visitor) => {
+    CallExpressionStart : (x : AST.CallExpression, visitor:Visitor) => {
       let callee = x.callee;
       if (AST.isMemberExpression(callee)) {
         if (AST.isIdentifier(callee.property) && supported[callee.property.name] && x.arguments.length > 0) {
@@ -41,8 +40,10 @@ export function rewriteBody(content:string) {
 
       let arg = x.arguments[0];
       if (AST.isFunctionExpression(arg) || AST.isArrowFunctionExpression(arg)) {
-        x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg); //Analayze function
-        x.arguments[0] = m.Call(LOCAL, arg);
+        let analysis = x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg); //Analayze function
+        if (Object.keys(analysis.closed).length > 0) {
+          x.arguments[0] = m.Call(LOCAL, arg);
+        }
       }
       
       //Check for start of chain
@@ -93,10 +94,9 @@ export function rewriteBody(content:string) {
         let assignedIds = Object.keys(assigned).sort().map(m.Id);
         let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
-        let ret:AST.Node = null;
+        let execParams:any = [x];
 
         //Handle if we have to reassign closed variables
-        let execParams:any = [x];
         if (allIds.elements.length > 0) {
           execParams.push(allIds);
           if (assignedIds.length > 0) {
@@ -112,15 +112,16 @@ export function rewriteBody(content:string) {
               generator: false,
               id: null
             })); 
-          }
-          ret = m.Call(EXEC, ...execParams);
+          }          
         }
-        return ret;
+        
+        //Wrap with exec
+        return m.Call(EXEC, ...execParams);;
       }
     }
   }).exec(body);
 
-  body.body.unshift(m.Vars(GENERIC_ASSIGN, null, 
+  body.body.unshift(m.Vars( 
     ...Object.keys(REFS)
       .map(k => [REFS[k], m.GetProperty(m.Id(SYMBOL), k)])
       .reduce((acc, pair) => acc.concat(pair), [])));

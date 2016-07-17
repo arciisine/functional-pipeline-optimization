@@ -32,6 +32,10 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       let p = fn.params[i];
       if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
         body.unshift(m.Vars(p, params[i]))
+        VariableVisitorUtil.readPatternIds(p).forEach(id => {
+          stack.register(id);
+          id.name = (stack.top[id.name] = m.Id().name)
+        })
       } else if (AST.isIdentifier(p)) {
         stack.register(p);
         p.name = stack.top[p.name] = (params[i] as AST.Identifier).name;         

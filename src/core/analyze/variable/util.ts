@@ -41,7 +41,7 @@ export class VariableVisitorUtil {
           for (var k in node.key) { 
             node.value[k] = node.key[k] 
           }
-        }      
+        }
         return VariableVisitorUtil.readPatternIds(!alias ? node.value : node.key, alias);
       } else if (AST.isIdentifier(node)) {
         return [node]
