@@ -3,66 +3,71 @@ import {TransformResponse} from '../../transform';
 import {VariableStack} from './stack';
 import {VariableVisitHandler, VariableHandler} from './types';
 
-
 export class VariableVisitorUtil {
-    static rewritePatterns(node:AST.Pattern, stack:VariableStack) {
-    if (AST.isObjectPattern(node)) {
-      for (let p of node.properties) {
-        VariableVisitorUtil.rewritePatterns(p, stack);
-      }
-    } else if (AST.isArrayPattern(node)) {
-      for (let p of node.elements) {
-        VariableVisitorUtil.rewritePatterns(p, stack);
-      }
-    } else if (AST.isIdentifier(node)) {
-      stack.register(node);
-      node.name = stack.top[node.name] = m.Id().name
-    } else if (AST.isProperty(node)) {
-      node.shorthand = false;
-      node.value = {} as any;
-      for (var k in node.key) { node.value[k] = node.key[k] }
-      VariableVisitorUtil.rewritePatterns(node.value, stack);      
-    }
-    return node;
-  }
 
-  static visitVariableNames(handler:VariableHandler, target:AST.Pattern, root:AST.Node, isDeclare = false):void { 
+  static getPrimaryId(target:AST.Node):AST.Identifier { 
     if (AST.isIdentifier(target)) {
-      handler(target, root || target);
-    } else if (AST.isObjectPattern(target)) {
-      for (let prop of target.properties) {
-        VariableVisitorUtil.visitVariableNames(handler, isDeclare ? prop.value : prop.key, root || target, isDeclare);
+      return target;
+    } else {
+      while (AST.isMemberExpression(target)) {
+        target = target.object;
       }
-    } else if (AST.isArrayPattern(target)) {
-      for (let el of target.elements) {
-        VariableVisitorUtil.visitVariableNames(handler, el, root || target, isDeclare);
+      if (AST.isIdentifier(target)) {
+        return target;
+      }
+    }
+    return null;
+  }
+
+  static readDeclarationIds(decls:AST.VariableDeclarator[]):AST.Identifier[] {
+    return VariableVisitorUtil.readPatternIds(decls.map(d => d.id));
+  }
+
+  static readPatternIds(node:AST.Pattern|AST.Pattern[]):AST.Identifier[] {
+    if (Array.isArray(node)) {
+      return node
+        .map(VariableVisitorUtil.readPatternIds)
+        .reduce((acc, ids) => acc.concat(ids), []);
+    } else {
+      if (AST.isObjectPattern(node)) {
+        return VariableVisitorUtil.readPatternIds(node.properties);
+      } else if (AST.isArrayPattern(node)) {
+        return VariableVisitorUtil.readPatternIds(node.elements);
+      } else if (AST.isProperty(node)) {
+        //Clone property if shorthand
+        if (node.shorthand) {
+          node.shorthand = false;
+          node.value = {} as any;
+          for (var k in node.key) { 
+            node.value[k] = node.key[k] 
+          }
+        }      
+        return VariableVisitorUtil.readPatternIds(node.value);      
+      } else if (AST.isIdentifier(node)) {
+        return [node]
       }
     }
   }
 
-  static findHoistedDeclarations(handler:VariableVisitHandler, node:AST.Node) {
+  static findHoistedDeclarationIds(node:AST.Node):AST.Identifier[] {
+    let out:AST.Identifier[] = [];
+
     //Hoist vars, remove nested functions
     new Visitor({
       FunctionDeclaration : (x:AST.FunctionDeclaration) => {
-        handler.onDeclare(x.id, x.id);
+        out.push(x.id);
       },            
       FunctionStart : (x:AST.BaseFunction) => { 
         return Visitor.PREVENT_DESCENT //Only look at current function
       },
       VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind === 'var') {
-          x.declarations.forEach(d => {
-            VariableVisitorUtil.visitVariableNames(handler.onDeclare, d.id, x, true);
-            VariableVisitorUtil.visitVariableNames(handler.onAccess, d.id, x);
-            VariableVisitorUtil.visitVariableNames(handler.onAccess, d.init, x);
-          });
+          out = out.concat(VariableVisitorUtil.readDeclarationIds(x.declarations));
         }
       }
     }).exec(node);
-  }
 
-  static visitIdentifier(handler:VariableVisitHandler, target:AST.Node, root:AST.Node) {
-    if (AST.isIdentifier(target))  handler.onAccess(target, root);
+    return out;
   }
 
   static getFunctionBlock(x:AST.BaseFunction):AST.BlockStatement {

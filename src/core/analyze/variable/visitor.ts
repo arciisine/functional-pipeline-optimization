@@ -7,28 +7,39 @@ let noop = (...args:any[]) => {}
 
 
 const DEFAULT_HANDLER:VariableVisitHandler = {
-    onFunctionStart:noop,
-    onFunctionEnd:noop,
-    onBlockStart:noop,
-    onBlockEnd:noop,
-    onComputedAccess:noop,
-    onDeclare:noop,
-    onAccess:noop,
-    onWrite:noop,
-    onInvoke:noop
+    onFunctionStart:null,
+    onFunctionEnd:null,
+    onBlockStart:null,
+    onBlockEnd:null,
+    onComputedAccess:null,
+    onDeclare:null,
+    onAccess:null,
+    onWrite:null,
+    onInvoke:null
 }
 
 export class VariableVisitor {
 
- /**
-  * Find all variable usages
-  */
+  static visitUsage(handler:VariableHandler, node:AST.Node, root:AST.Node) {
+    let id = VariableVisitorUtil.getPrimaryId(node);
+    if (id) {
+      handler(id, root);
+    }
+  }
+
+  static visitIdentifier(handler:VariableVisitHandler, target:AST.Node, root:AST.Node) {
+    if (AST.isIdentifier(target))  {
+      handler.onAccess(target, root);
+    }
+  } 
+
+  /**
+   * Find all variable usages
+   */
   static visit(handler:VariableVisitHandler, node:AST.Node, stack?:VariableStack) {
     
-    for (var k in DEFAULT_HANDLER) {
-      if (!handler[k]) {
-        handler[k] = DEFAULT_HANDLER[k];
-      }
+    for (let k in DEFAULT_HANDLER) {
+      handler[k] = handler[k] || noop;
     }
 
     if (stack) {
@@ -40,15 +51,17 @@ export class VariableVisitor {
       handler.onDeclare = (name, a) => { stack.register(name); ogd(name, a); }      
     }
 
-    let inDeclaration = false;
-
     new Visitor({
       FunctionStart : (x:AST.BaseFunction) => {
         handler.onFunctionStart(x);
         let block = VariableVisitorUtil.getFunctionBlock(x);
         handler.onBlockStart(block);
-        x.params.forEach(p => VariableVisitorUtil.visitVariableNames(handler.onDeclare, p, x, true))
-        VariableVisitorUtil.findHoistedDeclarations(handler, x);
+        VariableVisitorUtil.readPatternIds(x.params).forEach(id => {
+          handler.onDeclare(id, x);         
+        })
+        VariableVisitorUtil.findHoistedDeclarationIds(x).forEach(id => {
+          handler.onDeclare(id, x)
+        });
       },
       
       FunctionEnd : (x:AST.BaseFunction) => {
@@ -70,64 +83,44 @@ export class VariableVisitor {
       },
 
       VariableDeclarationStart : (x:AST.VariableDeclaration) => {
-        inDeclaration = true;
-        if (x.kind !== 'var') x.declarations.forEach(d => 
-          VariableVisitorUtil.visitVariableNames(handler.onDeclare, d, x, true));
+        if (x.kind !== 'var') {
+          VariableVisitorUtil.readDeclarationIds(x.declarations)
+            .forEach(id => handler.onDeclare(id, x));
+        }
       },
-
-      VariableDeclarationEnd : () => {
-        inDeclaration = false;
-      }, 
 
       ClassDeclaration : (x:AST.ClassDeclaration) => {
         handler.onDeclare(x.id, x);
       },
 
       CatchClause : (x:AST.CatchClause) => {
-        VariableVisitorUtil.visitVariableNames(handler.onDeclare, x.param, x, true);
+        VariableVisitorUtil.readPatternIds(x.param).forEach(i => {
+          handler.onDeclare(i, x.param);
+        })
       },
 
       //Handle reads
       MemberExpression : (x:AST.MemberExpression) => {
-        VariableVisitorUtil.visitIdentifier(handler, x.object, x);
+        VariableVisitor.visitIdentifier(handler, x.object, x);
       },
-
-
-      //High level identifiers won't be picked up by member expressions
-      BinaryExpression : (x:AST.BinaryExpression) => {
-        VariableVisitorUtil.visitIdentifier(handler, x.left, x);
-        VariableVisitorUtil.visitIdentifier(handler, x.right, x);
-      },
-
-      UnaryExpression : (x:AST.UnaryExpression) => {
-        VariableVisitorUtil.visitIdentifier(handler, x.argument, x);
-      },
-
-      LogicalExpression : (x:AST.LogicalExpression) => {
-        VariableVisitorUtil.visitIdentifier(handler, x.left, x);
-        VariableVisitorUtil.visitIdentifier(handler, x.right, x);
-      },
-
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
-        VariableVisitorUtil.visitVariableNames(handler.onWrite, x.argument, x)
+        VariableVisitor.visitUsage(handler.onWrite, x.argument, x);
       },
 
       AssignmentExpression : (x:AST.AssignmentExpression) => {
-        VariableVisitorUtil.visitVariableNames(handler.onWrite, x.left, x)
-        VariableVisitorUtil.visitIdentifier(handler, x.right, x);
+        VariableVisitor.visitUsage(handler.onWrite, x.left, x);
       },
 
       //Handle invocation
       CallExpression : (x:AST.CallExpression) => {
-        VariableVisitorUtil.visitVariableNames(handler.onInvoke, x.callee, x)
-        x.arguments.forEach(a => VariableVisitorUtil.visitIdentifier(handler, a, x))
+        VariableVisitor.visitUsage(handler.onInvoke, x.callee, x);
       },
 
       //New
       NewExpression : (x:AST.NewExpression) => {
-        VariableVisitorUtil.visitVariableNames(handler.onInvoke, x.callee, x)
+        VariableVisitor.visitUsage(handler.onInvoke, x.callee, x);
       },
 
       //This
@@ -137,8 +130,45 @@ export class VariableVisitor {
 
       //Only on parents //Handle reads
       Identifier : (x:AST.Identifier, v:Visitor) => {
+        let pnode = v.parent.node;
+        let ptype = pnode.type;
+        if (ptype.endsWith('Expression') && !AST.isMemberExpression(pnode)) {
+          handler.onAccess(x, pnode);
+        }
         //Do nothing
       }
     }).exec(node);
   }
 }
+
+/*
+
+
+a.b.c = 5 (assign a, read a)
+a.b.c() (invoke a, read a)
+
+var a = 5 (delcare a hoisted)
+function a() {} (delcare a hoisted)
+let a = 5 (delcare a)
+const a = 5 (delcare a)
+
+a = 5 (Assign a)
+a + b (Read a,b)
+a || b (Read a,b)
+a < b (Read a,b)
+
+[a,b] = [b,c] (assign a,b, read a,b)
+function ({a:c,b:d}) (Declare c,d)
+{a:} 
+
+
+
+
+
+
+
+
+
+
+
+ */
