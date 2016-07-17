@@ -7,7 +7,6 @@ export class ArrayCompiler implements Compiler<TransformState> {
 
   createState():TransformState {
     return {
-      stepIndex : 0,
       contextId: m.Id(),
       elementId : m.Id(),
       returnValueId : m.Id(),
@@ -20,7 +19,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
 
   compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
     let pos = 0;
-    let {vars, body} = CompilerUtil.readChain(compilable, state, s => { (s.stepIndex = pos++); return s });
+    let {vars, body} = CompilerUtil.readChain(compilable, state);
 
     let last = compilable.chain[compilable.chain.length-1];
     if (last['collect']) {

@@ -1,7 +1,7 @@
 import {Helper} from '../impl/array/bootstrap';
 
 let data:number[] = null
-function getData() {
+export function getNumberData() {
   if (data) return data;
   
   data = []
@@ -11,20 +11,17 @@ function getData() {
   return data
 }
 
-function test(tests:{[key:string]:[(nums:number[])=>void, boolean]}) {
+function test<T>(tests:{[key:string]:(nums:T[])=>void}, data:T[]) {
   let counts = {};
   let keys = Object.keys(tests);
   keys.forEach(t => counts[t] = []);
 
   let time = 0;
-  let data = getData();
 
   for (let i = 0; i < 100; i++) {
     let k = keys[parseInt(Math.random()*keys.length as any)];
     time = Date.now()
-    let [test, enabled] = tests[k];
-    Helper.enable(enabled)
-    test(data)
+    tests[k](data)
     counts[k].push(Date.now() - time);
   }
   let out:{[key:string]:{min:number,max:number,n:number,avg:number}} = {};
@@ -83,30 +80,24 @@ function areEqual(a, b):boolean {
 }
 
 
-export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
-  let altTests = {};
-  for (let k of Object.keys(tests)) {
-    altTests[`${k} - Optimized`] = [tests[k], true];
-    altTests[`${k} - Standard`] = [tests[k], false];
-  }
-  
+export function doTest<T>(tests:{[key:string]:(input:T[])=>void}, data:T[]) {
   let out:any[][] = [];
-  let keys = Object.keys(altTests);
-  out.push(['Mixed', test(altTests)]);
+  let keys = Object.keys(tests);
+  out.push(['Mixed', test(tests, data)]);
 
   keys.forEach(k => {
-    let o:{[key:string]:[(nums:number[])=>void,boolean]} = {};
-    o[k] = altTests[k];
-    out.push([`All ${k}`, test(o)])
+    let o:{[key:string]:(input:T[])=>void} = {};
+    o[k] = tests[k];
+    out.push([`All ${k}`, test(o, data)])
   })
 
   out.forEach(p => {
     log(p[0], p[1]);
   })
 
-  let orig = altTests[keys[0]][0](data);
+  let orig = tests[keys[0]](data);
   keys.slice(1).reduce((a,b) => {
-    let cur = altTests[b][0](data);
+    let cur = tests[b](data);
     let eq = areEqual(cur, orig);;
     if (!eq) {
       console.log(cur);

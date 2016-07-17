@@ -2,7 +2,6 @@ import { AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 
 export interface TransformState {
   contextId:AST.Identifier,
-  stepIndex:number,
   elementId:AST.Identifier,
   returnValueId:AST.Identifier
   continueLabel:AST.Identifier,

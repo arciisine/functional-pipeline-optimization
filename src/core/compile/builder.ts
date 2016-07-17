@@ -16,6 +16,7 @@ export class Builder<I, O> {
   }
 
   chain<V>(op:Transformable<O, V>):Builder<I, V> {
+    op.position = this.compilable.chain.length;
     this.compilable.add(op);
     return this as any as Builder<I, V>;
   }

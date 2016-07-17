@@ -1,7 +1,33 @@
-import {doTest} from './util';
+import {doTest, getNumberData} from './util';
 import '../impl/array/bootstrap';
 
 export function functional(data:number[]) {
+    
+  let hist = data
+    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
+    .map(x => x > 91 ? x - 32 : x)
+    .map(x => String.fromCharCode(x))
+    .reduce((acc, x) => {
+      acc[x] = (acc[x] || 0) + 1;
+      return acc;
+    }, {} as {[key:string]:number});
+      
+  let evens = data
+    .filter(x => x % 2 === 0)
+    .map(x => x << 2);
+
+  let count = data
+    .filter(x => x > 100)
+    .map(function z(x) {
+      return x - 10
+    })
+    .reduce((acc, x) => acc + x, 0);
+
+  return [hist, count, evens];
+}
+
+export function functionalOptimize(data:number[]) {
+  "use optimize";
     
   let hist = data
     .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
@@ -52,6 +78,5 @@ export function obj(data:number[]) {
   return test
 }
 
-//doTest({functional})
+doTest({functional, functionalOptimize}, getNumberData())
 //doTest({sum})
-doTest({obj})

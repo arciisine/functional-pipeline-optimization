@@ -10,9 +10,9 @@ export class CompilerUtil {
     return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
   }  
 
-  static readChain<T, I, O>(compilable:Compilable<I, O>, state:T, onStep:(state:T)=>T):TransformResponse {
+  static readChain<T, I, O>(compilable:Compilable<I, O>, state:T):TransformResponse {
     return compilable.chain
-      .map(t => t.transform(onStep(state)))
+      .map(t => t.transform(state))
       .reduce((res, e) => {
         res.body.push(...e.body)
         res.vars.push(...e.vars);

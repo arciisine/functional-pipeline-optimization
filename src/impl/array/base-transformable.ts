@@ -1,6 +1,6 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse} from '../../core';
-import { Analysis, FunctionAnalyzer } from '../../core/analyze';
+import { Analysis } from '../../core/analyze';
 import { VariableVisitor, VariableStack, VariableVisitorUtil }  from '../../core/analyze/variable';
 import { TransformState } from './types';
 
@@ -70,7 +70,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   public manual:W;
   public callbacks:Function[];
   public analysis:Analysis = null;
-  public id = null;
+  public position = -1;
 
   constructor(public inputs:{callback:V, context?:any}) {
     this.callbacks = [inputs.callback];
@@ -82,7 +82,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
 
   getContextValue(state:TransformState, key:string):AST.MemberExpression {
-    return m.GetProperty(m.GetProperty(state.contextId, m.Literal(state.stepIndex)), key);
+    return m.GetProperty(m.GetProperty(state.contextId, m.Literal(this.position)), key);
   }
 
   getParams(state:TransformState):AST.Identifier[] {
