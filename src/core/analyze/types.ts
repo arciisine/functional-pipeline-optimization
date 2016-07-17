@@ -47,6 +47,5 @@ export interface Analyzable {
 declare global {
   interface Function {
     analysis?:Analysis
-    local?:boolean
   }
 }

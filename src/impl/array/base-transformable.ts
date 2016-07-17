@@ -1,5 +1,7 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse, Analysis, FunctionAnalyzer, VariableVisitor, VariableStack } from '../../core';
+import { Transformable, TransformResponse} from '../../core';
+import { Analysis, FunctionAnalyzer } from '../../core/analyze';
+import { VariableVisitor, VariableStack, VariableVisitorUtil }  from '../../core/analyze/variable';
 import { TransformState } from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
@@ -18,28 +20,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return BaseTransformable.cache[key];
   }
 
-  static rewritePatterns(node:AST.Pattern, stack:VariableStack) {
-    if (AST.isObjectPattern(node)) {
-      for (let p of node.properties) {
-        BaseTransformable.rewritePatterns(p, stack);
-      }
-    } else if (AST.isArrayPattern(node)) {
-      for (let p of node.elements) {
-        BaseTransformable.rewritePatterns(p, stack);
-      }
-    } else if (AST.isIdentifier(node)) {
-      stack.register(node);
-      node.name = stack.top[node.name] = m.Id().name
-    } else if (AST.isProperty(node)) {
-      node.shorthand = false;
-      node.value = {} as any;
-      for (var k in node.key) { node.value[k] = node.key[k] }
-      BaseTransformable.rewritePatterns(node.value, stack);      
-    }
-    return node;
-  }
-
-  static rewriteVariables(stack:VariableStack, fn:AST. BaseFunction, params:AST.Identifier[]):TransformResponse {
+  static rewriteVariables(stack:VariableStack, fn:AST.BaseFunction, params:AST.Identifier[]):TransformResponse {
     //Handle wether or not we can reference the element, or if we
     //  we need to assign to leverage pattern usage
     let fnparams = fn.params;
@@ -54,7 +35,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
           kind : 'var',
           declarations : [
             AST.VariableDeclarator({
-              id : BaseTransformable.rewritePatterns(p, stack),
+              id : VariableVisitorUtil.rewritePatterns(p, stack),
               init : params[i]
             })
           ]
@@ -136,12 +117,21 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     let vars = [];
     let body:AST.Node[] = [];
 
-    if (!fn['local'] || !!fn['local']) {
+    //If not locally defined, and it has closed variables
+    //TODO: Allow for different levels of assumptions
+    if (!this.inputs.callback.local && Object.keys(this.analysis.closed).length > 0) {
+      let stepContextId = m.Id();
+      let stepCallbackId = m.Id()
+      
+      vars.push(
+        stepContextId, this.getContextValue(state, 'context'), 
+        stepCallbackId, m.GetProperty(this.getContextValue(state, 'callback'), 'call')
+      );
+
       body.push(this.onReturn(state, 
         m.Return(
-          m.Call(
-              m.GetProperty(this.getContextValue(state, 'callback'), 'call'),
-              this.getContextValue(state, 'context'),
+          m.Call(stepCallbackId,
+              stepContextId,
               ...params.slice(0, fn.params.length === params.length ? 0 : -1))
           )
         )

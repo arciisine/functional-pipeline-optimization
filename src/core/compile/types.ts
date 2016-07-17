@@ -20,3 +20,9 @@ export interface ExecOutput<O> {
 export interface ExecHandler<I, O>{
   (i:ExecInput<I>):ExecOutput<O>
 }
+
+declare global {
+  interface Function {
+    local?:boolean
+  }
+}
