@@ -49,6 +49,10 @@ export class VariableVisitor {
       handler.onBlockEnd = (a) => { stack.push(); ogbe(a) }
       handler.onDeclare = (name, a) => { stack.register(name); ogd(name, a); }      
     }
+
+    let patternDepth = 0;
+    let countPattern = () => { patternDepth++; return; }
+    let discountPattern = () => { patternDepth--; return; }
     
     new Visitor({
 
@@ -59,15 +63,12 @@ export class VariableVisitor {
         handler.onBlockStart(block);
 
         if (x.id) {
-          x.id['declared'] = true;
           handler.onDeclare(x.id, x);
         }
         VariableVisitorUtil.readPatternIds(x.params).forEach(id => {
-          id['declared'] = true;
           handler.onDeclare(id, x);         
         })
         VariableVisitorUtil.findHoistedDeclarationIds(x).forEach(id => {
-          id['declared'] = true;
           handler.onDeclare(id, x)
         });
       },
@@ -129,12 +130,6 @@ export class VariableVisitor {
         })
       },
 
-      //Handle object pattern accesses via aliases
-      ObjectPattern : (x:AST.ObjectPattern) => {
-        VariableVisitorUtil.readPatternIds(x, true)
-          .forEach(id => handler.onAccess(id, x))
-      },
-
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
         VariableVisitor.visitUsage(handler.onWrite, x.argument, x);
@@ -159,12 +154,21 @@ export class VariableVisitor {
         handler.onAccess(AST.Identifier({name:'this'}));
       },
 
+      //Indicate if we are in a pattern or not
+      ObjectPatternStart : countPattern,
+      ObjectPatternEnd   : discountPattern,
+      ArrayPatternEnd    : discountPattern,
+      ArrayPatternStart  : countPattern,
+
       //Only on parents //Handle reads
       Identifier : (x:AST.Identifier, v:Visitor) => {
         let pnode = v.parent.node;
         let ptype = pnode.type;
-        if (!x['declared'] && (!AST.isMemberExpression(pnode) || x === pnode.object)) {
-          console.log(x, ptype, pnode)
+        if (patternDepth === 0 &&
+          !(AST.isFunction(pnode) && v.parent.container !== pnode.params) && //Not a param
+          !(AST.isVariableDeclarator(pnode) && pnode.id === x) && //Redeclaring declarations  
+          (!AST.isMemberExpression(pnode) || x === pnode.object || (x === pnode.property && pnode.computed))
+        ) {
           handler.onAccess(x, pnode);
         }
         //Do nothing
