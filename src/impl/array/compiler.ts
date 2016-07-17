@@ -44,7 +44,6 @@ export class ArrayCompiler implements Compiler<TransformState> {
       }));
     }
 
-    let pos = 0;
     let {vars, body} = CompilerUtil.readChain(compilable, state);
 
     let last = compilable.chain[compilable.chain.length-1];

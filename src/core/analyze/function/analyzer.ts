@@ -7,6 +7,7 @@ import {Util} from '../../util';
 
 export class FunctionAnalyzer {
   
+  private static keyCache:{[key:string]:string} = {};
   private static analyzed:{[key:string]:Analysis} = {};
   private static id:number = 0;
 
@@ -48,14 +49,19 @@ export class FunctionAnalyzer {
 
   static analyze(fn:Function, globals?:any):Analysis {
     let src = fn.toString();
-    let check = md5(src);
+    let check = FunctionAnalyzer.keyCache[src]
+    if (!check) {
+      check = md5(fn.toString());
+      FunctionAnalyzer.keyCache[src] = check;
+    }
+        
     let analysis = FunctionAnalyzer.analyzed[check];
 
     if (analysis) { //return if already computed
       return analysis;
     } 
 
-    let ast:AST.BaseFunction = ParseUtil.parse(src);
+    let ast:AST.BaseFunction = ParseUtil.parse(fn.toString());
     analysis = FunctionAnalyzer.analyzeAST(ast, globals);
 
     analysis.check = check;
