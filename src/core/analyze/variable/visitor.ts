@@ -49,22 +49,25 @@ export class VariableVisitor {
       handler.onBlockEnd = (a) => { stack.push(); ogbe(a) }
       handler.onDeclare = (name, a) => { stack.register(name); ogd(name, a); }      
     }
-
-    let declaring = false;
-
+    
     new Visitor({
+
+      //Function blocks
       FunctionStart : (x:AST.BaseFunction) => {
         handler.onFunctionStart(x);
         let block = VariableVisitorUtil.getFunctionBlock(x);
         handler.onBlockStart(block);
+
         if (x.id) {
+          x.id['declared'] = true;
           handler.onDeclare(x.id, x);
         }
         VariableVisitorUtil.readPatternIds(x.params).forEach(id => {
-          id['param'] = true;
+          id['declared'] = true;
           handler.onDeclare(id, x);         
         })
         VariableVisitorUtil.findHoistedDeclarationIds(x).forEach(id => {
+          id['declared'] = true;
           handler.onDeclare(id, x)
         });
       },
@@ -74,15 +77,34 @@ export class VariableVisitor {
         handler.onBlockEnd(block);
         handler.onFunctionEnd(x);        
       },
+
+
+      //Handle for of/in blocks
+      ForLooptStart   : (x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor) => {
+        let block = VariableVisitorUtil.getForLoopBlock(x);
+        handler.onBlockStart(block);
+        if (!AST.isForStatement(x) && !AST.isVariableDeclaration(x.left)) {
+          VariableVisitorUtil.readPatternIds(x.left).forEach(id => {
+            handler.onWrite(id, x);
+          })
+        }
+      },
+
+      ForLoopEnd : (x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor) => {
+        let block = VariableVisitorUtil.getForLoopBlock(x);
+        handler.onBlockEnd(block);
+      },
       
       BlockStatementStart : (x:AST.BlockStatement, v:Visitor) => {
-        if (!AST.isFunction(v.parent.container as AST.Node)) {
+        let cont = v.parent.container as AST.Node;
+        if (!AST.isFunction(cont) && !AST.isForInStatement(cont) && !AST.isForOfStatement(cont)) {
           handler.onBlockStart(x);
         }
       },
 
       BlockStatementEnd : (x:AST.BlockStatement, v:Visitor) => {
-        if (!AST.isFunction(v.parent.container as AST.Node)) {
+        let cont = v.parent.container as AST.Node;
+        if (!AST.isFunction(cont) && !AST.isForInStatement(cont) && !AST.isForOfStatement(cont)) {
           handler.onBlockEnd(x);
         }
       },
@@ -90,7 +112,10 @@ export class VariableVisitor {
       VariableDeclarationStart : (x:AST.VariableDeclaration) => {
         if (x.kind !== 'var') {
           VariableVisitorUtil.readDeclarationIds(x.declarations)
-            .forEach(id => handler.onDeclare(id, x));
+            .forEach(id => {
+              id['declared'] = true;
+              handler.onDeclare(id, x)
+            });
         }
       },
 
@@ -102,6 +127,12 @@ export class VariableVisitor {
         VariableVisitorUtil.readPatternIds(x.param).forEach(i => {
           handler.onDeclare(i, x.param);
         })
+      },
+
+      //Handle object pattern accesses via aliases
+      ObjectPattern : (x:AST.ObjectPattern) => {
+        VariableVisitorUtil.readPatternIds(x, true)
+          .forEach(id => handler.onAccess(id, x))
       },
 
       //Handle assignment
@@ -132,7 +163,7 @@ export class VariableVisitor {
       Identifier : (x:AST.Identifier, v:Visitor) => {
         let pnode = v.parent.node;
         let ptype = pnode.type;
-        if (!x['param'] && !ptype.endsWith('Declaration') && (!AST.isMemberExpression(pnode) || x === pnode.object)) {
+        if (!x['declared'] && (!AST.isMemberExpression(pnode) || x === pnode.object)) {
           console.log(x, ptype, pnode)
           handler.onAccess(x, pnode);
         }

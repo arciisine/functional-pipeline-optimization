@@ -23,16 +23,16 @@ export class VariableVisitorUtil {
     return VariableVisitorUtil.readPatternIds(decls.map(d => d.id));
   }
 
-  static readPatternIds(node:AST.Pattern|AST.Pattern[]):AST.Identifier[] {
+  static readPatternIds(node:AST.Pattern|AST.Pattern[], alias:boolean = false):AST.Identifier[] {
     if (Array.isArray(node)) {
       return node
-        .map(VariableVisitorUtil.readPatternIds)
+        .map(n => VariableVisitorUtil.readPatternIds(n, alias))
         .reduce((acc, ids) => acc.concat(ids), []);
     } else {
       if (AST.isObjectPattern(node)) {
-        return VariableVisitorUtil.readPatternIds(node.properties);
+        return VariableVisitorUtil.readPatternIds(node.properties, alias);
       } else if (AST.isArrayPattern(node)) {
-        return VariableVisitorUtil.readPatternIds(node.elements);
+        return VariableVisitorUtil.readPatternIds(node.elements, alias);
       } else if (AST.isProperty(node)) {
         //Clone property if shorthand
         if (node.shorthand) {
@@ -42,7 +42,7 @@ export class VariableVisitorUtil {
             node.value[k] = node.key[k] 
           }
         }      
-        return VariableVisitorUtil.readPatternIds(node.value);      
+        return VariableVisitorUtil.readPatternIds(!alias ? node.value : node.key, alias);
       } else if (AST.isIdentifier(node)) {
         return [node]
       }
@@ -82,6 +82,14 @@ export class VariableVisitorUtil {
         x.body = body;
         return body;
       }
+    }
+  }
+
+  static getForLoopBlock(x:AST.ForInStatement|AST.ForOfStatement|AST.ForStatement):AST.BlockStatement {
+    if (AST.isBlockStatement(x.body)) {
+      return x.body;
+    } else {
+      return x.body = m.Block(x.body);
     }
   }
 }
