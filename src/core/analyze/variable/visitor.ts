@@ -133,7 +133,7 @@ export class VariableVisitor {
 
       CatchClauseEnd : (x:AST.CatchClause) => {
         handler.onBlockEnd(x.body);
-      }
+      },
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
