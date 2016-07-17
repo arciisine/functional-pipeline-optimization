@@ -112,10 +112,7 @@ export class VariableVisitor {
       VariableDeclarationStart : (x:AST.VariableDeclaration) => {
         if (x.kind !== 'var') {
           VariableVisitorUtil.readDeclarationIds(x.declarations)
-            .forEach(id => {
-              id['declared'] = true;
-              handler.onDeclare(id, x)
-            });
+            .forEach(id => handler.onDeclare(id, x));
         }
       },
 

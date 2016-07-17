@@ -45,6 +45,8 @@ export class VariableVisitorUtil {
         return VariableVisitorUtil.readPatternIds(!alias ? node.value : node.key, alias);
       } else if (AST.isIdentifier(node)) {
         return [node]
+      } else if (AST.isSpreadElement(node) && AST.isIdentifier(node.argument)) {
+        return [node.argument];
       }
     }
   }
