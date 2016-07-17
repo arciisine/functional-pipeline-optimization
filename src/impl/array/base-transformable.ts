@@ -34,7 +34,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         body.unshift(m.Vars(p, params[i]))
       } else if (AST.isIdentifier(p)) {
         stack.register(p);
-        stack.top[p.name] = (params[i] as AST.Identifier).name;
+        p.name = stack.top[p.name] = (params[i] as AST.Identifier).name;         
       }
     }
 
@@ -43,7 +43,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       onDeclare:(name:AST.Identifier, parent:AST.Node) => {
         if (parent === fn) {          
           //Skip parents
-        } else {
+        } else {          
           let id = m.Id();
           name.name = id.name;
           stack.top[name.name] =  id.name;
