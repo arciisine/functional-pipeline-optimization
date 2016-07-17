@@ -79,8 +79,7 @@ export class VariableVisitor {
         handler.onFunctionEnd(x);        
       },
 
-
-      //Handle for of/in blocks
+      //Declarations      
       ForLooptStart   : (x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor) => {
         let block = VariableVisitorUtil.getForLoopBlock(x);
         handler.onBlockStart(block);
@@ -98,14 +97,14 @@ export class VariableVisitor {
       
       BlockStatementStart : (x:AST.BlockStatement, v:Visitor) => {
         let cont = v.parent.container as AST.Node;
-        if (!AST.isFunction(cont) && !AST.isForInStatement(cont) && !AST.isForOfStatement(cont)) {
+        if (!AST.isFunction(cont) && !AST.isForLoop(cont) && !AST.isCatchClause(cont)) {
           handler.onBlockStart(x);
         }
       },
 
       BlockStatementEnd : (x:AST.BlockStatement, v:Visitor) => {
         let cont = v.parent.container as AST.Node;
-        if (!AST.isFunction(cont) && !AST.isForInStatement(cont) && !AST.isForOfStatement(cont)) {
+        if (!AST.isFunction(cont) && !AST.isForLoop(cont) && !AST.isCatchClause(cont)) {
           handler.onBlockEnd(x);
         }
       },
@@ -120,15 +119,21 @@ export class VariableVisitor {
         }
       },
 
-      ClassDeclaration : (x:AST.ClassDeclaration) => {
+      ClassDeclaration : (x:AST.ClassDeclaration) => {        
         handler.onDeclare(x.id, x);
       },
 
-      CatchClause : (x:AST.CatchClause) => {
+      CatchClauseStart : (x:AST.CatchClause) => {
+        handler.onBlockStart(x.body);
+
         VariableVisitorUtil.readPatternIds(x.param).forEach(i => {
           handler.onDeclare(i, x.param);
         })
       },
+
+      CatchClauseEnd : (x:AST.CatchClause) => {
+        handler.onBlockEnd(x.body);
+      }
 
       //Handle assignment
       UpdateExpression : (x:AST.UpdateExpression) => {
@@ -160,18 +165,17 @@ export class VariableVisitor {
       ArrayPatternEnd    : discountPattern,
       ArrayPatternStart  : countPattern,
 
-      //Only on parents //Handle reads
+      //Ids are being read
       Identifier : (x:AST.Identifier, v:Visitor) => {
         let pnode = v.parent.node;
         let ptype = pnode.type;
-        if (patternDepth === 0 &&
-          !(AST.isFunction(pnode) && v.parent.container !== pnode.params) && //Not a param
-          !(AST.isVariableDeclarator(pnode) && pnode.id === x) && //Redeclaring declarations  
-          (!AST.isMemberExpression(pnode) || x === pnode.object || (x === pnode.property && pnode.computed))
+        if (patternDepth === 0 && //Not in a pattern expression
+          !(AST.isFunction(pnode) && v.parent.container !== pnode.params) && //Not a function param
+          !(AST.isVariableDeclarator(pnode) && pnode.id === x) && //Not redeclaring declarations  
+          !(AST.isMemberExpression(pnode) && x === pnode.property && !pnode.computed) //Not a member property 
         ) {
           handler.onAccess(x, pnode);
         }
-        //Do nothing
       }
     }).exec(node);
   }
