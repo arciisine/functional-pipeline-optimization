@@ -1,18 +1,20 @@
 import {ArrayBuilder} from './builder';
 import {Util} from '../../core';
 
+const is_arr = Array.isArray;
+
 export class Helper {
   static inline<T>(el:T):T { 
     return ((el as any).inline = true) && el; 
   }
   static wrap<T>(el:T):T { 
-    return Array.isArray(el) ? new ArrayBuilder<T,T>(el) as any as T: el; 
+    return is_arr(el) ? new ArrayBuilder<T,T>(el as any as T[]) as any as T: el; 
   }
   static exec<T>(el:T[], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
-    if (el instanceof ArrayBuilder) {
-      let {value, assigned} = (el as ArrayBuilder<T,T>).exec(closed);
-      if (post !== null) post(assigned);
-      return value;
+    if (el && el.constructor === ArrayBuilder) {
+      let res = (el as any as ArrayBuilder<T,T>).exec(closed);
+      if (post !== null) post(res.assigned);
+      return res.value;
     } else { 
       return el;
     }

@@ -20,11 +20,16 @@ export class CompilerUtil {
       }, {vars:[], body:[]});
   }
 
-  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):ExecHandler<I,O> {
-    let key = compilable.analysis.key + "~" + compiler.constructor.name;
+  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null):ExecHandler<I,O> {
+    if (key === null) {
+      key = compilable.analysis.key;
+    }
+
     if (CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
-    } 
+    }
+
+    //Generate merged analysis 
     let state = compiler.createState();
     let ast = compiler.compile(compilable, state);
     let res = CompileUtil.compile(ast as any, {}) as ExecHandler<I,O>;
