@@ -49,11 +49,8 @@ export class VariableVisitor {
       handler.onBlockEnd = (a) => { stack.push(); ogbe(a) }
       handler.onDeclare = (name, a) => { stack.register(name); ogd(name, a); }      
     }
-
-    let patternDepth = 0;
-    let countPattern = () => { patternDepth++; return; }
-    let discountPattern = () => { patternDepth--; return; }
     
+    //Go
     new Visitor({
 
       //Function blocks
@@ -166,18 +163,15 @@ export class VariableVisitor {
         handler.onAccess(AST.Identifier({name:'this'}));
       },
 
-      //Indicate if we are in a pattern or not
-      ObjectPatternStart : countPattern,
-      ObjectPatternEnd   : discountPattern,
-      ArrayPatternEnd    : discountPattern,
-      ArrayPatternStart  : countPattern,
+      //Prevent reading patterns, already handled manually
+      ObjectPattern : () => Visitor.PREVENT_DESCENT,
+      ArrayPattern  : () => Visitor.PREVENT_DESCENT,
 
       //Ids are being read
       Identifier : (x:AST.Identifier, v:Visitor) => {
         let pnode = v.parent.node;
         let ptype = pnode.type;
-        if (patternDepth === 0 && //Not in a pattern expression
-          !(AST.isFunction(pnode) && v.parent.container !== pnode.params) && //Not a function param
+        if (!(AST.isFunction(pnode) && v.parent.container !== pnode.params) && //Not a function param
           !(AST.isVariableDeclarator(pnode) && pnode.id === x) && //Not redeclaring declarations  
           !(AST.isMemberExpression(pnode) && x === pnode.property && !pnode.computed) //Not a member property 
         ) {

@@ -41,8 +41,7 @@ export function sum(data:number[]) {
 export function obj(data:number[]) {
   let test = [{age:10, name:'Bob'}]
     .filter(({age,name}) => age > 10)
-    .map(({name}) => name.toUpperCase())
-  console.log(test);    
+    .map(({name}) => name.toUpperCase())  
 }
 
 doTest({functional})
