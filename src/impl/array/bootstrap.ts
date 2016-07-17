@@ -1,12 +1,14 @@
 import {ArrayBuilder} from './builder';
 import {Util} from '../../core';
 
+let enabled = true;
+
 export class Helper {
   static local<T>(el:T):T { 
     return ((el as any).local = true) && el; 
   }
   static wrap<T>(el:T):T { 
-    return Array.isArray(el) ? new ArrayBuilder<T,T>(el) as any as T: el; 
+    return (enabled && Array.isArray(el)) ? new ArrayBuilder<T,T>(el) as any as T: el; 
   }
   static exec<T>(el:T[], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
     if (el instanceof ArrayBuilder) {
@@ -16,6 +18,9 @@ export class Helper {
     } else { 
       return el;
     }
+  }
+  static enable(on:boolean) {
+    enabled = on;
   }
 } 
 

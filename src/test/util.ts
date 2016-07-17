@@ -1,3 +1,5 @@
+import {Helper} from '../impl/array/bootstrap';
+
 let data:number[] = null
 function getData() {
   if (data) return data;
@@ -9,7 +11,7 @@ function getData() {
   return data
 }
 
-function test(tests:{[key:string]:(nums:number[])=>void}) {
+function test(tests:{[key:string]:[(nums:number[])=>void, boolean]}) {
   let counts = {};
   let keys = Object.keys(tests);
   keys.forEach(t => counts[t] = []);
@@ -20,7 +22,9 @@ function test(tests:{[key:string]:(nums:number[])=>void}) {
   for (let i = 0; i < 100; i++) {
     let k = keys[parseInt(Math.random()*keys.length as any)];
     time = Date.now()
-    tests[k](data)
+    let [test, enabled] = tests[k];
+    Helper.enable(enabled)
+    test(data)
     counts[k].push(Date.now() - time);
   }
   let out:{[key:string]:{min:number,max:number,n:number,avg:number}} = {};
@@ -80,13 +84,19 @@ function areEqual(a, b):boolean {
 
 
 export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
+  let altTests = {};
+  for (let k of Object.keys(tests)) {
+    altTests[`${k} - Optimized`] = [tests[k], true];
+    altTests[`${k} - Standard`] = [tests[k], false];
+  }
+  
   let out:any[][] = [];
-  let keys = Object.keys(tests);
-  out.push(['Mixed', test(tests)]);
+  let keys = Object.keys(altTests);
+  out.push(['Mixed', test(altTests)]);
 
   keys.forEach(k => {
-    let o:{[key:string]:(nums:number[])=>void} = {};
-    o[k] = tests[k];
+    let o:{[key:string]:[(nums:number[])=>void,boolean]} = {};
+    o[k] = altTests[k];
     out.push([`All ${k}`, test(o)])
   })
 
@@ -94,9 +104,9 @@ export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
     log(p[0], p[1]);
   })
 
-  let orig = tests[keys[0]](data);
+  let orig = altTests[keys[0]][0](data);
   keys.slice(1).reduce((a,b) => {
-    let cur = tests[b](data);
+    let cur = altTests[b][0](data);
     let eq = areEqual(cur, orig);;
     if (!eq) {
       console.log(cur);
@@ -105,5 +115,5 @@ export function doTest(tests:{[key:string]:(nums:number[])=>void}) {
     }
     console.log(eq);
     return cur; 
-  }, orig) 
+  }, orig)
 } 

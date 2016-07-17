@@ -83,10 +83,20 @@ export class VariableVisitor {
       ForLooptStart   : (x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor) => {
         let block = VariableVisitorUtil.getForLoopBlock(x);
         handler.onBlockStart(block);
-        if (!AST.isForStatement(x) && !AST.isVariableDeclaration(x.left)) {
-          VariableVisitorUtil.readPatternIds(x.left).forEach(id => {
-            handler.onWrite(id, x);
-          })
+        if (!AST.isForStatement(x)) {
+          if (!AST.isVariableDeclaration(x.left)) {
+            VariableVisitorUtil.readPatternIds(x.left).forEach(id => {
+              handler.onWrite(id, x);
+            })
+          } else {
+            //Ensure init vars are declared descent
+            VariableVisitorUtil.readDeclarationIds(x.left.declarations)
+              .forEach(id => handler.onDeclare(id, x)); 
+          }
+        } else if (AST.isVariableDeclaration(x.init)) {
+          //Ensure init vars are declared before descent
+          VariableVisitorUtil.readDeclarationIds(x.init.declarations)
+            .forEach(id => handler.onDeclare(id, x));
         }
       },
 
@@ -177,35 +187,3 @@ export class VariableVisitor {
     }).exec(node);
   }
 }
-
-/*
-
-
-a.b.c = 5 (assign a, read a)
-a.b.c() (invoke a, read a)
-
-var a = 5 (delcare a hoisted)
-function a() {} (delcare a hoisted)
-let a = 5 (delcare a)
-const a = 5 (delcare a)
-
-a = 5 (Assign a)
-a + b (Read a,b)
-a || b (Read a,b)
-a < b (Read a,b)
-
-[a,b] = [b,c] (assign a,b, read a,b)
-function ({a:c,b:d}) (Declare c,d)
-{a:} 
-
-
-
-
-
-
-
-
-
-
-
- */

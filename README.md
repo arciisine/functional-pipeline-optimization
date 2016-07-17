@@ -7,8 +7,6 @@
 
 **Outstanding Tasks**
 
-* Handle Object Patterns and Spread Elements
-    * Need a cohesive story for visiting and for marking as read/declare/write/invoke
 * Handle Closed Variables
     * Differentiate closed variables from non-local functions in Analysis (right now mingled)
     * Safe whitelist
