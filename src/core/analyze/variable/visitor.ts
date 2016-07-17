@@ -173,7 +173,8 @@ export class VariableVisitor {
         let ptype = pnode.type;
         if (!(AST.isFunction(pnode) && v.parent.container !== pnode.params) && //Not a function param
           !(AST.isVariableDeclarator(pnode) && pnode.id === x) && //Not redeclaring declarations  
-          !(AST.isMemberExpression(pnode) && x === pnode.property && !pnode.computed) //Not a member property 
+          !(AST.isMemberExpression(pnode) && x === pnode.property && !pnode.computed) && //Not a member property
+          !(AST.isProperty(pnode) && x === pnode.key && !pnode.computed) //Not a property key 
         ) {
           handler.onAccess(x, pnode);
         }
