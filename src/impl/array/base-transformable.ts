@@ -42,15 +42,24 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       }
     }
 
+    let depth = 0;
+
     //Rename all variables to unique values
     VariableVisitor.visit({
+      onFunctionStart : () => depth++,
+      onFunctionEnd : () => depth--,
       onDeclare:(name:AST.Identifier, parent:AST.Node) => {
-        if (parent === fn) {          
+        if (depth <= 1) {          
           //Skip parents
-        } else {          
-          let id = m.Id();
-          name.name = id.name;
-          stack.top[name.name] =  id.name;
+        } else {
+          //Don't declare variables in nested functions
+          if (depth > 1 && stack.contains(name.name)) {
+            stack.top[name.name] = name.name;
+          } else {           
+            let id = m.Id();
+            name.name = id.name;
+            stack.top[name.name] =  id.name;
+          }
         }
       },
       onAccess:(name:AST.Identifier, parent:AST.Node) => {
@@ -148,6 +157,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       
       //Handle returns
       new Visitor({
+        FunctionStart : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
         ReturnStatementEnd : (x:AST.ReturnStatement) =>  this.onReturn(state, x),
       }).exec(fn)
 

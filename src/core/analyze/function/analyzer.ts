@@ -2,6 +2,7 @@ import { ParseUtil, AST } from '../../../../node_modules/@arcsine/ecma-ast-trans
 import { Analysis, Analyzable, AccessType } from './types';
 import { md5 } from './md5';
 import {VariableVisitor, VariableStack} from '../variable';
+import {Util} from '../../util';
 
 
 export class FunctionAnalyzer {
@@ -11,12 +12,12 @@ export class FunctionAnalyzer {
 
   static analyzeAST(ast:AST.BaseFunction, globals?:any):Analysis {
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
-    analysis.globals = globals || {};
+    analysis.globals = globals || Util.global
 
     let stack = new VariableStack();
 
     let checkClosed = (name:AST.Identifier, access:AccessType) => {
-      if (!stack.contains(name)) {
+      if (!stack.contains(name) && !analysis.globals[name.name]) {        
         analysis.closed[name.name] = (analysis.closed[name.name] || 0) | access;
       }
     }
