@@ -103,25 +103,66 @@ function handleChainEnd(x:AST.CallExpression) {
 export function rewriteBody(content:string) {
   let body = ParseUtil.parseProgram<AST.Node>(content);
 
-  let optimize = [];
-  if (getPragmas(body.body).find(x => x.startsWith('use optimize'))) {
-    optimize.push(true);  
-  }
+  let optimize = [
+    getPragmas(body.body).some(x => x.startsWith('use optimize'))
+  ];
+
+  let active = optimize[0];
+
+  let thisScopes:(AST.FunctionDeclaration|AST.FunctionExpression)[] = [];
+  let functionScopes:AST.BaseFunction[] = [];
 
   body = new Visitor({
     FunctionStart : (x:AST.BaseFunction) => {
       let block = VariableVisitorUtil.getFunctionBlock(x);
       let pragmas = getPragmas(block.body);
-      let active = optimize[optimize.length-1];
-      if (pragmas.find(x => x.startsWith('use optimize'))) {
+
+      if (pragmas.some(x => x.startsWith('use optimize'))) {
         active = true;
-      } else if (pragmas.find(x => x.startsWith('prevent optimize'))) {
+      } else if (pragmas.some(x => x.startsWith('disable optimize'))) {
         active = false;
       }
+
       optimize.push(active);
+      functionScopes.push(x);
+
+      if (active && (AST.isFunctionExpression(x) || AST.isFunctionDeclaration(x))) {
+        thisScopes.push(x);
+      }
+
+      return x;
     },
-    FunctionEnd : () => {
-      optimize.pop();
+    FunctionEnd : (x:AST.BaseFunction, v:Visitor) => {
+      active = optimize.pop();      
+      functionScopes.pop();
+
+      if (thisScopes.length && x === thisScopes[thisScopes.length-1]) {
+        thisScopes.pop();
+      }
+      
+      return x;
+    },
+    ThisExpressionEnd : (x:AST.ThisExpression, v:Visitor) => {
+      let fnScope = functionScopes[functionScopes.length-1]; 
+      if (active && AST.isArrowFunctionExpression(fnScope))  {
+        let thisScope = thisScopes[thisScopes.length-1];
+        let body = thisScope.body.body;
+        let id:AST.Identifier = null;
+        let node = body[0]
+
+        if (AST.isVariableDeclaration(node) && node['_this']) {
+          id = node.declarations[0].id as AST.Identifier;
+        } else {
+          id = m.Id()
+          let node = m.Vars(id, AST.ThisExpression({}))
+          node['_this'] = true;
+          body.unshift(node);
+        }
+
+        return m.Id(id.name);
+      } else {
+        return x;
+      }
     },
     CallExpressionStart : (x : AST.CallExpression, visitor:Visitor) => {
       if (!optimize[optimize.length-1]) return;

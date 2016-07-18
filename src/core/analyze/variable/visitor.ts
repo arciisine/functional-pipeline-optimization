@@ -13,6 +13,7 @@ const DEFAULT_HANDLER:VariableVisitHandler = {
     onComputedAccess:null,
     onDeclare:null,
     onAccess:null,
+    onThisAccess:null,
     onWrite:null,
     onInvoke:null
 }
@@ -160,7 +161,7 @@ export class VariableVisitor {
 
       //This
       ThisExpression : (x:AST.ThisExpression) => {
-        handler.onAccess(AST.Identifier({name:'this'}));
+        handler.onThisAccess(x);
       },
 
       //Prevent reading patterns, already handled manually

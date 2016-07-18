@@ -13,6 +13,7 @@ export interface VariableVisitHandler {
     onDeclare?:VariableHandler,
     onComputedAccess?:VariableHandler,
     onAccess?:VariableHandler,
+    onThisAccess?:(node:AST.ThisExpression)=>void,
     onWrite?:VariableHandler,
     onInvoke?:VariableHandler,
 }

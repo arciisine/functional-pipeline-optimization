@@ -28,12 +28,14 @@ export class FunctionAnalyzer {
         analysis.hasComputedMemberAccess = true;
       },
       onAccess : (name:AST.Identifier, node:AST.Node) => {
-        if (name.name !== 'this') {
-          checkClosed(name, AccessType.ACCESS)
-        }
+        checkClosed(name, AccessType.ACCESS)
+
         if (AST.isMemberExpression(node)) {
           analysis.hasMemberAccess = true;
         }
+      },
+      onThisAccess : (node:AST.ThisExpression) => {
+        analysis.hasThisReference = true;
       },
       onWrite : (name:AST.Identifier) => {
         checkClosed(name, AccessType.WRITE)
