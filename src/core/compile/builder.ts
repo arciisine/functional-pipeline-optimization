@@ -26,12 +26,16 @@ export class Builder<I, O> {
     return CompilerUtil.compile(this.compiler, this.compilable);
   }
 
+  manual():ExecOutput<O> {
+    return { value : CompilerUtil.manual(this.compilable, this.data) }
+  }
+
   exec(closed:any[] = []):ExecOutput<O> {
     try {
       return this.compile()({value:this.data, context:this.compilable.context, closed})
     } catch (e) {
       if (e.invalid) {
-        return { value : CompilerUtil.manual(this.compilable, this.data) }
+        return this.manual();    
       } else {
         throw e;
       }
