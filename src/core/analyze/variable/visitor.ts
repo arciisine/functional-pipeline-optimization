@@ -73,7 +73,7 @@ export class VariableVisitor {
       FunctionEnd : (x:AST.BaseFunction) => {
         let block = VariableVisitorUtil.getFunctionBlock(x);
         handler.onBlockEnd(block);
-        handler.onFunctionEnd(x);        
+        handler.onFunctionEnd(x);
       },
 
       //Declarations      

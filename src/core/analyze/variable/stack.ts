@@ -19,8 +19,10 @@ export class VariableStack {
   contains(name:string|AST.Identifier) {
     if (typeof name === 'string') {
       return !!this.top[name];
-    } else {
+    } else if (this.top) {
       return !!this.top[name.name];
+    } else {
+      return false;
     }
   }
 
