@@ -5,7 +5,21 @@
 * `./build.sh`
 * `node dist/src/test/basic`
 
-**Outstanding Tasks**
+**Research**
+
+* Determine comprehensive baseline
+* Collect metrics
+    * Platforms (node/v8, firefox, safari, chrome, Edge, IE 11)
+    * Perhaps build a benchmark site that can record
+        * browser
+        * code version
+        * Timings against a baseline
+* Write Thesis
+    * Research related material
+    * Write it out
+
+
+**Coding Tasks**
 
 * Handle Closed Variables
     * Handle Global Variables (augmentable via pragma)
@@ -16,3 +30,15 @@
     * Apply access level verification
     * Set via pragma
 * Look for more performance enhancements
+
+**Refactoring**
+
+* Variable Visitor
+    * Move it to core
+    * Make a better way of associating data with stack
+* Array Base Transformable
+    * Make it smaller
+    * Find common patterns
+* Body transformer
+    * Make it smaller
+    * Find common patterns 
