@@ -55,7 +55,7 @@ export class VariableVisitor {
     new Visitor({
 
       //Function blocks
-      FunctionStart : (x:AST.BaseFunction) => {
+      Function : (x:AST.BaseFunction) => {
         handler.onFunctionStart(x);
         let block = VariableVisitorUtil.getFunctionBlock(x);
         handler.onBlockStart(block);
@@ -78,7 +78,7 @@ export class VariableVisitor {
       },
 
       //Declarations      
-      ForLooptStart   : (x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor) => {
+      ForLoop   : (x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor) => {
         let block = VariableVisitorUtil.getForLoopBlock(x);
         handler.onBlockStart(block);
         if (!AST.isForStatement(x)) {
@@ -103,7 +103,7 @@ export class VariableVisitor {
         handler.onBlockEnd(block);
       },
       
-      BlockStatementStart : (x:AST.BlockStatement, v:Visitor) => {
+      BlockStatement : (x:AST.BlockStatement, v:Visitor) => {
         let cont = v.parent.container as AST.Node;
         if (!AST.isFunction(cont) && !AST.isForLoop(cont) && !AST.isCatchClause(cont)) {
           handler.onBlockStart(x);
@@ -117,7 +117,7 @@ export class VariableVisitor {
         }
       },
 
-      VariableDeclarationStart : (x:AST.VariableDeclaration) => {
+      VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind !== 'var') {
           VariableVisitorUtil.readDeclarationIds(x.declarations)
             .forEach(id => handler.onDeclare(id, x));
@@ -128,7 +128,7 @@ export class VariableVisitor {
         handler.onDeclare(x.id, x);
       },
 
-      CatchClauseStart : (x:AST.CatchClause) => {
+      CatchClause : (x:AST.CatchClause) => {
         handler.onBlockStart(x.body);
 
         VariableVisitorUtil.readPatternIds(x.param).forEach(i => {

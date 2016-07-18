@@ -157,7 +157,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       
       //Handle returns
       new Visitor({
-        FunctionStart : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
+        Function : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
         ReturnStatementEnd : (x:AST.ReturnStatement) => this.onReturn(state, x)
       }).exec(fn)
 

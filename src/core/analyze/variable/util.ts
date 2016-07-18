@@ -59,7 +59,7 @@ export class VariableVisitorUtil {
       FunctionDeclaration : (x:AST.FunctionDeclaration) => {
         out.push(x.id);
       },            
-      FunctionStart : (x:AST.BaseFunction) => { 
+      Function : (x:AST.BaseFunction) => { 
         return Visitor.PREVENT_DESCENT //Only look at current function
       },
       VariableDeclaration : (x:AST.VariableDeclaration) => {

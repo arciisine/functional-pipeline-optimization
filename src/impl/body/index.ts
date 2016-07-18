@@ -113,7 +113,7 @@ export function rewriteBody(content:string) {
   let functionScopes:AST.BaseFunction[] = [];
 
   body = new Visitor({
-    FunctionStart : (x:AST.BaseFunction) => {
+    Function : (x:AST.BaseFunction) => {
       let block = VariableVisitorUtil.getFunctionBlock(x);
       let pragmas = getPragmas(block.body);
 
@@ -166,7 +166,7 @@ export function rewriteBody(content:string) {
         return x;
       }
     },
-    CallExpressionStart : (x : AST.CallExpression, visitor:Visitor) => {
+    CallExpression : (x : AST.CallExpression, visitor:Visitor) => {
       if (!optimize[optimize.length-1]) return;
       
       let callee = x.callee;
