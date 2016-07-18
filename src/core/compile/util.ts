@@ -7,6 +7,7 @@ export class CompilerUtil {
   static computed:{[key:string]:ExecHandler<any, any>} = {};
 
   static manual<I, O>(compilable:Compilable<I, O>, data:I):O {
+    compilable.finalize();
     return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
   }  
 
