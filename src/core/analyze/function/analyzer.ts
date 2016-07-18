@@ -48,14 +48,13 @@ export class FunctionAnalyzer {
   }
 
   static analyze(fn:Function, globals?:any):Analysis {
-    let src = fn.toString();
-    let check = FunctionAnalyzer.keyCache[src]
-    if (!check) {
-      check = md5(fn.toString());
-      FunctionAnalyzer.keyCache[src] = check;
-    }
-        
-    let analysis = FunctionAnalyzer.analyzed[check];
+    fn.key = fn.key || md5(fn.toString());
+
+    let ret = FunctionAnalyzer.analyzed[fn.key];
+    if (ret) return ret
+
+    let src = fn.toString();        
+    let analysis = FunctionAnalyzer.analyzed[fn.key];
 
     if (analysis) { //return if already computed
       return analysis;
@@ -64,8 +63,8 @@ export class FunctionAnalyzer {
     let ast:AST.BaseFunction = ParseUtil.parse(fn.toString());
     analysis = FunctionAnalyzer.analyzeAST(ast, globals);
 
-    analysis.check = check;
-    FunctionAnalyzer.analyzed[check] = analysis;
+    analysis.check = fn.key;
+    FunctionAnalyzer.analyzed[fn.key] = analysis;
     return analysis;    
   }
 }

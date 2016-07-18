@@ -20,8 +20,8 @@ export class CompilerUtil {
       }, {vars:[], body:[]});
   }
 
-  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null):ExecHandler<I,O> {
-    key = key === null ? compilable.analysis.key : key;
+  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):ExecHandler<I,O> {
+    let key = compilable.key || compilable.analysis.key;
 
     if (CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];

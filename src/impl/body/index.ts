@@ -14,8 +14,9 @@ const CANDIDATE_RELATED = m.genSymbol();
 const ANALYSIS = m.genSymbol();
 
 const EXEC = m.Id(`${SYMBOL}_exec`);
-const INLINE = m.Id(`${SYMBOL}_inline`)
 const WRAP = m.Id(`${SYMBOL}_wrap`)
+const INLINE = m.Id(`${SYMBOL}_inline`)
+const FREE = m.Id()
 
 function getPragmas(nodes:AST.Node[]):string[] {
   let i = 0;
@@ -141,12 +142,8 @@ export function rewriteBody(content:string) {
       if (!x[CANDIDATE]) return;
 
       let arg = x.arguments[0];
-      if (AST.isFunctionExpression(arg) || AST.isArrowFunctionExpression(arg)) {
-        let analysis = x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg); //Analayze function
-        if (Object.keys(analysis.closed).length > 0) {
-          x.arguments[0] = m.Call(INLINE, arg);
-        }
-      }
+      x.arguments[0] = m.Call(INLINE, arg, m.Literal(m.Id().name));
+        
       //Check for start of chain
       let callee = x.callee;
       if (AST.isMemberExpression(callee)) {

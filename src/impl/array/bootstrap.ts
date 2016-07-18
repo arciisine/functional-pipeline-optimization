@@ -5,8 +5,11 @@ const is_arr = Array.isArray;
 const cache = {};
 
 export class Helper {
-  static inline<T>(el:T):T { 
-    return ((el as any).inline = true) && el; 
+  static inline<T>(el:T, key:string):T { 
+    let fn = (el as any as Function);
+    fn.inline = true;
+    fn.key = key;
+    return el; 
   }
   static wrap<T>(el:T):T { 
     return is_arr(el) ? new ArrayBuilder<T,T>(el as any as T[]) as any as T: el; 

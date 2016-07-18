@@ -22,8 +22,8 @@ function sortScoreSumOpt(names:string[]) {
     .map((x,i) => {
       return (i+1) * x
         .split('')
-        .map(x => x.charCodeAt(0) - 64)
-        .reduce((acc, v) => acc+v, 0)
+        .map((x) => x.charCodeAt(0) - 64)
+        .reduce((acc, v) => acc+v, 0 )
     })
     .reduce((acc,v) => acc+v, 0);
 }
