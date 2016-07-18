@@ -1,6 +1,6 @@
-import { ParseUtil, AST } from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { ParseUtil, AST, Visitor } from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
-import {VariableVisitor, VariableStack} from '../variable';
+import {VariableStack, VariableNodeHandler} from '../variable';
 import {Util} from '../../util';
 
 
@@ -22,7 +22,7 @@ export class FunctionAnalyzer {
       }
     }
 
-    VariableVisitor.visit({
+    let handler = new VariableNodeHandler({
       onComputedAccess : (name:AST.Identifier) => {
         analysis.hasComputedMemberAccess = true;
       },
@@ -43,8 +43,10 @@ export class FunctionAnalyzer {
         checkClosed(name, AccessType.INVOKE)
         analysis.hasInvocation = true;
       },
-    }, ast, stack)
+    }, stack);
 
+    Visitor.exec(handler, ast)
+    
     return analysis;
   }
 
