@@ -13,5 +13,4 @@
 * Calculate Access Levels
     * Allow User to set minimum threshold for access level (defaults to no external dependences)
     * Apply access level verification
-* Handle `this` properly
-* Look for more performance enhacments
+* Look for more performance enhancements
