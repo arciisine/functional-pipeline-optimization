@@ -1,7 +1,7 @@
 import {Compilable} from './compilable';
 import {Compiler, ExecOutput, ExecHandler} from './types';
 import {CompilerUtil} from './util';
-import {Transformable} from '../transform';
+import {Transformable, TransformableConstructor} from '../transform';
 
 export class Builder<I, O> {
 
@@ -16,8 +16,8 @@ export class Builder<I, O> {
     this.compilable.key = `${compiler.constructor.name}~` 
   }
 
-  chain<V>(op:Transformable<O, V>):Builder<I, V> {
-    this.compilable.add(op);
+  chain<V>(op:TransformableConstructor<O, V>, inputs:any):Builder<I, V> {
+    this.compilable.add(op, inputs);
     //Expose inputs for use in functions
     return this as any as Builder<I, V>;
   }
@@ -32,7 +32,9 @@ export class Builder<I, O> {
 
   exec(closed:any[] = []):ExecOutput<O> {
     try {
-      return this.compile()({value:this.data, context:this.compilable.context, closed})
+      //Ready directly from cache to minimize multiple fn calls
+      let fn = CompilerUtil.computed[this.compilable.key] || this.compile();
+      return fn({value:this.data, context:this.compilable.context, closed})
     } catch (e) {
       if (e.invalid) {
         return this.manual();    

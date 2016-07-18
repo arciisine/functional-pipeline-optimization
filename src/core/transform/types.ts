@@ -14,3 +14,7 @@ export interface Transformable<I, O> extends Analyzable {
   transform<T>(state:T):TransformResponse;
   manualTransform(data:I):O;
 }
+
+export interface TransformableConstructor<I,O> {
+  new(opts:any):Transformable<I, O>
+}

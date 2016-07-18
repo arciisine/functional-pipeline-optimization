@@ -64,6 +64,19 @@ export function sum(data:number[]) {
   return [count]
 }
 
+export function sumOptimize(data:number[]) {
+  'use optimize';
+
+  let count = 0;
+
+  data
+    .filter(x => x > 10)
+    .map(x => x * 2)
+    .forEach(x => count += x)
+    
+  return [count]
+}
+
 let names = null;
 
 export function obj(data:number[]) {
@@ -79,4 +92,4 @@ export function obj(data:number[]) {
 }
 
 doTest({functional, functionalOptimize}, getNumberData())
-//doTest({sum})
+doTest({sum, sumOptimize}, getNumberData())

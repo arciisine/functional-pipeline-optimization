@@ -142,6 +142,7 @@ export function rewriteBody(content:string) {
       if (!x[CANDIDATE]) return;
 
       let arg = x.arguments[0];
+      x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
       x.arguments[0] = m.Call(INLINE, arg, m.Literal(m.Id().name));
         
       //Check for start of chain
