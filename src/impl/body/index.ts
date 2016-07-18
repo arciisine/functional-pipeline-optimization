@@ -142,21 +142,23 @@ export function rewriteBody(content:string) {
 
       return x;
     },
+    BlockStatementEnd : (x:AST.BlockStatement)=> {
+      if (x['_this']) {
+        x.body.unshift(m.Vars(x['_this'], AST.ThisExpression({})));
+        delete x['_this']
+      }
+    },
     ThisExpressionEnd : (x:AST.ThisExpression, v:Visitor) => {
       let fnScope = functionScopes[functionScopes.length-1]; 
       if (active && AST.isArrowFunctionExpression(fnScope))  {
-        let thisScope = thisScopes[thisScopes.length-1];
-        let body = thisScope.body.body;
+        let body  = thisScopes[thisScopes.length-1].body;
         let id:AST.Identifier = null;
-        let node = body[0]
 
-        if (AST.isVariableDeclaration(node) && node['_this']) {
-          id = node.declarations[0].id as AST.Identifier;
+        if (body['_this']) {
+          id = body['_this'];
         } else {
           id = m.Id()
-          let node = m.Vars(id, AST.ThisExpression({}))
-          node['_this'] = true;
-          body.unshift(node);
+          body['_this'] = id;
         }
 
         return m.Id(id.name);
@@ -187,7 +189,7 @@ export function rewriteBody(content:string) {
       if (inline) {
         x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
       }
-      x.arguments[0] = m.Call(TAG, arg, m.Literal(inline), m.Literal(inline ? m.Id().name : null));
+      x.arguments[0] = m.Call(TAG, arg, inline ? m.Literal(m.Id().name) : undefined);
         
       //Check for start of chain
       let callee = x.callee;

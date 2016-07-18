@@ -6,10 +6,10 @@ const is_arr = Array.isArray;
 const cache = {};
 
 export class Helper {
-  static tag<T>(el:T, inline:boolean, key:string):T { 
+  static tag<T>(el:T, inlineKey:string):T { 
     let fn = (el as any as Function);
-    fn.inline = inline;
-    fn.key = key || md5(fn.toString());
+    fn.inline = !!inlineKey;
+    fn.key = fn.key || inlineKey || md5(fn.toString());
     return el; 
   }
   static wrap<T>(el:T):T { 
