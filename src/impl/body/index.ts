@@ -15,7 +15,7 @@ const ANALYSIS = m.genSymbol();
 
 const EXEC = m.Id(`${SYMBOL}_exec`);
 const WRAP = m.Id(`${SYMBOL}_wrap`)
-const INLINE = m.Id(`${SYMBOL}_inline`)
+const TAG  = m.Id(`${SYMBOL}_tag`)
 const FREE = m.Id()
 
 function getPragmas(nodes:AST.Node[]):string[] {
@@ -139,7 +139,7 @@ export function rewriteBody(content:string) {
       if (thisScopes.length && x === thisScopes[thisScopes.length-1]) {
         thisScopes.pop();
       }
-      
+
       return x;
     },
     ThisExpressionEnd : (x:AST.ThisExpression, v:Visitor) => {
@@ -183,8 +183,11 @@ export function rewriteBody(content:string) {
       if (!x[CANDIDATE]) return;
 
       let arg = x.arguments[0];
-      x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
-      x.arguments[0] = m.Call(INLINE, arg, m.Literal(m.Id().name));
+      let inline = AST.isFunction(arg)
+      if (inline) {
+        x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
+      }
+      x.arguments[0] = m.Call(TAG, arg, m.Literal(inline), m.Literal(inline ? m.Id().name : null));
         
       //Check for start of chain
       let callee = x.callee;

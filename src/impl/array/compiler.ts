@@ -20,7 +20,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
     return state;
   }
 
-  compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {    
+  compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
     let x = compilable.analysis.closed;
     let assigned = {};
     let closed = {}

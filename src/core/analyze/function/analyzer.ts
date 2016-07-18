@@ -1,6 +1,5 @@
 import { ParseUtil, AST } from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
-import { md5 } from './md5';
 import {VariableVisitor, VariableStack} from '../variable';
 import {Util} from '../../util';
 
@@ -50,8 +49,6 @@ export class FunctionAnalyzer {
   }
 
   static analyze(fn:Function, globals?:any):Analysis {
-    fn.key = fn.key || md5(fn.toString());
-
     let ret = FunctionAnalyzer.analyzed[fn.key];
     if (ret) return ret
 

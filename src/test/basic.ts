@@ -1,6 +1,8 @@
 import {doTest, getNumberData} from './util';
 import '../impl/array/bootstrap';
 
+function even(x) { return x%2 === 0; }
+
 export function functional(data:number[]) {
     
   let hist = data
@@ -13,7 +15,7 @@ export function functional(data:number[]) {
     }, {} as {[key:string]:number});
       
   let evens = data
-    .filter(x => x % 2 === 0)
+    .filter(even)
     .map(x => x << 2);
 
   let count = data
@@ -39,7 +41,7 @@ export function functionalOptimize(data:number[]) {
     }, {} as {[key:string]:number});
       
   let evens = data
-    .filter(x => x % 2 === 0)
+    .filter(even)
     .map(x => x << 2);
 
   let count = data

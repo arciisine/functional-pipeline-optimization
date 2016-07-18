@@ -21,7 +21,7 @@ export class CompilerUtil {
   }
 
   static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>):ExecHandler<I,O> {
-    let key = compilable.key || compilable.analysis.key;
+    let key = compilable.key;
 
     if (CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
@@ -29,6 +29,8 @@ export class CompilerUtil {
 
     //Generate merged analysis 
     let state = compiler.createState();
+    compilable.finalize(); //Prep final state
+
     let ast = compiler.compile(compilable, state);
     let res = CompileUtil.compile(ast as any, {}) as ExecHandler<I,O>;
     console.log(res.toString())

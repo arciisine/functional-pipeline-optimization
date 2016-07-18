@@ -23,7 +23,7 @@ export interface ExecHandler<I, O>{
 
 declare global {
   interface Function {
-    key?:string        
+    key:string        
     inline?:boolean
   }
 }

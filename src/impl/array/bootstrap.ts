@@ -1,14 +1,15 @@
 import {ArrayBuilder} from './builder';
 import {Util} from '../../core';
+import {md5} from './md5';
 
 const is_arr = Array.isArray;
 const cache = {};
 
 export class Helper {
-  static inline<T>(el:T, key:string):T { 
+  static tag<T>(el:T, inline:boolean, key:string):T { 
     let fn = (el as any as Function);
-    fn.inline = true;
-    fn.key = key;
+    fn.inline = inline;
+    fn.key = key || md5(fn.toString());
     return el; 
   }
   static wrap<T>(el:T):T { 
@@ -27,6 +28,6 @@ export class Helper {
 
 export let SYMBOL = "_zzx8";
 Util.global[`${SYMBOL}`] = Helper
-Util.global[`${SYMBOL}_inline`] = Helper.inline
+Util.global[`${SYMBOL}_tag`]  = Helper.tag
 Util.global[`${SYMBOL}_wrap`] = Helper.wrap
 Util.global[`${SYMBOL}_exec`] = Helper.exec
