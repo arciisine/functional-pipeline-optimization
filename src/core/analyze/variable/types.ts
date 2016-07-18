@@ -6,14 +6,14 @@ export interface VariableHandler {
 }
 
 export interface VariableVisitHandler {
-    onFunctionStart?:(node?:AST.BaseFunction)=>void,
-    onFunctionEnd?:(node?:AST.BaseFunction)=>void,
-    onBlockStart?:(node?:AST.BlockStatement)=>void,
-    onBlockEnd?:(node?:AST.BlockStatement)=>void,
-    onDeclare?:VariableHandler,
-    onComputedAccess?:VariableHandler,
-    onAccess?:VariableHandler,
-    onThisAccess?:(node:AST.ThisExpression)=>void,
-    onWrite?:VariableHandler,
-    onInvoke?:VariableHandler,
+  Function?:(node?:AST.BaseFunction)=>void,
+  FunctionEnd?:(node?:AST.BaseFunction)=>void,
+  Block?:(node?:AST.BlockStatement)=>void,
+  BlockEnd?:(node?:AST.BlockStatement)=>void,
+  Declare?:VariableHandler,
+  ComputedAccess?:VariableHandler,
+  Access?:VariableHandler,
+  ThisAccess?:(node:AST.ThisExpression)=>void,
+  Write?:VariableHandler,
+  Invoke?:VariableHandler
 }

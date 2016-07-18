@@ -5,132 +5,119 @@ import {VariableVisitorUtil} from './util';
 
 let noop = (...args:any[]) => {}
 
-const DEFAULT_HANDLER:VariableVisitHandler = {
-    onFunctionStart:null,
-    onFunctionEnd:null,
-    onBlockStart:null,
-    onBlockEnd:null,
-    onComputedAccess:null,
-    onDeclare:null,
-    onAccess:null,
-    onThisAccess:null,
-    onWrite:null,
-    onInvoke:null
-}
-
 export class VariableNodeHandler implements AST.NodeHandler<Visitor> {
 
   constructor(
     private handler:VariableVisitHandler, 
     private stack:VariableStack = new VariableStack()
   ) {
-    for (let k in DEFAULT_HANDLER) {
-      handler[k] = handler[k] || noop;
-    }
+    ['Function', 'FunctionEnd', 'Block', 'BlockEnd', 
+      'ComputedAccess', 'Declare', 'ThisAccess', 'Write', 'Invoke'
+    ].forEach(k => handler[k] = handler[k] || noop)
 
-    let ogbs = handler.onBlockStart;
-    let ogbe = handler.onBlockEnd;
-    let ogd = handler.onDeclare;
+    let ogbs = handler.Block;
+    let ogbe = handler.BlockEnd;
+    let ogd = handler.Declare;
 
-    handler.onBlockStart = (a) => { this.stack.push(); ogbs(a) }
-    handler.onBlockEnd = (a) => { this.stack.push(); ogbe(a) }
-    handler.onDeclare = (name, a) => { this.stack.register(name); ogd(name, a); }      
+    handler.Block = (a) => { this.stack.push(); ogbs(a) }
+    handler.BlockEnd = (a) => { this.stack.push(); ogbe(a) }
+    handler.Declare = (name, a) => { this.stack.register(name); ogd(name, a); }      
   }
 
   private onWrite(node:AST.Node, root:AST.Node) {
     let id = VariableVisitorUtil.getPrimaryId(node);
-    if (id) this.handler.onWrite(id, root);
+    if (id) this.handler.Write(id, root);
   }
 
   private onInvoke(node:AST.Node, root:AST.Node) {
     let id = VariableVisitorUtil.getPrimaryId(node);
-    if (id) this.handler.onInvoke(id, root);
+    if (id) this.handler.Invoke(id, root);
   }
 
   //Function blocks
-  Function(x:AST.BaseFunction)  {
-    this.handler.onFunctionStart(x);
+  Function(x:AST.BaseFunction) {
+    this.handler.Function(x);
     let block = VariableVisitorUtil.getFunctionBlock(x);
-    this.handler.onBlockStart(block);
+    this.handler.Block(block);
 
     if (x.id) {
-      this.handler.onDeclare(x.id, x);
+      this.handler.Declare(x.id, x);
     }
     VariableVisitorUtil.readPatternIds(x.params).forEach(id => {
-      this.handler.onDeclare(id, x);         
+      this.handler.Declare(id, x);         
     })
     VariableVisitorUtil.findHoistedDeclarationIds(x).forEach(id => {
-      this.handler.onDeclare(id, x)
+      this.handler.Declare(id, x)
     });
   }
   
   FunctionEnd(x:AST.BaseFunction) {
     let block = VariableVisitorUtil.getFunctionBlock(x);
-    this.handler.onBlockEnd(block);
-    this.handler.onFunctionEnd(x);
+    this.handler.BlockEnd(block);
+    this.handler.FunctionEnd(x);
   }
 
   //Declarations      
   ForLoop(x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor) {
     let block = VariableVisitorUtil.getForLoopBlock(x);
-    this.handler.onBlockStart(block);
+    this.handler.Block(block);
     if (!AST.isForStatement(x)) {
       if (!AST.isVariableDeclaration(x.left)) {
         VariableVisitorUtil.readPatternIds(x.left).forEach(id => {
-          this.handler.onWrite(id, x);
+          this.handler.Write(id, x);
         })
       } else {
-        //Ensure init vars are declared descent
+        //Ensure init vars are declared before descent
         VariableVisitorUtil.readDeclarationIds(x.left.declarations)
-          .forEach(id => this.handler.onDeclare(id, x)); 
+          .forEach(id => this.handler.Declare(id, x)); 
       }
     } else if (AST.isVariableDeclaration(x.init)) {
       //Ensure init vars are declared before descent
       VariableVisitorUtil.readDeclarationIds(x.init.declarations)
-        .forEach(id => this.handler.onDeclare(id, x));
+        .forEach(id => this.handler.Declare(id, x));
     }
   }
 
   ForLoopEnd(x:AST.ForStatement|AST.ForInStatement|AST.ForOfStatement, v:Visitor)  {
     let block = VariableVisitorUtil.getForLoopBlock(x);
-    this.handler.onBlockEnd(block);
+    this.handler.BlockEnd(block);
   }
   
   BlockStatement(x:AST.BlockStatement, v:Visitor) {
     let cont = v.parent.container as AST.Node;
     if (!AST.isFunction(cont) && !AST.isForLoop(cont) && !AST.isCatchClause(cont)) {
-      this.handler.onBlockStart(x);
+      this.handler.Block(x);
     }
   }
 
   BlockStatementEnd(x:AST.BlockStatement, v:Visitor) {
     let cont = v.parent.container as AST.Node;
     if (!AST.isFunction(cont) && !AST.isForLoop(cont) && !AST.isCatchClause(cont)) {
-      this.handler.onBlockEnd(x);
+      this.handler.BlockEnd(x);
     }
   }
 
   VariableDeclaration(x:AST.VariableDeclaration) {
     if (x.kind !== 'var') {
       VariableVisitorUtil.readDeclarationIds(x.declarations)
-        .forEach(id => this.handler.onDeclare(id, x));
+        .forEach(id => this.handler.Declare(id, x));
     }
   }
 
   ClassDeclaration(x:AST.ClassDeclaration) {        
-    this.handler.onDeclare(x.id, x);
+    this.handler.Declare(x.id, x);
   }
 
   CatchClause(x:AST.CatchClause) {
-    this.handler.onBlockStart(x.body);
+    this.handler.Block(x.body);
 
     VariableVisitorUtil.readPatternIds(x.param).forEach(i => {
-      this.handler.onDeclare(i, x.param);
+      this.handler.Declare(i, x.param);
     })
   }
 
   CatchClauseEnd(x:AST.CatchClause) {
-    this.handler.onBlockEnd(x.body);
+    this.handler.BlockEnd(x.body);
   }
 
   //Handle assignment
@@ -154,7 +141,7 @@ export class VariableNodeHandler implements AST.NodeHandler<Visitor> {
 
   //This
   ThisExpression(x:AST.ThisExpression) {
-    this.handler.onThisAccess(x);
+    this.handler.ThisAccess(x);
   }
 
   //Prevent reading patterns, already handled manually
@@ -170,7 +157,7 @@ export class VariableNodeHandler implements AST.NodeHandler<Visitor> {
       !(AST.isMemberExpression(pnode) && x === pnode.property && !pnode.computed) && //Not a member property
       !(AST.isProperty(pnode) && x === pnode.key && !pnode.computed) //Not a property key 
     ) {
-      this.handler.onAccess(x, pnode);
+      this.handler.Access(x, pnode);
     }
   }
 }

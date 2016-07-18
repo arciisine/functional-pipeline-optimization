@@ -1,7 +1,7 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse} from '../../core';
 import { Analysis } from '../../core/analyze';
-import { VariableVisitor, VariableStack, VariableVisitorUtil }  from '../../core/analyze/variable';
+import { VariableNodeHandler, VariableStack, VariableVisitorUtil }  from '../../core/analyze/variable';
 import { TransformState } from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
@@ -45,10 +45,10 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     let depth = 0;
 
     //Rename all variables to unique values
-    VariableVisitor.visit({
-      onFunctionStart : () => depth++,
-      onFunctionEnd : () => depth--,
-      onDeclare:(name:AST.Identifier, parent:AST.Node) => {
+    let handler = new VariableNodeHandler({
+      Function : () => depth++,
+      FunctionEnd : () => depth--,
+      Declare:(name:AST.Identifier, parent:AST.Node) => {
         if (depth <= 1) {          
           //Skip parents
         } else {
@@ -62,12 +62,14 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
           }
         }
       },
-      onAccess:(name:AST.Identifier, parent:AST.Node) => {
+      Access:(name:AST.Identifier, parent:AST.Node) => {
         if (stack.contains(name)) {
           name.name = stack.top[name.name]; //Rewrite
         }
       }
-    }, fn, stack);
+    }, stack);
+
+    Visitor.exec(handler, fn);
 
     return {
       body,
@@ -156,10 +158,10 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       body.unshift(...res.body);
       
       //Handle returns
-      new Visitor({
+      Visitor.exec({
         Function : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
         ReturnStatementEnd : (x:AST.ReturnStatement) => this.onReturn(state, x)
-      }).exec(fn)
+      }, fn)
 
       body.push(...fn.body.body);
     }

@@ -23,30 +23,30 @@ export class FunctionAnalyzer {
     }
 
     let handler = new VariableNodeHandler({
-      onComputedAccess : (name:AST.Identifier) => {
+      ComputedAccess : (name:AST.Identifier) => {
         analysis.hasComputedMemberAccess = true;
       },
-      onAccess : (name:AST.Identifier, node:AST.Node) => {
+      Access : (name:AST.Identifier, node:AST.Node) => {
         checkClosed(name, AccessType.ACCESS)
 
         if (AST.isMemberExpression(node)) {
           analysis.hasMemberAccess = true;
         }
       },
-      onThisAccess : (node:AST.ThisExpression) => {
+      ThisAccess : (node:AST.ThisExpression) => {
         analysis.hasThisReference = true;
       },
-      onWrite : (name:AST.Identifier) => {
+      Write : (name:AST.Identifier) => {
         checkClosed(name, AccessType.WRITE)
       },
-      onInvoke : (name:AST.Identifier) => {
+      Invoke : (name:AST.Identifier) => {
         checkClosed(name, AccessType.INVOKE)
         analysis.hasInvocation = true;
       },
     }, stack);
 
     Visitor.exec(handler, ast)
-    
+
     return analysis;
   }
 
