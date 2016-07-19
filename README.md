@@ -35,6 +35,3 @@
 
 * Variable Visitor
     * Move it to core?
-* Body transformer
-    * Make it smaller
-    * Find common patterns 
