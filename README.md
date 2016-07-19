@@ -34,8 +34,7 @@
 **Refactoring**
 
 * Variable Visitor
-    * Move it to core
-    * Make a better way of associating data with stack
+    * Move it to core?
 * Array Base Transformable
     * Make it smaller
     * Find common patterns

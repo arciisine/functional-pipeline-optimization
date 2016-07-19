@@ -33,12 +33,12 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
         body.unshift(m.Vars(p, params[i]))
         VariableVisitorUtil.readPatternIds(p).forEach(id => {
-          stack.register(id);
-          id.name = (stack.top[id.name] = m.Id().name)
+          let data = stack.register(id);
+          id.name = data.rewriteName = m.Id().name
         })
       } else if (AST.isIdentifier(p)) {
-        stack.register(p);
-        p.name = stack.top[p.name] = (params[i] as AST.Identifier).name;         
+        let data = stack.register(p);
+        p.name = data.rewriteName = (params[i] as AST.Identifier).name;         
       }
     }
 
@@ -53,18 +53,18 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
           //Skip parents
         } else {
           //Don't declare variables in nested functions
-          if (depth > 1 && stack.contains(name.name)) {
-            stack.top[name.name] = name.name;
+          if (depth > 1 && stack.contains(name)) {
+            stack.get(name).rewriteName = name.name;
           } else {           
             let id = m.Id();
             name.name = id.name;
-            stack.top[name.name] =  id.name;
+            stack.get(name).rewriteName = id.name;
           }
         }
       },
       Access:(name:AST.Identifier, parent:AST.Node) => {
         if (stack.contains(name)) {
-          name.name = stack.top[name.name]; //Rewrite
+          name.name = stack.get(name).rewriteName; //Rewrite
         }
       }
     }, stack);
@@ -150,7 +150,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       if (this.inputs.context !== undefined) {
         let ctx = m.Id();
         vars.push(ctx, this.getContextValue(state, 'context'));
-        stack.top['this'] = ctx;
+        stack.register('this').rewriteName = ctx.name;
       }
 
       let res = BaseTransformable.rewriteVariables(stack, fn, params);

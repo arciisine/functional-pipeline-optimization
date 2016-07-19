@@ -1,45 +1,42 @@
 import { AST } from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
 
 export class VariableStack {
-  top = null;
-  scope = [null];
-  length = 0;
+  private variables:{[key:string]:any[]} = {};
+  private top:{[key:string]:boolean} = {};
+  private stack:{[key:string]:boolean}[] = [this.top];
 
-  register(name:string|AST.Identifier) {
-    if (this.top === null) {
-      this.scope[this.length] = (this.top = {});
-    }
-    if (typeof name === 'string') {
-      this.top[name] = true;
-    } else {
-      this.top[name.name] = true;
-    }
+  register(name:string|AST.Identifier):any {
+    let key = typeof name === 'string' ? name : name.name;
+    this.top[key] = true;
+    this.variables[key] = this.variables[key] || [];
+
+    let res = {}
+    this.variables[key].push(res)
+    return res; 
+  }
+
+  get(name:string|AST.Identifier) {
+    let key = typeof name === 'string' ? name : name.name;    
+    let s = this.variables[key];
+    return s && s.length ? s[s.length-1] : undefined;
   }
 
   contains(name:string|AST.Identifier) {
-    if (typeof name === 'string') {
-      return !!this.top[name];
-    } else if (this.top) {
-      return !!this.top[name.name];
-    } else {
-      return false;
-    }
+    let key = typeof name === 'string' ? name : name.name;
+    return this.variables.hasOwnProperty(key);
   }
 
   push() {
-    let out = {};
-    for (var k in this.top) {
-      out[k] = this.top[k];
-    }
-    this.length += 1
-    this.scope.unshift(this.top = out);
+    this.stack.push(this.top = {});
   }
 
   pop() {
-    if (this.scope.length > 0) {
-      this.scope.shift()
-      this.length -= 1     
-      this.top = this.scope[0];
+    if (this.stack.length > 0) {
+      let toPop = this.stack.pop();
+      for (let k of Object.keys(toPop)) {
+        this.variables[k].pop();
+      }
+      this.top = this.stack[this.stack.length-1];
     }
   }
 }
