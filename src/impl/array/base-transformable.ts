@@ -43,6 +43,52 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return [state.elementId];
   }
 
+  /**
+   * When we cannot inline, we just call the function directly
+   */
+  buildFunctionCallResult(state:TransformState, out:TransformResponse, params:AST.Identifier[]):void {
+    let stepContextId = m.Id();
+    let stepCallbackId = m.Id()
+
+    out.vars.push(
+      stepContextId, this.getContextValue(state, 'context'), 
+      stepCallbackId, m.GetProperty(this.getContextValue(state, 'callback'), 'call')
+    )
+
+    out.body.push(
+      this.onReturn(state, 
+        m.Return(m.Call(stepCallbackId, stepContextId, ...params))
+      )
+    );
+  }
+
+  /**
+   * Inline the function
+   */
+  buildInlineResult(state:TransformState, out:TransformResponse, params:AST.Identifier[], fn:AST.FunctionExpression):void {
+    let stack = new VariableStack<RewriteContext>();
+
+    //Handle context variable
+    if (this.inputs.context !== undefined) {
+      let ctx = m.Id();
+      out.vars.push(ctx, this.getContextValue(state, 'context'));
+      stack.register('this').rewriteName = ctx.name;
+    }
+
+    //Rewrite all variables in the function
+    let res = RewriteUtil.rewriteVariables(stack, fn, params);
+    out.vars.push(...res.vars);
+    out.body.unshift(...res.body);
+    
+    //Handle returns
+    Visitor.exec({
+      Function : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
+      ReturnStatementEnd : (x:AST.ReturnStatement) => this.onReturn(state, x)
+    }, fn)
+
+    out.body.push(...fn.body.body);
+  }
+
   transform(state:TransformState):TransformResponse  {
     let node = ParseUtil.parse(this.inputs.callback) as AST.Node;
     let pos = m.Id();
@@ -64,54 +110,22 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       throw { message : "Array references are not supported", invalid : true };
     }
 
-    let vars = [];
-    let body:AST.Node[] = [];
+    let res = {vars:[], body:[]};
 
     //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions
     if (!this.inputs.callback.inline && Object.keys(this.analysis.closed).length > 0) {
-      let stepContextId = m.Id();
-      let stepCallbackId = m.Id()
-
-      vars.push(
-        stepContextId, this.getContextValue(state, 'context'), 
-        stepCallbackId, m.GetProperty(this.getContextValue(state, 'callback'), 'call')
-      );
-
-      body.push(this.onReturn(state, 
-        m.Return(
-          m.Call(stepCallbackId, stepContextId, ...params)
-        )
-      )); 
+       this.buildFunctionCallResult(state, res, params); 
     } else {
-      let stack = new VariableStack<RewriteContext>();
-
-      //Handle context variable
-      if (this.inputs.context !== undefined) {
-        let ctx = m.Id();
-        vars.push(ctx, this.getContextValue(state, 'context'));
-        stack.register('this').rewriteName = ctx.name;
-      }
-
-      let res = RewriteUtil.rewriteVariables(stack, fn, params);
-      vars.push(...res.vars);
-      body.unshift(...res.body);
-      
-      //Handle returns
-      Visitor.exec({
-        Function : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
-        ReturnStatementEnd : (x:AST.ReturnStatement) => this.onReturn(state, x)
-      }, fn)
-
-      body.push(...fn.body.body);
+      this.buildInlineResult(state, res, params, fn);
     }
-
+    
     if (fn.params.length === params.length) { //If using index
-      vars.push(pos, m.Literal(0))
-      body.push(m.Expr(m.Increment(pos)))
+      res.vars.push(pos, m.Literal(0))
+      res.body.push(m.Expr(m.Increment(pos)))
     }
 
-    return { body, vars };
+    return res;
   }
 
   manualTransform(data:T[]):U {
