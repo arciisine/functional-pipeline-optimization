@@ -35,9 +35,6 @@
 
 * Variable Visitor
     * Move it to core?
-* Array Base Transformable
-    * Make it smaller
-    * Find common patterns
 * Body transformer
     * Make it smaller
     * Find common patterns 
