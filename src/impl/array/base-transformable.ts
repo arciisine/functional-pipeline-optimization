@@ -1,7 +1,7 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse} from '../../core';
 import { Analysis } from '../../core/analyze';
-import { VariableNodeHandler, VariableStack, VariableVisitorUtil }  from '../../core/analyze/variable';
+import { RewriteContext, VariableStack, RewriteUtil }  from '../../core/analyze/variable';
 import { TransformState } from './types';
 
 export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
@@ -18,63 +18,6 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
       BaseTransformable.cache[key] = Array.prototype[fn];
     }
     return BaseTransformable.cache[key];
-  }
-
-  static rewriteVariables(stack:VariableStack, fn:AST.BaseFunction, params:AST.Identifier[]):TransformResponse {
-    //Handle wether or not we can reference the element, or if we
-    //  we need to assign to leverage pattern usage
-    let fnparams = fn.params;
-    let assign = {};
-
-    let body = [];
-
-    for (let i = 0; i < fn.params.length;i++) {
-      let p = fn.params[i];
-      if (AST.isArrayPattern(p) || AST.isObjectPattern(p)) {        
-        body.unshift(m.Vars(p, params[i]))
-        VariableVisitorUtil.readPatternIds(p).forEach(id => {
-          let data = stack.register(id);
-          id.name = data.rewriteName = m.Id().name
-        })
-      } else if (AST.isIdentifier(p)) {
-        let data = stack.register(p);
-        p.name = data.rewriteName = (params[i] as AST.Identifier).name;         
-      }
-    }
-
-    let depth = 0;
-
-    //Rename all variables to unique values
-    let handler = new VariableNodeHandler({
-      Function : () => depth++,
-      FunctionEnd : () => depth--,
-      Declare:(name:AST.Identifier, parent:AST.Node) => {
-        if (depth <= 1) {          
-          //Skip parents
-        } else {
-          //Don't declare variables in nested functions
-          if (depth > 1 && stack.contains(name)) {
-            stack.get(name).rewriteName = name.name;
-          } else {           
-            let id = m.Id();
-            name.name = id.name;
-            stack.get(name).rewriteName = id.name;
-          }
-        }
-      },
-      Access:(name:AST.Identifier, parent:AST.Node) => {
-        if (stack.contains(name)) {
-          name.name = stack.get(name).rewriteName; //Rewrite
-        }
-      }
-    }, stack);
-
-    Visitor.exec(handler, fn);
-
-    return {
-      body,
-      vars : []
-    } 
   }
 
   public inputArray:any[]
@@ -137,14 +80,11 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
       body.push(this.onReturn(state, 
         m.Return(
-          m.Call(stepCallbackId,
-              stepContextId,
-              ...params.slice(0, fn.params.length === params.length ? 0 : -1))
-          )
+          m.Call(stepCallbackId, stepContextId, ...params)
         )
-      ); 
+      )); 
     } else {
-      let stack = new VariableStack();
+      let stack = new VariableStack<RewriteContext>();
 
       //Handle context variable
       if (this.inputs.context !== undefined) {
@@ -153,7 +93,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
         stack.register('this').rewriteName = ctx.name;
       }
 
-      let res = BaseTransformable.rewriteVariables(stack, fn, params);
+      let res = RewriteUtil.rewriteVariables(stack, fn, params);
       vars.push(...res.vars);
       body.unshift(...res.body);
       
