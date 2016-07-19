@@ -5,11 +5,11 @@ import {VariableVisitorUtil} from './util';
 
 let noop = (...args:any[]) => {}
 
-export class VariableNodeHandler implements AST.NodeHandler<Visitor> {
+export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
 
   constructor(
     private handler:VariableVisitHandler, 
-    private stack:VariableStack = new VariableStack()
+    private stack:VariableStack<T> = new VariableStack<T>()
   ) {
     ['Function', 'FunctionEnd', 'Block', 'BlockEnd', 
       'ComputedAccess', 'Declare', 'ThisAccess', 'Write', 'Invoke'
