@@ -4,11 +4,10 @@ import { Analysis, Analyzable } from '../analyze';
 export class Compilable<I,O> implements Analyzable {
   public chain:Transformable<any, any>[] = null;
   private pending:[TransformableConstructor<any, any>, any][] = [];
-  private _analysis:Analysis;
+  public analysis:Analysis;
   public context:any[] = []
   public key:string;
-
-  constructor() {}
+  public last:Transformable<any, O>;
 
   add<V>(cons:TransformableConstructor<O,V>, args:any):Compilable<I, V> {
     if (this.chain !== null) {
@@ -22,32 +21,15 @@ export class Compilable<I,O> implements Analyzable {
   
   finalize() {
     if (this.chain === null) {
-      this.chain = [];
-      for (let i = 0; i < this.pending.length; i++) {
-        let [cons,args] = this.pending[i];
+      this.analysis = new Analysis('~')
+      this.chain = this.pending.map(([cons,args], i) => {
         let res = new cons(args);
-        TransformUtil.analyze(res).analysis;
+        res.analysis = TransformUtil.analyze(res).analysis;
+        this.analysis.merge(res.analysis);
         res.position = i;
-        this.chain.push(res);
-      }
+        return res;
+      });
+      this.last = this.chain[this.chain.length-1];
     }
-  }
-
-  get last():Transformable<any, O> {
-    return this.chain[this.chain.length-1];
-  }
-
-  get analysis():Analysis {
-    if (this.chain === null) {
-      throw new Error("Not finalized!");
-    }
-    if (this._analysis === undefined) {
-      this._analysis = new Analysis('~')
-      let len = this.chain.length;
-      for (let i = 0; i < len; i++) {
-        this._analysis.merge(this.chain[i])
-      }
-    }
-    return this._analysis
   }
 }
