@@ -31,7 +31,7 @@ export class VariableStack {
   }
 
   pop() {
-    if (this.stack.length > 0) {
+    if (this.stack.length > 1) { //Always leave global
       let toPop = this.stack.pop();
       for (let k of Object.keys(toPop)) {
         this.variables[k].pop();
