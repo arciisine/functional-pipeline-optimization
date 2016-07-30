@@ -11,12 +11,50 @@
 \usepackage{enumitem}
 \usepackage{verbatim}
 \usepackage{color}
+\usepackage{listings}
 
 \usetikzlibrary{arrows,positioning,calc}
 \usetikzlibrary{graphs,arrows.meta}
 
 \setlist[itemize]{leftmargin=*}
 \setlist[enumerate]{leftmargin=*}
+
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{darkblue}{rgb}{.4,.4,0}
+\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, let, const, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this, filter, map, reduce, foreach, some, find, WRAP, EXEC, TAG},
+  ndkeywordstyle=\color{darkblue}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+   language=JavaScript,
+   backgroundcolor=\color{lightgray},
+   extendedchars=true,
+   basicstyle=\footnotesize\ttfamily,
+   showstringspaces=false,
+   showspaces=false,
+   numbers=left,
+   numberstyle=\footnotesize,
+   numbersep=9pt,
+   tabsize=2,
+   breaklines=true,
+   showtabs=false,
+   captionpos=b
+}
+
 
 \usepackage[margin=1in]{geometry}
 
@@ -45,11 +83,27 @@ The full algorithm can be broken into the following process:
     \end{enumerate}
     \item When a potential Array operator site is found, modify source to
     \begin{enumerate} 
-      \item	Wrap the Array expression to provide an Array surrogate that can collect the operators
-      \item	Wrap the potential Array expression and the subsequent operators to allow for compilation and execution of the collected operators
+      \item	Wrap the Array expression with a $WRAP$ invocation, to provide an Array surrogate that can collect the operators
+      \item	Wrap every function used by the operators with a $TAG$ invocation.  This provides additional metadata used for the compilation process
+      \item	Wrap the potential Array expression and the subsequent operators with an $EXEC$ invocation to allow for compilation and execution of the collected operators
     \end{enumerate}    
   \end{enumerate}
-  \lstinputlisting{source_filename.py}
-\end{enumerate}
 
+  Sample Transpilation input  
+  \lstinputlisting[frame=single, language=JavaScript]{sample_target.js}
+
+  Sample Transpilation output  
+  \lstinputlisting[frame=single, language=JavaScript]{sample_target_transpiled.js}
+
+  \item At execution time, the functions $WRAP$, $TAG$, and $EXEC$ will perform all the necessary work to
+  produce and execute the optimized code
+    \begin{enumerate}
+    \item When $WRAP$ is invoked, and the argument is an array, will produce a wrapper object that will collect 
+      all the tagged operations ($filter$, $map$, $reduce$, etc.).  
+    \item When $EXEC$ is invoked, if the input is a wrapper object, it will compile and execute the code.      
+    \item When $WRAP$ is invoked with a non-array or $EXEC$ is invoked with a non-wrapper object, 
+      it will return the input as is.  This allows for runtime type detection, and will not fail if 
+      types are not-known at compile-time.  
+    \end{enumerate}  
+\end{enumerate}
 \end{document}
