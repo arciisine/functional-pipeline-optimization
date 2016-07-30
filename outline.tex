@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{stmaryrd}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{verbatim}
+\usepackage{color}
+
+\usetikzlibrary{arrows,positioning,calc}
+\usetikzlibrary{graphs,arrows.meta}
+
+\setlist[itemize]{leftmargin=*}
+\setlist[enumerate]{leftmargin=*}
+
+\usepackage[margin=1in]{geometry}
+
+\title{Thesis Outline}
+\author{Timothy Soehnlin}
+\date{\today}
+
+\begin{document}
+
+\section{Goals}
+Provide optimized code while retaining ability to utilize functional list paradigms.
+
+\section{Algorithm}
+At a high level, the algorithm will transform a series of standard JavaScript $Array$ operators ($filter$, $map$, 
+$reduce$, $forEach$, $some$, $every$) into a standard for loop notation.  
+
+The full algorithm can be broken into the following process:
+\begin{enumerate}
+  \item Transpile source files to look for possible transformation patterns
+  \begin{enumerate}
+    \item Look for every possible indication that Array list operators are being used
+    \begin{enumerate}
+      \item Only $map$ and $filte$r reliably return new Arrays, whereas $some$, 
+        $forEach$ and $every$ reliably return non-arrays.  $reduce$ can return 
+        any value (and so we treat it as unknown)    
+    \end{enumerate}
+    \item When a potential Array operator site is found, modify source to
+    \begin{enumerate} 
+      \item	Wrap the Array expression to provide an Array surrogate that can collect the operators
+      \item	Wrap the potential Array expression and the subsequent operators to allow for compilation and execution of the collected operators
+    \end{enumerate}    
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}
