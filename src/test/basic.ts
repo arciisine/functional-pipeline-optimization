@@ -94,4 +94,4 @@ export function obj(data:number[]) {
 }
 
 doTest({functional, functionalOptimize}, getNumberData())
-doTest({sum, sumOptimize}, getNumberData())
+//doTest({sum, sumOptimize}, getNumberData())
