@@ -1,5 +1,5 @@
 dist/**
 node_modules/**
-*.aux
-*.pdf
-*.log
+report/*.aux
+report/*.pdf
+report/*.log
