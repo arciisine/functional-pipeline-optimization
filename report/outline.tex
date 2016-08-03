@@ -100,6 +100,7 @@ When transpiling the source files, we look for possible transformation patterns
   At runtime time, the functions $WRAP$, $TAG$, and $EXEC$ will perform all the necessary work to produce 
   and execute the optimized code
   \begin{enumerate}
+    \item When transpiling a function or program context, allow for control of process by pragma
     \item When $WRAP$ is invoked, and the argument is an array, will produce a wrapper object that will collect 
       all the tagged operations ($filter$, $map$, $reduce$, etc.).  
     \item When $EXEC$ is invoked, if the input is a wrapper object, it will compile and execute the code.      
@@ -158,5 +159,22 @@ When transpiling the source files, we look for possible transformation patterns
         \end{lstlisting}                
 
         This generally shouldn't matter,      
-    \end{enumerate}    
+    \end{enumerate}
+
+\section{Evaluation}
+The current goal is to find existing code bases that this can be run on, and evaluate overall performance.  
+The main hinderance to this, is that converting functional list form to for-loop is a common hand
+optimization.  The places where this would be utimately useful will more than likely already have been 
+optimized.  
+
+The alternate to finding an existing code base, is to create a program, only using the functional list format, 
+and then run with optimizations, verifying output and timings. The program would have to be of sufficient
+complexity.
+
+Generally these optimizations make sense at the framework level even more (though finding places to optimize will be harder).
+
+What I may do is also look into CPU intensive applications, rewriting into functional list form, and evaulating
+the ability to test and verify the program.  The functional form should be better tested vs a hand optimized 
+form. 
+
 \end{document}
