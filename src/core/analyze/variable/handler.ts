@@ -12,7 +12,8 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
     private stack:VariableStack<T> = new VariableStack<T>()
   ) {
     ['Function', 'FunctionEnd', 'Block', 'BlockEnd', 
-      'ComputedAccess', 'Declare', 'ThisAccess', 'Write', 'Invoke'
+      'ComputedAccess', 'Declare', 'ThisAccess', 'Write', 'Invoke', 
+      'PropertyInvoke'
     ].forEach(k => handler[k] = handler[k] || noop)
 
     let ogbs = handler.Block;
@@ -132,6 +133,36 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
   //Handle invocation
   CallExpression(x:AST.CallExpression) {
     this.onInvoke(x.callee, x);
+
+    //Handle top-level property invocation (object is literal)
+    if (AST.isMemberExpression(x.callee)) {
+      let chain:AST.Identifier[] = [];
+      let node = x.callee;
+
+      while (chain) {
+        if (AST.isIdentifier(node.property)) {
+          chain.unshift(node.property);          
+        } else {
+          chain = null;
+          break;
+        }
+
+        if (AST.isMemberExpression(node.object)) {
+          node = node.object;
+        } else if (AST.isIdentifier(node.object)) {
+          chain.unshift(node.object)
+          break;
+        } else {
+          chain = null;
+          break;
+        }
+      }
+
+      //We have a member access
+      if (chain !== null) {
+        this.handler.PropertyInvoke(chain, x)
+      }              
+    }
   }
 
   //New
@@ -152,6 +183,7 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
   Identifier(x:AST.Identifier, v:Visitor) {
     let pnode = v.parent.node;
     let ptype = pnode.type;
+
     if (!(AST.isFunction(pnode) && v.parent.container !== pnode.params) && //Not a function param
       !(AST.isVariableDeclarator(pnode) && pnode.id === x) && //Not redeclaring declarations  
       !(AST.isMemberExpression(pnode) && x === pnode.property && !pnode.computed) && //Not a member property

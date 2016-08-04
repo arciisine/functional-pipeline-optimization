@@ -3,7 +3,6 @@ import { Analysis, Analyzable, AccessType } from './types';
 import {VariableStack, VariableNodeHandler} from '../variable';
 import {Util} from '../../util';
 
-
 export class FunctionAnalyzer {
   
   private static keyCache:{[key:string]:string} = {};
@@ -12,7 +11,7 @@ export class FunctionAnalyzer {
 
   static analyzeAST(ast:AST.BaseFunction, globals?:any):Analysis {
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
-    analysis.globals = globals || Util.global
+    analysis.globals = {};
 
     let stack = new VariableStack();
 
@@ -25,6 +24,12 @@ export class FunctionAnalyzer {
     let handler = new VariableNodeHandler({
       ComputedAccess : (name:AST.Identifier) => {
         analysis.hasComputedMemberAccess = true;
+      },
+      PropertyInvoke  : (chain:AST.Identifier[], node:AST.Node) =>{
+        let resolved = chain.reduce((o, p) => o ? o[p.name] : null, Util.global);
+        if (resolved) {
+          analysis.globals[chain[0].name] = true;
+        }
       },
       Access : (name:AST.Identifier, node:AST.Node) => {
         checkClosed(name, AccessType.ACCESS)
