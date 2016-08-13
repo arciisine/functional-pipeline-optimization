@@ -5,6 +5,7 @@ import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../..
 import {BodyTransformUtil, EXEC, TAG} from './util';
 
 export const CANDIDATE = m.genSymbol();
+export const CANDIDATE_KEY = m.genSymbol();
 export const CANDIDATE_START = m.genSymbol();
 export const CANDIDATE_FUNCTIONS = m.genSymbol();
 export const CANDIDATE_RELATED = m.genSymbol();
@@ -127,6 +128,7 @@ export class BodyTransformHandler {
         })
       }
       fn.id = m.Id('__inline', true)
+      x[CANDIDATE_KEY] = fn.id.name;
       x.arguments[0] = fn
     } else if (AST.isIdentifier(arg)) {
       let passed = false;
@@ -135,7 +137,13 @@ export class BodyTransformHandler {
         passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
         if (passed) break;
       }
-      x.arguments[0] = passed ? m.Call(TAG, arg) : m.Call(TAG, arg, m.Literal(m.genSymbol()));
+      if (passed) {
+        x.arguments[0] = m.Call(TAG, arg);
+      } else {
+        let id = m.genSymbol();
+        x[CANDIDATE_KEY] = id;
+        x.arguments[0] = m.Call(TAG, arg, m.Literal(id));
+      }
     }
       
     let endNode = x[CANDIDATE_FUNCTIONS] ? x : visitor.findParent(x => !!x.node[CANDIDATE_FUNCTIONS]).node as AST.CallExpression;
@@ -155,7 +163,10 @@ export class BodyTransformHandler {
       let ops = [];
       let inputs = [];
 
+      let allStatic = true;
+
       x[CANDIDATE_FUNCTIONS].map((x:AST.CallExpression) => {
+        allStatic = allStatic && x[CANDIDATE_KEY] !== '';
         ops.push(m.Literal((x.callee as AST.MemberExpression).property['name']));
         inputs.push(AST.ArrayExpression({ elements : x.arguments }))
       });      
@@ -167,7 +178,12 @@ export class BodyTransformHandler {
 
       let params = BodyTransformUtil.getExecArguments(x, analysis);
 
-      return m.Call(EXEC, (x[CANDIDATE_START] as AST.MemberExpression).object, AST.ArrayExpression({elements:ops}), AST.ArrayExpression({elements:inputs}), ...params);
+      return m.Call(EXEC, (
+        x[CANDIDATE_START] as AST.MemberExpression).object, 
+        AST.ArrayExpression({elements:ops}), 
+        AST.ArrayExpression({elements:inputs}),
+        allStatic ? m.Literal(m.genSymbol()) : AST.Literal({value:null}), 
+        ...params);
     }
   }
 }
