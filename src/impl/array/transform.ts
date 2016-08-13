@@ -4,7 +4,7 @@ import { Transformable, TransformResponse, Analysis } from '../../core';
 import { TransformState, Callback, Handler } from './types';
 
 export class SliceTransform<T> implements Transformable<T[], T[]>  {
-  inputs:{start?:number} = {}
+  inputs:{start?:number, end?:number} = {}
   callbacks:Function[] = null
 
   analyze():Analysis {
@@ -12,10 +12,14 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
   }
 
   transform(state:TransformState):TransformResponse {
+    if (this.inputs.end) { //If using end counter as well (we won't know)
+      throw { message : "End index is not supported", invalid : true };
+    }
+
     let counter = m.Id();
     let startBound = m.Id();
     return {
-      vars : [m.Vars(counter, m.Literal(0), startBound, this.inputs.start)],
+      vars : [m.Vars(counter, m.Literal(0), startBound, m.Literal(this.inputs.start))],
       body : [
         m.Increment(counter),
         m.IfThen(AST.BinaryExpression({left:counter, operator:'<', right:startBound}), 

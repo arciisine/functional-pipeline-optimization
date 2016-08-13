@@ -22,7 +22,6 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
   public inputArray:any[]
   public manual:W;
-  public analysis:Analysis = null;
   public position = -1;
 
   constructor(public inputs:{callback:V, context?:any}) {
@@ -34,10 +33,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
 
   analyze():Analysis {
-    if (this.analysis === null) {
-      this.analysis = FunctionAnalyzer.analyze(this.inputs.callback);
-    }
-    return this.analysis;
+    return FunctionAnalyzer.analyze(this.inputs.callback);
   }
 
   getContextValue(state:TransformState, key:string):AST.MemberExpression {
@@ -119,7 +115,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
     //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions
-    if (!this.inputs.callback.inline && Object.keys(this.analysis.closed).length > 0) {
+    if (!this.inputs.callback.inline && Object.keys(this.analyze().closed).length > 0) {
        this.buildFunctionCallResult(state, res, params); 
     } else {
       this.buildInlineResult(state, res, params, fn);
