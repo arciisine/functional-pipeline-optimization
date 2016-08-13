@@ -180,9 +180,9 @@ export class BodyTransformHandler {
 
       return m.Call(EXEC, (
         x[CANDIDATE_START] as AST.MemberExpression).object, 
+        allStatic ? m.Literal(m.genSymbol()) : AST.Literal({value:null}), 
         AST.ArrayExpression({elements:ops}), 
         AST.ArrayExpression({elements:inputs}),
-        allStatic ? m.Literal(m.genSymbol()) : AST.Literal({value:null}), 
         ...params);
     }
   }

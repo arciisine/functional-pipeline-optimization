@@ -13,7 +13,7 @@ export class Helper {
     }
     return el; 
   }
-  static exec<T>(data:T[], operations:string[], context:any[][], key:string = null, closed:any[]=[], post:(all:any[])=>T = null ):T[] {
+  static exec<T>(data:T[], key:string = null, operations:string[], context:any[][], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
     if (is_arr(data)) {
       let ret:ExecOutput<T[]> = null;
       if (!key) {
