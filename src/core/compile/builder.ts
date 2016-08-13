@@ -8,15 +8,11 @@ export class Builder<I, O> {
   constructor(
     public data:I, 
     public compiler:Compiler<any>, 
-    public compilable:Compilable<I,O> = null
-  ) {
-    if (compilable === null) {
-      this.compilable = new Compilable<I,O>();
-    }
-  }
+    public compilable:Compilable<I,O>
+  ) {}
 
-  chain<V>(op:TransformableConstructor<O, V>, inputs:any):Builder<I, V> {
-    this.compilable.add(op, inputs);
+  chain<V>(op:TransformableConstructor<O, V>, inputs:any[], key?:string):Builder<I, V> {
+    this.compilable.add(op, inputs, key);
     //Expose inputs for use in functions
     return this as any as Builder<I, V>;
   }

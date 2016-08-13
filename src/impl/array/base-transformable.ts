@@ -9,6 +9,10 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 {
   private static cache = {};
   private static id = 0;
+  private static DEFAULT_MAPPING = {
+    callback : 0,
+    context : 1
+  };
 
   static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
     let key = inst.constructor.name
@@ -20,24 +24,27 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     return BaseTransformable.cache[key];
   }
 
-  public inputArray:any[]
   public manual:W;
   public position = -1;
 
-  constructor(public inputs:{callback:V, context?:any}) {
-    this.manual = BaseTransformable.getArrayFunction(this);
-    this.inputArray = [inputs.callback, inputs.context];
-  }
-
+  constructor(protected inputs:any[], protected inputMapping:{[key:string]:number} = BaseTransformable.DEFAULT_MAPPING) {}
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
 
+  getInput(key:'context'):any
+  getInput(key:'callback'):V
+  getInput(key:string) {
+    return this.inputs[this.inputMapping[key]];
+  }
+
   analyze():Analysis {
-    return FunctionAnalyzer.analyze(this.inputs.callback);
+    return FunctionAnalyzer.analyze(this.getInput('callback'));
   }
 
   getContextValue(state:TransformState, key:string):AST.MemberExpression {
-    return m.GetProperty(m.GetProperty(state.contextId, m.Literal(this.position)), key);
+    return m.GetProperty(
+        m.GetProperty(state.contextId, m.Literal(this.position)), 
+        AST.Literal({value:this.inputMapping[key]}));
   }
 
   getParams(state:TransformState):AST.Identifier[] {
@@ -70,7 +77,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     let stack = new VariableStack<RewriteContext>();
 
     //Handle context variable
-    if (this.inputs.context !== undefined) {
+    if (this.getInput('context') !== undefined) {
       let ctx = m.Id();
       out.vars.push(ctx, this.getContextValue(state, 'context'));
       stack.register('this').rewriteName = ctx.name;
@@ -91,7 +98,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   transform(state:TransformState):TransformResponse  {
-    let node = ParseUtil.parse(this.inputs.callback) as AST.Node;
+    let node = ParseUtil.parse(this.getInput('callback')) as AST.Node;
     let pos = m.Id();
     let params = [...this.getParams(state), pos];
 
@@ -115,7 +122,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
     //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions
-    if (!this.inputs.callback.name.startsWith('__inline') && Object.keys(this.analyze().closed).length > 0) {
+    if (!this.getInput('callback').name.startsWith('__inline') && Object.keys(this.analyze().closed).length > 0) {
        this.buildFunctionCallResult(state, res, params); 
     } else {
       this.buildInlineResult(state, res, params, fn);
@@ -130,6 +137,9 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
   }
 
   manualTransform(data:T[]):U {
-    return this.manual.apply(data, this.inputArray) as U; 
+    if (!this.manual) {
+      this.manual = BaseTransformable.getArrayFunction(this);
+    }
+    return this.manual.apply(data, this.inputs) as U; 
   }
 }

@@ -5,10 +5,10 @@ import {md5} from './md5';
 const is_arr = Array.isArray;
 
 export class Helper {
-  static tag<T>(el:T):T {
+  static tag<T>(el:T, key?:string):T {
     if (typeof el === 'function') {
       let fn = el as any 
-      fn.key = fn.key || md5(el.toString());
+      fn.key = fn.key || key || md5(el.toString());
     }
     return el; 
   }

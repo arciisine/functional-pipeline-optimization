@@ -30,4 +30,4 @@ function sortScoreSumOpt(names:string[]) {
 
 
 let names = fs.readFileSync("/Users/tim/School/MastersThesis/src/test/names.txt").toString().replace(/"/g, '').split(',');
-doTest({sortScoreSum, sortScoreSumOpt}, names)
+doTest({sortScoreSum, sortScoreSumOpt}, () => names)

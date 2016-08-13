@@ -34,9 +34,9 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
       });
     }
     return {
-      vars : [counter, m.Literal(0)],
+      vars : [counter, m.Literal(-1)],
       body : [
-        m.IfThen(check, [incr, m.Continue(state.continueLabel)], [incr])
+        incr, m.IfThen(check, [m.Continue(state.continueLabel)])
       ]
     }
   }
@@ -105,10 +105,13 @@ export class SomeTransform<T> extends
 export class ReduceTransform<T, U>  extends 
   BaseTransformable<T, U, Callback.Accumulate<T, U>, Handler.Reduce<T, U>>
 {
-  constructor(inputs:{callback:Callback.Accumulate<T, U>, initValue?:U, context?:any}) {
-    super(inputs);
-    this.inputArray.unshift(inputs.initValue);
-  }
+  constructor(inputs:[Callback.Accumulate<T, U>, U, any]) {
+    super(inputs, {
+      callback : 0,
+      initValue : 1,
+      context : 2
+    });
+  }  
 
   init(state:TransformState):AST.Pattern {
     return this.getContextValue(state, 'initValue');

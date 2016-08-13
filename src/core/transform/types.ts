@@ -8,7 +8,6 @@ export interface TransformResponse {
 
 export interface Transformable<I, O> extends Analyzable {
   position?:number;
-  inputs:{[key:string]:any};
   
   transform<T>(state:T):TransformResponse;
   manualTransform(data:I):O;

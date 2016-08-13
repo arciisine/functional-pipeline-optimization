@@ -13,9 +13,9 @@ export class Compilable<I,O> implements Analyzable {
     this.pending = []
   }
 
-  add<V>(cons:TransformableConstructor<O,V>, args:any):Compilable<I, V> {
-    this.pending.push([cons,args]);
-    this.keys.push(args.key);
+  add<V>(cons:TransformableConstructor<O,V>, inputs:any[], key:string):Compilable<I, V> {
+    this.pending.push([cons,inputs]);
+    this.keys.push(key);
     return this as any as Compilable<I, V>;
   }
 

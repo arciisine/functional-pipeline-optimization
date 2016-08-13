@@ -24,7 +24,7 @@ export class BodyTransformUtil {
     return out;
   }
 
-  static handleChainStart(callee:AST.MemberExpression) {
+  static handleChainStart(callee:AST.MemberExpression):boolean {
     //Check for start of chain
     let sub = callee.object;
     let done = true;
@@ -43,6 +43,8 @@ export class BodyTransformUtil {
     if (done) {
       callee.object = m.Call(WRAP, callee.object);
     }
+    
+    return done;
   }
 
   static handleChainEnd(x:AST.CallExpression, analysis:Analysis) {
@@ -85,6 +87,6 @@ export class BodyTransformUtil {
     }
     
     //Wrap with exec
-    return m.Call(EXEC, ...execParams);;
+    return m.Call(EXEC, ...execParams);
   }
 }

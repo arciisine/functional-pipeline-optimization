@@ -1,38 +1,42 @@
 import {Helper} from '../impl/array/bootstrap';
 
 let data:number[] = null
-export function getNumberData() {
-  let data = []
-  for (let i = 0; i < 15; i++) {
-    data.push(parseInt('' + (Math.random() * 255)));
+export function getNumberData():number[] {
+  let data:number[] = []
+  for (let i = 0; i < 1; i++) {
+    data.push(parseInt(''+(Math.random() * 255)));
   }
   return data
 }
 
-function test<T>(tests:{[key:string]:(nums:T[])=>void}, data:T[]) {
+function test<T>(tests:{[key:string]:(nums:T[])=>void}, data:()=>T[]) {
   let counts = {};
   let keys = Object.keys(tests);
   keys.forEach(t => {
     counts[t] = []
-    tests[t](data)
+    tests[t](data())
   });
 
   let time = 0;
 
-  console.log("Starting");
-  for (let i = 0; i < 1; i++) {
-    let k = keys[parseInt(Math.random()*keys.length as any)];
-    data = getNumberData() as any
+  
+  for (let i = 0; i < 2000000; i++) {
+    let k = keys[Math.max(0, Math.min(keys.length-1, parseInt(Math.random()*keys.length as any)))];
+    let d = data()
     let start = process.hrtime()
-    tests[k](data)
-    let [sec, nano] = process.hrtime(start)
-    counts[k].push((sec* 1e9)+nano);
+    try {
+      tests[k](d)
+      let [sec, nano] = process.hrtime(start)
+      counts[k].push(sec/1000 + nano/1e9);
+    } catch(e) {
+      console.log(e ,k);
+    }
   }
   let out:{[key:string]:{min:number,max:number,n:number,avg:number}} = {};
   keys.forEach(k => {
     out[k] = {
-      min : Math.min.apply(null, counts[k]),
-      max : Math.max.apply(null, counts[k]),
+      min : counts[k].reduce((min, v) => v < min ? v : min, Number.MAX_SAFE_INTEGER, counts),
+      max : counts[k].reduce((max, v) => v > max ? v : max, 0, counts),
       n : counts[k].length,
       avg : counts[k].reduce((acc, v) => acc+v, 0)/counts[k].length
     }
@@ -84,7 +88,7 @@ function areEqual(a, b):boolean {
 }
 
 
-export function doTest<T>(tests:{[key:string]:(input:T[])=>void}, data:T[]) {
+export function doTest<T>(tests:{[key:string]:(input:T[])=>void}, data:()=>T[]) {
   let out:any[][] = [];
   let keys = Object.keys(tests);
   out.push(['Mixed', test(tests, data)]);
@@ -99,9 +103,10 @@ export function doTest<T>(tests:{[key:string]:(input:T[])=>void}, data:T[]) {
     log(p[0], p[1]);
   })
 
-  let orig = tests[keys[0]](data);
+  let d = data()
+  let orig = tests[keys[0]](d);
   keys.slice(1).reduce((a,b) => {
-    let cur = tests[b](data);
+    let cur = tests[b](d);
     let eq = areEqual(cur, orig);;
     if (!eq) {
       console.log(cur);

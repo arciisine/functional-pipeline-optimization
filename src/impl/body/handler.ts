@@ -127,8 +127,14 @@ export class BodyTransformHandler {
       }
       fn.id = m.Id('__inline', true)
       x.arguments[0] = fn
-    } else if (AST.isIdentifier(x.arguments[0])) {
-      x.arguments[0] = m.Call(TAG, x.arguments[0]);
+    } else if (AST.isIdentifier(arg)) {
+      let passed = false;
+      let name = arg.name;
+      for (let fn of this.functionScopes) {
+        passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
+        if (passed) break;
+      }
+      x.arguments[0] = passed ? m.Call(TAG, arg) : m.Call(TAG, arg, m.Literal(m.Id().name));
     }
       
     //Check for start of chain
