@@ -6,8 +6,8 @@ function even(x) { return x%2 === 0; }
 export function functional(data:number[]) {
     
   let hist = data
-    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .slice(1)
+    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x >= 97 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
@@ -107,8 +107,8 @@ export function functionalOptimize(data:number[]) {
   "use optimize";
     
   let hist = data
-    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .slice(1)
+    .filter(x => x >= 65 && x < 91 || x >= 97 && x < 123)
     .map(x => x >= 97 ? x - 32 : x)
     .map(x => String.fromCharCode(x))
     .reduce((acc, x) => {
