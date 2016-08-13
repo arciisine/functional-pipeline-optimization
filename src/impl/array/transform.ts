@@ -4,8 +4,8 @@ import { Transformable, TransformResponse, Analysis } from '../../core';
 import { TransformState, Callback, Handler } from './types';
 
 export class SliceTransform<T> implements Transformable<T[], T[]>  {
-  inputs:{start?:number, end?:number} = {}
-  callbacks:Function[] = null
+
+  constructor(public inputs:{start?:number, end?:number}) {}
 
   analyze():Analysis {
     return new Analysis("~");
@@ -17,13 +17,13 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
     }
 
     let counter = m.Id();
-    let startBound = m.Id();
     return {
-      vars : [m.Vars(counter, m.Literal(0), startBound, m.Literal(this.inputs.start))],
+      vars : [counter, m.Literal(0)],
       body : [
-        m.Increment(counter),
-        m.IfThen(AST.BinaryExpression({left:counter, operator:'<', right:startBound}), 
-          [m.Continue(state.continueLabel)])
+        m.Expr(m.Increment(counter)),
+        m.IfThen(AST.BinaryExpression({left:counter, operator:'<', right:m.Literal(this.inputs.start)}), 
+          [m.Continue(state.continueLabel)]
+        )
       ]
     }
   }

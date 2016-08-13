@@ -9,7 +9,7 @@ export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
   }
 
   slice(start:number, end?:number):ArrayBuilder<I, O> {
-    return this.chain(Transform.SliceTransform, {start, end, key:'Array#slice'}) as any;
+    return this.chain(Transform.SliceTransform, {start, end, key:'Array#slice'+start+"~"+end}) as any;
   }
 
   filter(callback:Callback.Predicate<O>, context?:any):ArrayBuilder<I, O> {

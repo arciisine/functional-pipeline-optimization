@@ -114,10 +114,8 @@ export class BodyTransformHandler {
     if (inline) {
       x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
     }
-    if (AST.isMemberExpression(x.callee) && BodyTransformUtil.hasCallback(x.callee)) 
-    {
-      x.arguments[0] = m.Call(TAG, arg, inline ? m.Literal(m.Id().name) : undefined);
-    }
+    
+    x.arguments[0] = m.Call(TAG, arg, inline ? m.Literal(m.Id().name) : undefined);
       
     //Check for start of chain
     let callee = x.callee;
