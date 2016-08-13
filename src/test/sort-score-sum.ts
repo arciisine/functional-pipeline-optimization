@@ -29,5 +29,5 @@ function sortScoreSumOpt(names:string[]) {
 }
 
 
-doTest({sortScoreSum, sortScoreSumOpt}, 
-  fs.readFileSync("/Users/tim/School/MastersThesis/src/test/names.txt").toString().replace(/"/g, '').split(','))
+let names = fs.readFileSync("/Users/tim/School/MastersThesis/src/test/names.txt").toString().replace(/"/g, '').split(',');
+doTest({sortScoreSum, sortScoreSumOpt}, names)

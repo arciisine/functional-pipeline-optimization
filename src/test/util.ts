@@ -2,10 +2,8 @@ import {Helper} from '../impl/array/bootstrap';
 
 let data:number[] = null
 export function getNumberData() {
-  if (data) return data;
-  
-  data = []
-  for (let i = 0; i < 100000; i++) {
+  let data = []
+  for (let i = 0; i < 1000; i++) {
     data.push(parseInt('' + (Math.random() * 255)));
   }
   return data
@@ -14,15 +12,20 @@ export function getNumberData() {
 function test<T>(tests:{[key:string]:(nums:T[])=>void}, data:T[]) {
   let counts = {};
   let keys = Object.keys(tests);
-  keys.forEach(t => counts[t] = []);
+  keys.forEach(t => {
+    counts[t] = []
+  });
 
   let time = 0;
 
+
   for (let i = 0; i < 100; i++) {
     let k = keys[parseInt(Math.random()*keys.length as any)];
-    time = Date.now()
+    data = getNumberData() as any
+    let start = process.hrtime()
     tests[k](data)
-    counts[k].push(Date.now() - time);
+    let [sec, nano] = process.hrtime(start)
+    counts[k].push((sec* 1e9)+nano);
   }
   let out:{[key:string]:{min:number,max:number,n:number,avg:number}} = {};
   keys.forEach(k => {
@@ -94,7 +97,7 @@ export function doTest<T>(tests:{[key:string]:(input:T[])=>void}, data:T[]) {
   out.forEach(p => {
     log(p[0], p[1]);
   })
-
+/*
   let orig = tests[keys[0]](data);
   keys.slice(1).reduce((a,b) => {
     let cur = tests[b](data);
@@ -107,4 +110,5 @@ export function doTest<T>(tests:{[key:string]:(input:T[])=>void}, data:T[]) {
     console.log(eq);
     return cur; 
   }, orig)
+  */
 } 

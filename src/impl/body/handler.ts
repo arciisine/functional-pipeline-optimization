@@ -16,7 +16,8 @@ export class BodyTransformHandler {
   static transform(content:string) {
     let body = ParseUtil.parseProgram<AST.Node>(content);
     Visitor.exec(new BodyTransformHandler(BodyTransformUtil.getPragmas(body.body)), body);
-    return CompileUtil.compileExpression(body);
+    let source = CompileUtil.compileExpression(body);
+    return source;
   }
 
   optimize:boolean[]
@@ -114,7 +115,6 @@ export class BodyTransformHandler {
     if (inline) {
       x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
     }
-    
     x.arguments[0] = m.Call(TAG, arg, inline ? m.Literal(m.Id().name) : undefined);
       
     //Check for start of chain

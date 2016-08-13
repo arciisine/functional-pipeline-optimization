@@ -14,7 +14,7 @@ export class Helper {
     }
     return el; 
   }
-  static wrap<T>(el:T):T { 
+  static wrap<T>(el:T, key?:string):T { 
     return is_arr(el) ? new ArrayBuilder<T,T>(el as any as T[]) as any as T: el; 
   }
   static exec<T>(el:T[], closed:any[]=[], post:(all:any[])=>T = null ):T[] {

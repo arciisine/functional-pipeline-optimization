@@ -12,19 +12,31 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
   }
 
   transform(state:TransformState):TransformResponse {
-    if (this.inputs.end) { //If using end counter as well (we won't know)
-      throw { message : "End index is not supported", invalid : true };
+    if (this.inputs.end < 0 || this.inputs.start < 0) { //If using negative notation, bail
+      throw { message : "Negative index is not supported", invalid : true };
     }
-
     let counter = m.Id();
+    let incr = m.Expr(m.Increment(counter));
+    let check:AST.Expression = AST.BinaryExpression({
+      left:counter, 
+      operator:'<', 
+      right:m.Literal(this.inputs.start)
+    })
+    if (this.inputs.end !== undefined) {
+      check = AST.LogicalExpression({
+        left : check,
+        operator : '||',
+        right : AST.BinaryExpression({
+          left:counter, 
+          operator:'>=', 
+          right:m.Literal(this.inputs.end)
+        })
+      });
+    }
     return {
       vars : [counter, m.Literal(0)],
       body : [
-        m.IfThen(AST.BinaryExpression({
-          left:AST.UpdateExpression({prefix:false, argument:counter, operator:"++"}), 
-          operator:'<', 
-          right:m.Literal(this.inputs.start)
-        }), [m.Continue(state.continueLabel)])
+        m.IfThen(check, [incr, m.Continue(state.continueLabel)], [incr])
       ]
     }
   }

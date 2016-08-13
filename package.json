@@ -12,6 +12,7 @@
   "dependencies": {
     "@arcsine/ecma-ast": "git@github.com:arciisine/ecma-ast-transform.git",
     "@types/node": "^4.0.28-alpha",
+    "google-closure-compiler-js": "^20160713.0.3",
     "node-fetch": "^1.5.3",
     "typescript": "^2.0.0-beta"
   }

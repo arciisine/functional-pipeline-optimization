@@ -1,7 +1,7 @@
 import {ArrayCompiler} from './compiler';
 import * as Transform from './transform';
 import {Callback} from './types';
-import {Builder, Transformable} from '../../core';
+import {Builder, Transformable, Compilable} from '../../core';
 
 export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
   constructor(data:I[]) {
