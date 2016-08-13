@@ -134,7 +134,7 @@ export class BodyTransformHandler {
         passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
         if (passed) break;
       }
-      x.arguments[0] = passed ? m.Call(TAG, arg) : m.Call(TAG, arg, m.Literal(m.Id().name));
+      x.arguments[0] = passed ? m.Call(TAG, arg) : m.Call(TAG, arg, m.Literal(m.genSymbol()));
     }
       
     //Check for start of chain
