@@ -1,5 +1,6 @@
 import {ArrayBuilder} from './builder';
-import {Util} from '../../core';
+import {MAPPING} from './transform';
+import {Util, CompilerUtil, ExecOutput, Compilable} from '../../core';
 import {md5} from './md5';
 
 const is_arr = Array.isArray;
@@ -12,21 +13,40 @@ export class Helper {
     }
     return el; 
   }
-  static wrap<T>(el:T, key?:string):T { 
-    return is_arr(el) ? new ArrayBuilder<T,T>(el as any as T[]) as any as T: el; 
-  }
-  static exec<T>(el:T[], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
-    if (el instanceof ArrayBuilder) {
-      let ret = el.exec(closed)
+  static exec<T>(data:T[], operations:string[], context:any[][], closed:any[]=[], key:string = null, post:(all:any[])=>T = null ):T[] {
+    if (is_arr(data)) {
+      let ret:ExecOutput<T[]> = null;
+      if (!key) {
+        let keys = [];
+        for (let inputs of context) {
+          let cb = inputs[0];
+          keys.push(cb.key || cb.name);
+        }
+        key = keys.join("~");
+      } 
+
+      let res = CompilerUtil.computed[key];
+      if (res) {
+        ret = res({value:data, closed, context })
+      } else {
+        let builder = new ArrayBuilder<any, T>(data);
+        for (let i = 0; i < operations.length; i++) {
+          builder.chain(MAPPING[operations[i]], context[i]);
+        }
+        ret = builder.exec(closed, key)
+      }
       if (post !== null) post(ret.assigned);
-      el =  ret.value as T[];
-    } 
-    return el;
+      return ret.value as T[];
+    } else {
+      for (let i = 0; i < operations.length; i++) {
+        data = (data[operations[i]] as any)(...context[i]);
+      }
+      return data;
+    }
   }
 } 
 
 export let SYMBOL = "_zzx8";
 Util.global[`${SYMBOL}`] = Helper
 Util.global[`${SYMBOL}_tag`]  = Helper.tag
-Util.global[`${SYMBOL}_wrap`] = Helper.wrap
 Util.global[`${SYMBOL}_exec`] = Helper.exec

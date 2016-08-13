@@ -9,30 +9,30 @@ export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
   }
 
   slice(start:number, end?:number):ArrayBuilder<I, O> {
-    return this.chain(Transform.SliceTransform, [start, end], 'Array#slice'+start+"~"+end) as any;
+    return this.chain(Transform.SliceTransform, [start, end]) as any;
   }
 
   filter(callback:Callback.Predicate<O>, context?:any):ArrayBuilder<I, O> {
-    return this.chain(Transform.FilterTransform, [callback, context], callback.key || callback.name) as any;
+    return this.chain(Transform.FilterTransform, [callback, context]) as any;
   }
 
   map<V>(callback:Callback.Transform<O, V>, context?:any):ArrayBuilder<I, V> {
-    return this.chain(Transform.MapTransform, [callback, context], callback.key || callback.name) as any;
+    return this.chain(Transform.MapTransform, [callback, context]) as any;
   }
 
   reduce<V>(callback:Callback.Accumulate<O, V>, initValue?:V, context?:any)  {
-    return this.chain(Transform.ReduceTransform, [callback, initValue, context], callback.key || callback.name);
+    return this.chain(Transform.ReduceTransform, [callback, initValue, context]);
   }
 
   forEach(callback:Callback.Void<O>, context?:any)  {
-    return this.chain(Transform.ForEachTransform, [callback, context], callback.key || callback.name);
+    return this.chain(Transform.ForEachTransform, [callback, context]);
   }
 
   find(callback:Callback.Predicate<O>, context?:any) {
-    return this.chain(Transform.FindTransform, [callback, context], callback.key || callback.name);
+    return this.chain(Transform.FindTransform, [callback, context]);
   }
 
   some(callback:Callback.Predicate<O>, context?:any) {
-    return this.chain(Transform.SomeTransform, [callback, context], callback.key || callback.name);
+    return this.chain(Transform.SomeTransform, [callback, context]);
   }
 }

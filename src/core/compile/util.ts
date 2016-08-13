@@ -22,7 +22,7 @@ export class CompilerUtil {
   }
 
   static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string):ExecHandler<I,O> {
-    if (CompilerUtil.computed[key]) {
+    if (key && CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
     }
 
@@ -33,7 +33,9 @@ export class CompilerUtil {
     let ast = compiler.compile(compilable, state);
     let res = CompileUtil.compile(ast as any, {}) as ExecHandler<I,O>;
     console.log(res.toString())
-    CompilerUtil.computed[key] = res;
+    if (key) {
+      CompilerUtil.computed[key] = res;
+    }
     return res;
   }
 }

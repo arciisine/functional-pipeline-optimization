@@ -4,7 +4,6 @@ import {SYMBOL} from '../array/bootstrap';
 import {AccessType, Analysis } from '../../core';
 
 export const EXEC = m.Id(`${SYMBOL}_exec`);
-export const WRAP = m.Id(`${SYMBOL}_wrap`)
 export const TAG  = m.Id(`${SYMBOL}_tag`)
 export const FREE = m.Id()
 
@@ -24,7 +23,7 @@ export class BodyTransformUtil {
     return out;
   }
 
-  static handleChainStart(callee:AST.MemberExpression):boolean {
+  static isChainStart(callee:AST.MemberExpression):boolean {
     //Check for start of chain
     let sub = callee.object;
     let done = true;
@@ -40,14 +39,10 @@ export class BodyTransformUtil {
       }
     }
 
-    if (done) {
-      callee.object = m.Call(WRAP, callee.object);
-    }
-    
     return done;
   }
 
-  static handleChainEnd(x:AST.CallExpression, analysis:Analysis) {
+  static getExecArguments(x:AST.CallExpression, analysis:Analysis) {
     let closed = {};
     let assigned = {};
 
@@ -65,7 +60,7 @@ export class BodyTransformUtil {
     let assignedIds = Object.keys(assigned).sort().map((x) => m.Id(x));
     let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
-    let execParams:any = [x];
+    let execParams:any = [];
 
     //Handle if we have to reassign closed variables
     if (allIds.elements.length > 0) {
@@ -87,6 +82,6 @@ export class BodyTransformUtil {
     }
     
     //Wrap with exec
-    return m.Call(EXEC, ...execParams);
+    return execParams;
   }
 }

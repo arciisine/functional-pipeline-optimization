@@ -2,9 +2,10 @@ import {AST, ParseUtil, CompileUtil, Macro as m, Visitor } from '../../../node_m
 import {SYMBOL} from '../array/bootstrap';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
-import {BodyTransformUtil, EXEC, WRAP, TAG} from './util';
+import {BodyTransformUtil, EXEC, TAG} from './util';
 
 export const CANDIDATE = m.genSymbol();
+export const CANDIDATE_START = m.genSymbol();
 export const CANDIDATE_FUNCTIONS = m.genSymbol();
 export const CANDIDATE_RELATED = m.genSymbol();
 export const ANALYSIS = m.genSymbol();
@@ -103,7 +104,7 @@ export class BodyTransformHandler {
         callee[CANDIDATE_RELATED] = true;
         //At end
         if (!visitor.parent.node[CANDIDATE_RELATED]) {
-          x[CANDIDATE_FUNCTIONS] = [x];
+          x[CANDIDATE_FUNCTIONS] = [];
         }
       }
     }
@@ -137,24 +138,36 @@ export class BodyTransformHandler {
       x.arguments[0] = passed ? m.Call(TAG, arg) : m.Call(TAG, arg, m.Literal(m.genSymbol()));
     }
       
+    let endNode = x[CANDIDATE_FUNCTIONS] ? x : visitor.findParent(x => !!x.node[CANDIDATE_FUNCTIONS]).node as AST.CallExpression;
+
     //Check for start of chain
     let callee = x.callee;
-    if (AST.isMemberExpression(callee)) {
-      BodyTransformUtil.handleChainStart(callee);
+    if (AST.isMemberExpression(callee) && BodyTransformUtil.isChainStart(callee)) {
+       endNode[CANDIDATE_START] = callee;
     }
 
     //Check end of chain
     if (!x[CANDIDATE_FUNCTIONS]) {
-      let node = visitor.findParent(x => !!x.node[CANDIDATE_FUNCTIONS]).node as AST.CallExpression;
-      node[CANDIDATE_FUNCTIONS].push(x);
+      endNode[CANDIDATE_FUNCTIONS].push(x);
     } else {
+      x[CANDIDATE_FUNCTIONS].push(x); //All in order now
+
+      let ops = [];
+      let inputs = [];
+
+      x[CANDIDATE_FUNCTIONS].map((x:AST.CallExpression) => {
+        ops.push(m.Literal((x.callee as AST.MemberExpression).property['name']));
+        inputs.push(AST.ArrayExpression({ elements : x.arguments }))
+      });      
+
       let analysis = x[CANDIDATE_FUNCTIONS]
         .map(x => x[ANALYSIS])
         .filter(x => !!x)
         .reduce((total:Analysis, x) => total.merge(x), new Analysis("~"))
 
+      let params = BodyTransformUtil.getExecArguments(x, analysis);
 
-      return BodyTransformUtil.handleChainEnd(x, analysis);
+      return m.Call(EXEC, (x[CANDIDATE_START] as AST.MemberExpression).object, AST.ArrayExpression({elements:ops}), AST.ArrayExpression({elements:inputs}), ...params);
     }
   }
 }
