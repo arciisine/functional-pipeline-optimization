@@ -5,14 +5,14 @@ import { TransformState, Callback, Handler } from './types';
 
 export class SliceTransform<T> implements Transformable<T[], T[]>  {
 
-  constructor(public inputs:{start?:number, end?:number}) {}
+  constructor(public inputs?:[number, number]) {}
 
   analyze():Analysis {
     return new Analysis("~");
   }
 
   transform(state:TransformState):TransformResponse {
-    if (this.inputs.end < 0 || this.inputs.start < 0) { //If using negative notation, bail
+    if (this.inputs[0] < 0 || this.inputs[1] < 0) { //If using negative notation, bail
       throw { message : "Negative index is not supported", invalid : true };
     }
     let counter = m.Id();
@@ -20,16 +20,16 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
     let check:AST.Expression = AST.BinaryExpression({
       left:counter, 
       operator:'<', 
-      right:m.Literal(this.inputs.start)
+      right:m.Literal(this.inputs[0])
     })
-    if (this.inputs.end !== undefined) {
+    if (this.inputs[1] !== undefined) {
       check = AST.LogicalExpression({
         left : check,
         operator : '||',
         right : AST.BinaryExpression({
           left:counter, 
           operator:'>=', 
-          right:m.Literal(this.inputs.end)
+          right:m.Literal(this.inputs[1])
         })
       });
     }
@@ -42,7 +42,7 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
   }
 
   manualTransform(data:T[]):T[] {
-    return data.slice(this.inputs.start);
+    return data.slice(this.inputs[0], this.inputs[1]);
   }
 }
 

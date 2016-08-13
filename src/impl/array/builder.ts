@@ -4,8 +4,8 @@ import {Callback} from './types';
 import {Builder, Transformable, Compilable} from '../../core';
 
 export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
-  constructor(data:I[], key:string = null) {
-    super(data, new ArrayCompiler(), new Compilable<I[], O[]>(key));
+  constructor(data:I[]) {
+    super(data, new ArrayCompiler(), new Compilable<I[], O[]>());
   }
 
   slice(start:number, end?:number):ArrayBuilder<I, O> {
