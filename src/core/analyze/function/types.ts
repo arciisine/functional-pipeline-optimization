@@ -22,30 +22,21 @@ export class Analysis {
 
   constructor(public key: string) {}
 
-  merge(obj:Analysis|Analyzable):this {
+  merge(obj:Analysis):this {
     if (!obj) return this;
 
-    let o:Analysis = obj instanceof Analysis ? obj : obj.analysis;
-
-    this.all = this.all | o.all;
-    for (var k in o.closed) {
-      this.closed[k] = (this.closed[k] || 0) | o.closed[k];
+    this.all = this.all | obj.all;
+    for (var k in obj.closed) {
+      this.closed[k] = (this.closed[k] || 0) | obj.closed[k];
     }
     
-    this.key = `${this.key}|${o.key}`;
+    this.key = `${this.key}|${obj.key}`;
     ANALYSIS_BOOLEAN_FIELDS
-      .forEach(k => { this[k] = this[k] || o[k];})
+      .forEach(k => { this[k] = this[k] || obj[k];})
     return this;
   }
 }
 
 export interface Analyzable {
-  analysis?:Analysis
+  analyze():Analysis
 };
-
-
-declare global {
-  interface Function {
-    analysis?:Analysis
-  }
-}

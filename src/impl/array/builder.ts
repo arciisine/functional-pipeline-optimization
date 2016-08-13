@@ -8,6 +8,10 @@ export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
     super(data, new ArrayCompiler());
   }
 
+  slice(start:number, end?:number):ArrayBuilder<I, O> {
+    return this.chain(Transform.SliceTransform, {start, end, key:'Array#slice'}) as any;
+  }
+
   filter(callback:Callback.Predicate<O>, context?:any):ArrayBuilder<I, O> {
     return this.chain(Transform.FilterTransform, {callback, context, key:callback.key}) as any;
   }

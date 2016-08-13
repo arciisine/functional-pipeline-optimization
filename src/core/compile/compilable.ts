@@ -1,4 +1,4 @@
-import { Transformable, TransformableConstructor, TransformUtil } from '../transform';
+import { Transformable, TransformableConstructor } from '../transform';
 import { Analysis, Analyzable } from '../analyze';
 
 export class Compilable<I,O> implements Analyzable {
@@ -18,17 +18,22 @@ export class Compilable<I,O> implements Analyzable {
     this.key += args.key + "~";
     return this as any as Compilable<I, V>;
   }
+
+  analyze() {
+    let analysis =  new Analysis('~')
+    this.chain = this.pending.map(([cons,args], i) => {
+      let res = new cons(args);
+      let analysis = res.analyze();
+      this.analysis.merge(analysis);
+      res.position = i;
+      return res;
+    });
+    return analysis;
+  }
   
   finalize() {
     if (this.chain === null) {
-      this.analysis = new Analysis('~')
-      this.chain = this.pending.map(([cons,args], i) => {
-        let res = new cons(args);
-        res.analysis = TransformUtil.analyze(res).analysis;
-        this.analysis.merge(res.analysis);
-        res.position = i;
-        return res;
-      });
+      this.analysis = this.analyze();
       this.last = this.chain[this.chain.length-1];
     }
   }

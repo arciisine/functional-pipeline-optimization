@@ -1,6 +1,33 @@
 import { AST, Macro as m, Util } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { BaseTransformable } from './base-transformable';
+import { Transformable, TransformResponse, Analysis } from '../../core';
 import { TransformState, Callback, Handler } from './types';
+
+export class SliceTransform<T> implements Transformable<T[], T[]>  {
+  inputs:{start?:number} = {}
+  callbacks:Function[] = null
+
+  analyze():Analysis {
+    return new Analysis("~");
+  }
+
+  transform(state:TransformState):TransformResponse {
+    let counter = m.Id();
+    let startBound = m.Id();
+    return {
+      vars : [m.Vars(counter, m.Literal(0), startBound, this.inputs.start)],
+      body : [
+        m.Increment(counter),
+        m.IfThen(AST.BinaryExpression({left:counter, operator:'<', right:startBound}), 
+          [m.Continue(state.continueLabel)])
+      ]
+    }
+  }
+
+  manualTransform(data:T[]):T[] {
+    return data.slice(this.inputs.start);
+  }
+}
 
 export class FilterTransform<T> extends 
   BaseTransformable<T, T[], Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
@@ -79,7 +106,11 @@ export class ReduceTransform<T, U>  extends
   }
 }
 
-export const MAPPING = [FilterTransform, MapTransform, FindTransform, SomeTransform, ReduceTransform, ForEachTransform]
+export const MAPPING = [
+  FilterTransform, MapTransform, FindTransform, 
+  SomeTransform, ReduceTransform, ForEachTransform,
+  SliceTransform
+]
   .map(x => { 
     let name = x.name.split('Transform')[0];
     return [name.charAt(0).toLowerCase() + name.substring(1), x] as [string, Function]; 

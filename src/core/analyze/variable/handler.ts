@@ -13,7 +13,7 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
   ) {
     ['Function', 'FunctionEnd', 'Block', 'BlockEnd', 
       'ComputedAccess', 'Declare', 'ThisAccess', 'Write', 'Invoke', 
-      'PropertyInvoke'
+      'PropertyAccess'
     ].forEach(k => handler[k] = handler[k] || noop)
 
     let ogbs = handler.Block;
@@ -133,36 +133,6 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
   //Handle invocation
   CallExpression(x:AST.CallExpression) {
     this.onInvoke(x.callee, x);
-
-    //Handle top-level property invocation (object is literal)
-    if (AST.isMemberExpression(x.callee)) {
-      let chain:AST.Identifier[] = [];
-      let node = x.callee;
-
-      while (chain) {
-        if (AST.isIdentifier(node.property)) {
-          chain.unshift(node.property);          
-        } else {
-          chain = null;
-          break;
-        }
-
-        if (AST.isMemberExpression(node.object)) {
-          node = node.object;
-        } else if (AST.isIdentifier(node.object)) {
-          chain.unshift(node.object)
-          break;
-        } else {
-          chain = null;
-          break;
-        }
-      }
-
-      //We have a member access
-      if (chain !== null) {
-        this.handler.PropertyInvoke(chain, x)
-      }              
-    }
   }
 
   //New
@@ -173,6 +143,27 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
   //This
   ThisExpression(x:AST.ThisExpression) {
     this.handler.ThisAccess(x);
+  }
+
+  MemberExpression(x:AST.MemberExpression, v:Visitor) {
+    //Handle top-level property reference (object is literal)
+    if (AST.isIdentifier(x.object)) {
+      let chain:AST.Identifier[] = [x.object];
+      
+      if (AST.isIdentifier(x.property) && !x.computed) {
+        chain.push(x.property);
+
+        for (let parent of v.parents) {
+          if (AST.isMemberExpression(parent.node) && AST.isIdentifier(x.property)) {
+            chain.push(x.property);
+          } else {
+            break;
+          }
+        }
+      }
+
+      this.handler.PropertyAccess(chain, x);
+    }
   }
 
   //Prevent reading patterns, already handled manually

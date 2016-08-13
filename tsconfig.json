@@ -7,10 +7,13 @@
     "moduleResolution": "node",
     "outDir": "dist/",
     "rootDirs": [
-      "src/",
-      "node_modules/@types/",
-      "node_modules/ecma-ast-transform/"  
+      "src/"
     ],
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/@arcsine/ecma-ast-transform/node_modules/@types"
+    ],
+    "types": ["node", "../node_modules/@arcsine/ecma-ast-transform/node_modules/@types/estree/index.d.ts"],
     "sourceMap": true,
     "target": "es6"
   }

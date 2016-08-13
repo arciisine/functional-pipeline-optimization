@@ -25,7 +25,7 @@ export class FunctionAnalyzer {
       ComputedAccess : (name:AST.Identifier) => {
         analysis.hasComputedMemberAccess = true;
       },
-      PropertyInvoke  : (chain:AST.Identifier[], node:AST.Node) =>{
+      PropertyAccess : (chain:AST.Identifier[], node:AST.Node) =>{
         let resolved = chain.reduce((o, p) => o ? o[p.name] : null, Util.global);
         if (resolved) {
           analysis.globals[chain[0].name] = true;

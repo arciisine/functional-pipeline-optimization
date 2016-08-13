@@ -10,7 +10,7 @@ export interface VariableVisitHandler {
   FunctionEnd?:(node?:AST.BaseFunction)=>void,
   Block?:(node?:AST.BlockStatement)=>void,
   BlockEnd?:(node?:AST.BlockStatement)=>void,
-  PropertyInvoke?:(chain:AST.Identifier[], node?:AST.CallExpression)=>void,  
+  PropertyAccess?:(chain:AST.Identifier[], node?:AST.MemberExpression)=>void,  
   Declare?:VariableHandler,
   ComputedAccess?:VariableHandler,
   Access?:VariableHandler,
