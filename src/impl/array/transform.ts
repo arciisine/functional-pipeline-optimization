@@ -20,8 +20,7 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
     return {
       vars : [counter, m.Literal(0)],
       body : [
-        m.Expr(m.Increment(counter)),
-        m.IfThen(AST.BinaryExpression({left:counter, operator:'<', right:m.Literal(this.inputs.start)}), 
+        m.IfThen(AST.BinaryExpression({left:AST.UpdateExpression({prefix:false, argument:counter, operator:"++"}), operator:'<', right:m.Literal(this.inputs.start)}), 
           [m.Continue(state.continueLabel)]
         )
       ]
