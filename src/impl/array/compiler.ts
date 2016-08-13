@@ -33,8 +33,8 @@ export class ArrayCompiler implements Compiler<TransformState> {
     }
 
     //Define call site
-    let closedIds =  Object.keys(closed).sort().map(m.Id);
-    let assignedIds = Object.keys(assigned).sort().map(m.Id);
+    let closedIds =  Object.keys(closed).sort().map((x)=>m.Id(x));
+    let assignedIds = Object.keys(assigned).sort().map((x)=>m.Id(x));
 
     //Exposed build return function
     state.buildReturn = (id:AST.Node) => {

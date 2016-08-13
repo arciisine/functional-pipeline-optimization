@@ -116,28 +116,17 @@ export class BodyTransformHandler {
 
     if (AST.isFunction(arg)) {
       x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
-      x.arguments[0] = 
-        AST.LogicalExpression({
-          left : m.Assign(GLOBAL_ASSIGN, x.arguments[0]),
-          operator : '&&',
-          right : AST.LogicalExpression({
-            left : AST.LogicalExpression({
-              left : AST.AssignmentExpression({
-                left : m.GetProperty(GLOBAL_ASSIGN, 'key'),
-                operator : '=', 
-                right : m.Literal(m.genSymbol()) 
-              }),
-              operator : '&&', 
-              right : AST.AssignmentExpression({
-                left : m.GetProperty(GLOBAL_ASSIGN, 'inline'),
-                operator : '=', 
-                right : m.Literal(true) 
-              })
-            }),
-            operator : '&&',
-            right : GLOBAL_ASSIGN
-          })
+      let fn:AST.BaseFunction = x.arguments[0] as AST.BaseFunction;
+      if (AST.isArrowFunctionExpression(fn)) {
+        fn = AST.FunctionExpression({
+          body : fn.body as AST.BlockStatement,
+          params : fn.params,
+          generator : fn.generator,
+          id : null
         })
+      }
+      fn.id = m.Id('__inline', true)
+      x.arguments[0] = fn
     } else if (AST.isIdentifier(x.arguments[0])) {
       x.arguments[0] = m.Call(TAG, x.arguments[0]);
     }

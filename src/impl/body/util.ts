@@ -59,8 +59,8 @@ export class BodyTransformUtil {
     }
 
     //Define call site
-    let closedIds =  Object.keys(closed).sort().map(m.Id);
-    let assignedIds = Object.keys(assigned).sort().map(m.Id);
+    let closedIds =  Object.keys(closed).sort().map((x) => m.Id(x));
+    let assignedIds = Object.keys(assigned).sort().map((x) => m.Id(x));
     let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
     let execParams:any = [x];

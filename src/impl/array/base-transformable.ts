@@ -115,7 +115,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
     //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions
-    if (!this.inputs.callback.inline && Object.keys(this.analyze().closed).length > 0) {
+    if (!this.inputs.callback.name.startsWith('__inline') && Object.keys(this.analyze().closed).length > 0) {
        this.buildFunctionCallResult(state, res, params); 
     } else {
       this.buildInlineResult(state, res, params, fn);

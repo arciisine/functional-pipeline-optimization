@@ -13,26 +13,26 @@ export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
   }
 
   filter(callback:Callback.Predicate<O>, context?:any):ArrayBuilder<I, O> {
-    return this.chain(Transform.FilterTransform, {callback, context, key:callback.key}) as any;
+    return this.chain(Transform.FilterTransform, {callback, context, key:callback.key || callback.name}) as any;
   }
 
   map<V>(callback:Callback.Transform<O, V>, context?:any):ArrayBuilder<I, V> {
-    return this.chain(Transform.MapTransform, {callback, context, key:callback.key}) as any;
+    return this.chain(Transform.MapTransform, {callback, context, key:callback.key || callback.name}) as any;
   }
 
   reduce<V>(callback:Callback.Accumulate<O, V>, initValue?:V, context?:any)  {
-    return this.chain(Transform.ReduceTransform, {callback, initValue, context, key:callback.key});
+    return this.chain(Transform.ReduceTransform, {callback, initValue, context, key:callback.key || callback.name});
   }
 
   forEach(callback:Callback.Void<O>, context?:any)  {
-    return this.chain(Transform.ForEachTransform, {callback, context, key:callback.key});
+    return this.chain(Transform.ForEachTransform, {callback, context, key:callback.key || callback.name});
   }
 
   find(callback:Callback.Predicate<O>, context?:any) {
-    return this.chain(Transform.FindTransform, {callback, context, key:callback.key});
+    return this.chain(Transform.FindTransform, {callback, context, key:callback.key || callback.name});
   }
 
   some(callback:Callback.Predicate<O>, context?:any) {
-    return this.chain(Transform.SomeTransform, {callback, context, key:callback.key});
+    return this.chain(Transform.SomeTransform, {callback, context, key:callback.key || callback.name});
   }
 }
