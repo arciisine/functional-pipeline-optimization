@@ -18,7 +18,6 @@
     * Research related material
     * Write it out
 
-
 **Coding Tasks**
 
 * Handle Closed Variables
@@ -30,6 +29,7 @@
     * Apply access level verification
     * Set via pragma
 * Look for more performance enhancements
+    * Might be some areas where we can precompute part of the transformation key
 
 **Refactoring**
 
