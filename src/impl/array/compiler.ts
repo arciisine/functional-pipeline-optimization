@@ -46,7 +46,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
 
     let {vars, body} = CompilerUtil.readChain(compilable, state);
 
-    let last = compilable.last;
+    let last = compilable.chain[compilable.chain.length-1];
     if (last['collect']) {
       body.push(last['collect'](state));
     }
