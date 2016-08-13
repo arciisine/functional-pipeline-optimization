@@ -3,14 +3,12 @@ import {Util} from '../../core';
 import {md5} from './md5';
 
 const is_arr = Array.isArray;
-const cache = {};
 
 export class Helper {
-  static tag<T>(el:T, inlineKey:string):T {
-    if (typeof el === 'function') { 
-      let fn = (el as any as Function);
-      fn.inline = !!inlineKey;
-      fn.key = fn.key || inlineKey || md5(fn.toString());
+  static tag<T>(el:T):T {
+    if (typeof el === 'function') {
+      let fn = el as any 
+      fn.key = fn.key || md5(el.toString());
     }
     return el; 
   }
@@ -18,13 +16,12 @@ export class Helper {
     return is_arr(el) ? new ArrayBuilder<T,T>(el as any as T[]) as any as T: el; 
   }
   static exec<T>(el:T[], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
-    if (el && el.constructor === ArrayBuilder) {
-      let ret = (el as any as ArrayBuilder<T,T>).exec(closed)
+    if (el instanceof ArrayBuilder) {
+      let ret = el.exec(closed)
       if (post !== null) post(ret.assigned);
-      return ret.value;
-    } else { 
-      return el;
-    }
+      el =  ret.value as T[];
+    } 
+    return el;
   }
 } 
 

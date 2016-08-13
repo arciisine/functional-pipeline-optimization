@@ -8,6 +8,7 @@ export const CANDIDATE = m.genSymbol();
 export const CANDIDATE_FUNCTIONS = m.genSymbol();
 export const CANDIDATE_RELATED = m.genSymbol();
 export const ANALYSIS = m.genSymbol();
+const GLOBAL_ASSIGN = m.Id('_$_')
 
 
 //Function wrappers
@@ -16,6 +17,7 @@ export class BodyTransformHandler {
   static transform(content:string) {
     let body = ParseUtil.parseProgram<AST.Node>(content);
     Visitor.exec(new BodyTransformHandler(BodyTransformUtil.getPragmas(body.body)), body);
+    body.body.push(m.Vars(GLOBAL_ASSIGN, null))
     let source = CompileUtil.compileExpression(body);
     return source;
   }
@@ -111,11 +113,34 @@ export class BodyTransformHandler {
     if (!x[CANDIDATE]) return;
 
     let arg = x.arguments[0];
-    let inline = AST.isFunction(arg)
-    if (inline) {
+
+    if (AST.isFunction(arg)) {
       x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
+      x.arguments[0] = 
+        AST.LogicalExpression({
+          left : m.Assign(GLOBAL_ASSIGN, x.arguments[0]),
+          operator : '&&',
+          right : AST.LogicalExpression({
+            left : AST.LogicalExpression({
+              left : AST.AssignmentExpression({
+                left : m.GetProperty(GLOBAL_ASSIGN, 'key'),
+                operator : '=', 
+                right : m.Literal(m.genSymbol()) 
+              }),
+              operator : '&&', 
+              right : AST.AssignmentExpression({
+                left : m.GetProperty(GLOBAL_ASSIGN, 'inline'),
+                operator : '=', 
+                right : m.Literal(true) 
+              })
+            }),
+            operator : '&&',
+            right : GLOBAL_ASSIGN
+          })
+        })
+    } else if (AST.isIdentifier(x.arguments[0])) {
+      x.arguments[0] = m.Call(TAG, x.arguments[0]);
     }
-    x.arguments[0] = m.Call(TAG, arg, inline ? m.Literal(m.Id().name) : undefined);
       
     //Check for start of chain
     let callee = x.callee;

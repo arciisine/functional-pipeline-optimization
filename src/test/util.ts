@@ -3,7 +3,7 @@ import {Helper} from '../impl/array/bootstrap';
 let data:number[] = null
 export function getNumberData() {
   let data = []
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 5; i++) {
     data.push(parseInt('' + (Math.random() * 255)));
   }
   return data
@@ -14,12 +14,13 @@ function test<T>(tests:{[key:string]:(nums:T[])=>void}, data:T[]) {
   let keys = Object.keys(tests);
   keys.forEach(t => {
     counts[t] = []
+    tests[t](data)
   });
 
   let time = 0;
 
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 10000; i++) {
     let k = keys[parseInt(Math.random()*keys.length as any)];
     data = getNumberData() as any
     let start = process.hrtime()

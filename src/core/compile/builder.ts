@@ -13,7 +13,6 @@ export class Builder<I, O> {
     if (compilable === null) {
       this.compilable = new Compilable<I,O>();
     }
-    this.compilable.key = `${compiler.constructor.name}~` 
   }
 
   chain<V>(op:TransformableConstructor<O, V>, inputs:any):Builder<I, V> {
@@ -34,7 +33,7 @@ export class Builder<I, O> {
     try {
       //Ready directly from cache to minimize multiple fn calls
       let fn = CompilerUtil.computed[this.compilable.key] || this.compile();
-      return fn({value:this.data, context:this.compilable.context, closed})
+      return fn({value:this.data, context:this.compilable.pending.map(x => x[1]), closed})
     } catch (e) {
       if (e.invalid) {
         return this.manual();    
