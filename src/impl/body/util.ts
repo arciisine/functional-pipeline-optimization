@@ -10,6 +10,13 @@ export const FREE = m.Id()
 
 export class BodyTransformUtil {
 
+  static hasCallback(x:AST.Expression) {
+    if (AST.isMemberExpression(x) && AST.isIdentifier(x.property)) {
+      return x.property.name !== 'slice';
+    }
+    return false;
+  }
+
   static getPragmas(nodes:AST.Node[]):string[] {
     let i = 0;
     let out = [];

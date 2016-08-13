@@ -23,8 +23,7 @@ export class Compilable<I,O> implements Analyzable {
     let analysis =  new Analysis('~')
     this.chain = this.pending.map(([cons,args], i) => {
       let res = new cons(args);
-      let analysis = res.analyze();
-      this.analysis.merge(analysis);
+      analysis.merge(res.analyze());
       res.position = i;
       return res;
     });
