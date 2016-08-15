@@ -1,27 +1,28 @@
 import { AST, Macro as m, Util } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import { BaseTransformable } from './base-transformable';
-import { Transformable, TransformResponse, Analysis } from '../../core';
+import { BaseArrayTransformable } from './base-transformable';
+import { Transformable, TransformResponse, Analysis, BaseTransformable } from '../../core';
 import { TransformState, Callback, Handler } from './types';
 
-export class SliceTransform<T> implements Transformable<T[], T[]>  {
+export class SliceTransform<T> extends BaseTransformable<T[], T[]>  {
 
-  constructor(public inputs?:[number, number]) {}
+  constructor(inputs?:[number, number]) {
+    super(inputs, { start : 0, end : 1})
+  }
 
   analyze():Analysis {
     return new Analysis("~");
   }
 
   transform(state:TransformState):TransformResponse {
-    if (this.inputs[0] < 0 || this.inputs[1] < 0) { //If using negative notation, bail
-      throw { message : "Negative index is not supported", invalid : true };
-    }
     let counter = m.Id();
     let incr = m.Expr(m.Increment(counter));
-    let check:AST.Expression = AST.BinaryExpression({
-      left:counter, 
-      operator:'<', 
-      right:m.Literal(this.inputs[0])
-    })
+    let check:AST.Expression = 
+      AST.BinaryExpression({
+        left:counter, 
+        operator:'<', 
+        right: this.getContextValue(state, 'start')
+      })
+      
     if (this.inputs[1] !== undefined) {
       check = AST.LogicalExpression({
         left : check,
@@ -29,7 +30,7 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
         right : AST.BinaryExpression({
           left:counter, 
           operator:'>=', 
-          right:m.Literal(this.inputs[1])
+          right: this.getContextValue(state, 'end')
         })
       });
     }
@@ -47,7 +48,7 @@ export class SliceTransform<T> implements Transformable<T[], T[]>  {
 }
 
 export class FilterTransform<T> extends 
-  BaseTransformable<T, T[], Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
+  BaseArrayTransformable<T, T[], Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
 {
   init(state:TransformState) {
     return m.Array();
@@ -63,7 +64,7 @@ export class FilterTransform<T> extends
 }
 
 export class MapTransform<T, U> extends 
-  BaseTransformable<T, T[], Callback.Transform<T, U>, Handler.Standard<T, T, U>> 
+  BaseArrayTransformable<T, T[], Callback.Transform<T, U>, Handler.Standard<T, T, U>> 
 {
   init(state:TransformState) {
     return m.Array();
@@ -79,7 +80,7 @@ export class MapTransform<T, U> extends
 }
 
 export class ForEachTransform<T> extends 
-  BaseTransformable<T, void, Callback.Void<T>, Handler.Standard<T, T, void>>
+  BaseArrayTransformable<T, void, Callback.Void<T>, Handler.Standard<T, T, void>>
 {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.Block(node.argument, m.Continue(state.continueLabel));
@@ -87,7 +88,7 @@ export class ForEachTransform<T> extends
 }
 
 export class FindTransform<T> extends
-  BaseTransformable<T, T, Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
+  BaseArrayTransformable<T, T, Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
 {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.IfThen(node.argument, [state.buildReturn(state.elementId)]);
@@ -95,7 +96,7 @@ export class FindTransform<T> extends
 }
 
 export class SomeTransform<T> extends 
-  BaseTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>> 
+  BaseArrayTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>> 
 {
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.IfThen(node.argument, [state.buildReturn(m.Literal(true))]);
@@ -103,7 +104,7 @@ export class SomeTransform<T> extends
 }
 
 export class ReduceTransform<T, U>  extends 
-  BaseTransformable<T, U, Callback.Accumulate<T, U>, Handler.Reduce<T, U>>
+  BaseArrayTransformable<T, U, Callback.Accumulate<T, U>, Handler.Reduce<T, U>>
 {
   constructor(inputs:[Callback.Accumulate<T, U>, U, any]) {
     super(inputs, {

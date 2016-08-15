@@ -1,11 +1,10 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse} from '../../core';
+import { Transformable, TransformResponse, BaseTransformable} from '../../core';
 import { Analysis, FunctionAnalyzer } from '../../core/analyze';
 import { RewriteContext, VariableStack, RewriteUtil }  from '../../core/analyze/variable';
 import { TransformState } from './types';
 
-export abstract class BaseTransformable<T, U, V extends Function, W extends Function> 
-  implements Transformable<T[], U> 
+export abstract class BaseArrayTransformable<T, U, V extends Function, W extends Function> extends BaseTransformable<T[], U>
 {
   private static cache = {};
   private static id = 0;
@@ -14,20 +13,22 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
     context : 1
   };
 
-  static getArrayFunction<V extends BaseTransformable<any, any, any, any>>(inst:any) {
+  static getArrayFunction<V extends BaseArrayTransformable<any, any, any, any>>(inst:any) {
     let key = inst.constructor.name
-    if (!BaseTransformable.cache[key]) {
+    if (!BaseArrayTransformable.cache[key]) {
       let fn = key.split('Transform')[0];
       fn = fn.charAt(0).toLowerCase() + fn.substring(1);
-      BaseTransformable.cache[key] = Array.prototype[fn];
+      BaseArrayTransformable.cache[key] = Array.prototype[fn];
     }
-    return BaseTransformable.cache[key];
+    return BaseArrayTransformable.cache[key];
   }
 
   public manual:W;
   public position = -1;
 
-  constructor(protected inputs:any[], protected inputMapping:{[key:string]:number} = BaseTransformable.DEFAULT_MAPPING) {}
+  constructor(inputs:any[], inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING) {
+    super(inputs, inputMapping)
+  }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
 
@@ -39,12 +40,6 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
   analyze():Analysis {
     return FunctionAnalyzer.analyze(this.getInput('callback'));
-  }
-
-  getContextValue(state:TransformState, key:string):AST.MemberExpression {
-    return m.GetProperty(
-        m.GetProperty(state.contextId, m.Literal(this.position)), 
-        AST.Literal({value:this.inputMapping[key]}));
   }
 
   getParams(state:TransformState):AST.Identifier[] {
@@ -138,7 +133,7 @@ export abstract class BaseTransformable<T, U, V extends Function, W extends Func
 
   manualTransform(data:T[]):U {
     if (!this.manual) {
-      this.manual = BaseTransformable.getArrayFunction(this);
+      this.manual = BaseArrayTransformable.getArrayFunction(this);
     }
     return this.manual.apply(data, this.inputs) as U; 
   }
