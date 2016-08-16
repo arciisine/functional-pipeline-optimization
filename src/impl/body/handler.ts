@@ -2,16 +2,11 @@ import {AST, ParseUtil, CompileUtil, Macro as m, Visitor } from '../../../node_m
 import {SYMBOL} from '../array/bootstrap';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
-import {BodyTransformUtil, EXEC, TAG} from './util';
-
-export const CANDIDATE = m.genSymbol();
-export const CANDIDATE_KEY = m.genSymbol();
-export const CANDIDATE_START = m.genSymbol();
-export const CANDIDATE_FUNCTIONS = m.genSymbol();
-export const CANDIDATE_RELATED = m.genSymbol();
-export const ANALYSIS = m.genSymbol();
-const GLOBAL_ASSIGN = m.Id('_$_')
-
+import {BodyTransformUtil, 
+  GLOBAL_ASSIGN, EXEC, KEY, INLINE_PREFIX,
+  CANDIDATE, CANDIDATE_FUNCTIONS, CANDIDATE_KEY,
+  CANDIDATE_RELATED, CANDIDATE_START, ANALYSIS
+} from './util';
 
 //Function wrappers
 export class BodyTransformHandler {
@@ -114,39 +109,11 @@ export class BodyTransformHandler {
   CallExpressionEnd(x : AST.CallExpression, visitor:Visitor) {
     if (!x[CANDIDATE]) return;
 
-    let arg = x.arguments[0];
-
-    if (AST.isFunction(arg)) {
-      x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
-      let fn:AST.BaseFunction = x.arguments[0] as AST.BaseFunction;
-      if (AST.isArrowFunctionExpression(fn)) {
-        fn = AST.FunctionExpression({
-          body : fn.body as AST.BlockStatement,
-          params : fn.params,
-          generator : fn.generator,
-          id : null
-        })
-      }
-      fn.id = m.Id('__inline', true)
-      x[CANDIDATE_KEY] = fn.id.name;
-      x.arguments[0] = fn
-    } else if (AST.isIdentifier(arg)) {
-      let passed = false;
-      let name = arg.name;
-      for (let fn of this.functionScopes) {
-        passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
-        if (passed) break;
-      }
-      if (passed) {
-        x.arguments[0] = m.Call(TAG, arg);
-      } else {
-        let id = m.genSymbol();
-        x[CANDIDATE_KEY] = id;
-        x.arguments[0] = m.Call(TAG, arg, m.Literal(id));
-      }
-    }
+    BodyTransformUtil.renameExpressions(x);
       
-    let endNode = x[CANDIDATE_FUNCTIONS] ? x : visitor.findParent(x => !!x.node[CANDIDATE_FUNCTIONS]).node as AST.CallExpression;
+    let endNode = x[CANDIDATE_FUNCTIONS] ? 
+      x : 
+      visitor.findParent(x => !!x.node[CANDIDATE_FUNCTIONS]).node as AST.CallExpression;
 
     //Check for start of chain
     let callee = x.callee;
@@ -163,11 +130,14 @@ export class BodyTransformHandler {
       let ops = [];
       let inputs = [];
 
-      let allStatic = true;
-
       x[CANDIDATE_FUNCTIONS].map((x:AST.CallExpression) => {
-        allStatic = allStatic && x[CANDIDATE_KEY] !== '';
-        ops.push(m.Literal((x.callee as AST.MemberExpression).property['name']));
+        let name = (
+          AST.isMemberExpression(x.callee) && 
+          AST.isIdentifier(x.callee.property) && 
+          x.callee.property.name
+        );
+
+        ops.push(m.Literal(name));
         inputs.push(AST.ArrayExpression({ elements : x.arguments }))
       });      
 
@@ -180,7 +150,7 @@ export class BodyTransformHandler {
 
       return m.Call(EXEC, (
         x[CANDIDATE_START] as AST.MemberExpression).object, 
-        allStatic ? m.Literal(m.genSymbol()) : AST.Literal({value:null}), 
+        BodyTransformUtil.buildKey(inputs, this.functionScopes), 
         AST.ArrayExpression({elements:ops}), 
         AST.ArrayExpression({elements:inputs}),
         ...params);

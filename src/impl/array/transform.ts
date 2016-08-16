@@ -15,12 +15,14 @@ export class SliceTransform<T> extends BaseTransformable<T[], T[]>  {
 
   transform(state:TransformState):TransformResponse {
     let counter = m.Id();
+    let start = m.Id();
+    let end = m.Id();
     let incr = m.Expr(m.Increment(counter));
     let check:AST.Expression = 
       AST.BinaryExpression({
         left:counter, 
         operator:'<', 
-        right: this.getContextValue(state, 'start')
+        right: start
       })
       
     if (this.inputs[1] !== undefined) {
@@ -30,12 +32,15 @@ export class SliceTransform<T> extends BaseTransformable<T[], T[]>  {
         right : AST.BinaryExpression({
           left:counter, 
           operator:'>=', 
-          right: this.getContextValue(state, 'end')
+          right: end
         })
       });
     }
     return {
-      vars : [counter, m.Literal(-1)],
+      vars : [
+        counter, m.Literal(-1), 
+        start, this.getContextValue(state, 'start'), 
+        end, this.getContextValue(state, 'end')],
       body : [
         incr, m.IfThen(check, [m.Continue(state.continueLabel)])
       ]

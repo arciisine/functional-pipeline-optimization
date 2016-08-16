@@ -1,11 +1,22 @@
 import {AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import {MAPPING as supported} from '../array/transform';
 import {SYMBOL} from '../array/bootstrap';
+import {FunctionAnalyzer, VariableVisitorUtil} from '../../core/analyze';
 import {AccessType, Analysis } from '../../core';
 
 export const EXEC = m.Id(`${SYMBOL}_exec`);
-export const TAG  = m.Id(`${SYMBOL}_tag`)
+export const KEY  = m.Id(`${SYMBOL}_key`)
 export const FREE = m.Id()
+
+export const CANDIDATE = m.genSymbol();
+export const CANDIDATE_KEY = m.genSymbol();
+export const CANDIDATE_START = m.genSymbol();
+export const CANDIDATE_FUNCTIONS = m.genSymbol();
+export const CANDIDATE_RELATED = m.genSymbol();
+export const ANALYSIS = m.genSymbol();
+export const GLOBAL_ASSIGN = m.Id('_$_')
+
+export const INLINE_PREFIX = '__inline';
 
 export class BodyTransformUtil {
 
@@ -83,5 +94,62 @@ export class BodyTransformUtil {
     
     //Wrap with exec
     return execParams;
+  }
+
+  static buildKey(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]) {
+    let res = inputs.map((x):AST.Expression => {
+      let el = x.elements[0];
+      if (AST.isIdentifier(el)) {
+        let passed = false;
+        let name = el.name;
+        for (let fn of scopes) {
+          passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
+          if (passed) break;
+        }
+        return !passed ? m.Call(KEY, el) : m.Literal(m.Id().name);
+      } else if (AST.isFunctionExpression(el)) {
+        return m.Literal(el.id.name);
+      } else if (AST.isLiteral(el)) {
+        return m.Literal(`${el.value}`);
+      }
+    }).reduce((acc:AST.BinaryExpression, expr:AST.Expression) => {
+      if (AST.isLiteral(acc.left) && acc.left.value === "") {
+        acc.left = expr;
+      } else if (AST.isLiteral(acc.right) && acc.right.value === "") {
+        acc.right = expr;
+      } else if (AST.isLiteral(acc.right) && AST.isLiteral(expr)) {
+        acc.right.value += "~" + expr.value;
+      } else {
+        acc.right = AST.BinaryExpression({left:acc.right, operator:"+", right:expr})
+      }
+      return acc;
+    }, AST.BinaryExpression({left:m.Literal(""), operator:"+", right:m.Literal("")}))
+
+    if (AST.isBinaryExpression(res)) {
+      if (AST.isLiteral(res.left) && AST.isLiteral(res.right)) {
+        res = m.Literal(m.Id().name); // Static input, shorten
+      }
+    }
+    return res;
+  }
+
+  static renameExpressions(x:AST.CallExpression) {
+    let arg = x.arguments[0];
+
+    if (AST.isFunction(arg)) {
+      x[ANALYSIS] = FunctionAnalyzer.analyzeAST(arg as AST.BaseFunction);
+      let fn:AST.BaseFunction = x.arguments[0] as AST.BaseFunction;
+      if (AST.isArrowFunctionExpression(fn)) {
+        fn = AST.FunctionExpression({
+          body : fn.body as AST.BlockStatement,
+          params : fn.params,
+          generator : fn.generator,
+          id : null
+        })
+      }
+      fn.id = m.Id(INLINE_PREFIX, true)
+      x[CANDIDATE_KEY] = fn.id.name;
+      x.arguments[0] = fn
+    } 
   }
 }
