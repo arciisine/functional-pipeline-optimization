@@ -106,7 +106,7 @@ export class BodyTransformUtil {
           passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
           if (passed) break;
         }
-        return !passed ? m.Call(KEY, el) : m.Literal(m.Id().name);
+        return passed ? m.Call(KEY, el) : m.Literal(m.Id().name);
       } else if (AST.isFunctionExpression(el)) {
         return m.Literal(el.id.name);
       } else if (AST.isLiteral(el)) {
