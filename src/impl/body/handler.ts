@@ -3,7 +3,7 @@ import {SYMBOL} from '../array/bootstrap';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
 import {BodyTransformUtil, 
-  GLOBAL_ASSIGN, EXEC, KEY, INLINE_PREFIX,
+  EXEC, KEY, INLINE_PREFIX,
   CANDIDATE, CANDIDATE_FUNCTIONS, CANDIDATE_KEY,
   CANDIDATE_RELATED, CANDIDATE_START, ANALYSIS
 } from './util';
@@ -14,7 +14,6 @@ export class BodyTransformHandler {
   static transform(content:string) {
     let body = ParseUtil.parseProgram<AST.Node>(content);
     Visitor.exec(new BodyTransformHandler(BodyTransformUtil.getPragmas(body.body)), body);
-    body.body.push(m.Vars(GLOBAL_ASSIGN, null))
     let source = CompileUtil.compileExpression(body);
     return source;
   }

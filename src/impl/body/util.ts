@@ -14,7 +14,6 @@ export const CANDIDATE_START = m.genSymbol();
 export const CANDIDATE_FUNCTIONS = m.genSymbol();
 export const CANDIDATE_RELATED = m.genSymbol();
 export const ANALYSIS = m.genSymbol();
-export const GLOBAL_ASSIGN = m.Id('_$_')
 
 export const INLINE_PREFIX = '__inline';
 
@@ -111,11 +110,15 @@ export class BodyTransformUtil {
         return m.Literal(el.id.name);
       } else if (AST.isLiteral(el)) {
         return m.Literal(`${el.value}`);
+      } else if (AST.isCallExpression(el)) {
+        return m.Literal(m.genSymbol('__computed'));
       }
     }).reduce((acc:AST.BinaryExpression, expr:AST.Expression) => {
       if (AST.isLiteral(acc.left) && acc.left.value === "") {
+        console.log(expr);
         acc.left = expr;
       } else if (AST.isLiteral(acc.right) && acc.right.value === "") {
+        console.log(expr);
         acc.right = expr;
       } else if (AST.isLiteral(acc.right) && AST.isLiteral(expr)) {
         acc.right.value += "~" + expr.value;

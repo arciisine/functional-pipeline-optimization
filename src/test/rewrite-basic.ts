@@ -2,12 +2,14 @@ import {BodyTransformHandler} from '../impl/body';
 
 import * as fs from "fs";
 
-let content = fs.readFileSync(`${__dirname}/basic.js`).toString();
+let test = 'basic-closed';
+
+let content = fs.readFileSync(`${__dirname}/${test}.js`).toString();
 
 let out = BodyTransformHandler.transform(content)
 
 console.log(out);
 
-fs.writeFileSync(`${__dirname}/basic.alt.js`, out);
+fs.writeFileSync(`${__dirname}/${test}.alt.js`, out);
 
 eval(out);
