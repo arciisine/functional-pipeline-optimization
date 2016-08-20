@@ -22,6 +22,10 @@ export class Analysis {
 
   constructor(public key: string) {}
 
+  get hasClosed():boolean {
+    return Object.keys(this.closed).length > 0;
+  }
+
   merge(obj:Analysis):this {
     if (!obj) return this;
 

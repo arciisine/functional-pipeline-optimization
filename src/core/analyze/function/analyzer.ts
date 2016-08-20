@@ -1,4 +1,4 @@
-import { ParseUtil, AST, Visitor } from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { ParseUtil, AST, Visitor, Macro as m} from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, Analyzable, AccessType } from './types';
 import {VariableStack, VariableNodeHandler} from '../variable';
 import {Util} from '../../util';
@@ -56,21 +56,20 @@ export class FunctionAnalyzer {
   }
 
   static analyze(fn:Function, globals?:any):Analysis {
-    let ret = FunctionAnalyzer.analyzed[fn.key];
-    if (ret) return ret
+    let key = fn.name || fn.key;
+    let analysis = FunctionAnalyzer.analyzed[key];
+    if (analysis) return analysis
 
     let src = fn.toString();        
-    let analysis = FunctionAnalyzer.analyzed[fn.key];
+    let input = fn.toString();
 
-    if (analysis) { //return if already computed
-      return analysis;
-    } 
-
-    let ast:AST.BaseFunction = ParseUtil.parse(fn.toString());
+    let ast:AST.BaseFunction = ParseUtil.parse(input);
     analysis = FunctionAnalyzer.analyzeAST(ast, globals);
 
-    analysis.check = fn.key;
-    FunctionAnalyzer.analyzed[fn.key] = analysis;
+    key = analysis.check = fn.name;
+    if (key) {
+      FunctionAnalyzer.analyzed[key] = analysis;
+    }
     return analysis;    
   }
 }

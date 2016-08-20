@@ -93,10 +93,9 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   }
 
   transform(state:TransformState):TransformResponse  {
-    let node = ParseUtil.parse(this.getInput('callback')) as AST.Node;
-    let pos = m.Id();
-    let params = [...this.getParams(state), pos];
-
+    let input = this.getInput('callback');
+    let node = ParseUtil.parse(input) as AST.Node;
+    
     let fn:AST.FunctionExpression = null;
 
     if (AST.isExpressionStatement(node)) {
@@ -109,21 +108,26 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
       throw { message : `Invalid type: ${node.type}`, invalid : true };
     }
 
+    let pos = m.Id();
+    let params = [...this.getParams(state), pos];
+
     if (fn.params.length > params.length) { //If using array notation
       throw { message : "Array references are not supported", invalid : true };
     }
 
     let res = {vars:[], body:[]};
+    let hasIndex = fn.params.length === params.length; //If using index
+    let isStatic = input.key.startsWith('__inline') || !this.analyze().hasClosed
 
     //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions
-    if (!this.getInput('callback').name.startsWith('__inline') && Object.keys(this.analyze().closed).length > 0) {
-       this.buildFunctionCallResult(state, res, params); 
+    if (!isStatic) {
+      this.buildFunctionCallResult(state, res, params.slice(0, !hasIndex ? -1 : params.length)); 
     } else {
       this.buildInlineResult(state, res, params, fn);
     }
     
-    if (fn.params.length === params.length) { //If using index
+    if (hasIndex) { //If using index
       res.vars.push(pos, m.Literal(0))
       res.body.push(m.Expr(m.Increment(pos)))
     }

@@ -16,9 +16,9 @@ export class Helper {
     } 
   }
   static exec<T>(data:T[], key:string, operations:string[], context:any[][], closed:any[]=[], post:(all:any[])=>T = null ):T[] {
-    if (is_arr(data)) {
+    let res = CompilerUtil.computed[key];
+    if (is_arr(data) && res !== null) {
       let ret:ExecOutput<T[]> = null;
-      let res = CompilerUtil.computed[key];
       
       if (res) {
         ret = res({value:data, closed, context })
@@ -27,7 +27,16 @@ export class Helper {
         for (let i = 0; i < operations.length; i++) {
           builder.chain(MAPPING[operations[i]], context[i]);
         }
-        ret = builder.exec(closed, key)
+        try {
+          ret = builder.exec(closed, key)
+        } catch (e) {
+          if (e.invalid) {
+            CompilerUtil.computed[key] = null;
+            ret = builder.manual();
+          } else {
+            throw e;
+          }
+        } 
       }
       if (post !== null) post(ret.assigned);
       return ret.value as T[];

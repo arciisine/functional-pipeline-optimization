@@ -23,7 +23,13 @@ export interface ExecHandler<I, O>{
 
 declare global {
   interface Function {
-    key:string        
-    inline?:boolean
-  }
+    key:string
+  }  
 }
+
+//Default key to name
+Object.defineProperty(Function.prototype, 'key', {
+  enumerable: false,
+  configurable: true,
+  get : function() { return this.name; }    
+});
