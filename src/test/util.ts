@@ -2,7 +2,7 @@ import {Helper} from '../impl/array/bootstrap';
 
 let data:number[] = null
 export function getNumberData():number[] {
-  let data:number[] = Array(4);
+  let data:number[] = Array(1000);
   for (let i = 0; i < data.length; i++) {
     data[i] = parseInt(''+(Math.random() * 255));
   }
