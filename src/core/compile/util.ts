@@ -21,7 +21,7 @@ export class CompilerUtil {
       }, {vars:[], body:[]});
   }
 
-  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string):ExecHandler<I,O> {
+  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null):ExecHandler<I,O> {
     if (key && CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
     }

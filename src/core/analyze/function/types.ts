@@ -10,7 +10,6 @@ export enum AccessType {
 }
 
 export class Analysis {
-  check : string;
   globals:{[key:string]:any};
   closed:{[key:string]:number} = {};
   all:number = 0;

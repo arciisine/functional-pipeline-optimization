@@ -39,7 +39,8 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   }
 
   analyze():Analysis {
-    return FunctionAnalyzer.analyze(this.getInput('callback'));
+    let fn = this.getInput('callback');
+    return FunctionAnalyzer.analyze(fn, fn.key);
   }
 
   getParams(state:TransformState):AST.Identifier[] {
