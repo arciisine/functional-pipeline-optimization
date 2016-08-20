@@ -98,7 +98,8 @@ export class BodyTransformUtil {
   static buildKey(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]) {
     let res = inputs.map((x):AST.Expression => {
       let el = x.elements[0];
-      if (AST.isIdentifier(el)) {
+
+      if (AST.isIdentifier(el)) { //If a variable
         let passed = false;
         let name = el.name;
         for (let fn of scopes) {

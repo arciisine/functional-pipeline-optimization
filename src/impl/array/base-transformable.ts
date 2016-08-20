@@ -56,12 +56,12 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
     out.vars.push(
       stepContextId, this.getContextValue(state, 'context'), 
-      stepCallbackId, m.GetProperty(this.getContextValue(state, 'callback'), 'call')
+      stepCallbackId, this.getContextValue(state, 'callback'), 
     )
 
     out.body.push(
       this.onReturn(state, 
-        m.Return(m.Call(stepCallbackId, stepContextId, ...params))
+        m.Return(m.Call(m.GetProperty(stepCallbackId, 'call'), stepContextId, ...params))
       )
     );
   }
@@ -96,7 +96,10 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   transform(state:TransformState):TransformResponse  {
     let input = this.getInput('callback');
     let node = ParseUtil.parse(input) as AST.Node;
-    
+    let pos = m.Id();
+    let params = [...this.getParams(state), pos];    
+    let res = {vars:[], body:[]};
+    let isStatic = (input.key || '').startsWith('__inline') || !this.analyze().hasClosed
     let fn:AST.FunctionExpression = null;
 
     if (AST.isExpressionStatement(node)) {
@@ -109,16 +112,12 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
       throw { message : `Invalid type: ${node.type}`, invalid : true };
     }
 
-    let pos = m.Id();
-    let params = [...this.getParams(state), pos];
+    let hasIndex = fn.params.length === params.length; //If using index
+    let hasArray = fn.params.length > params.length; //If using index
 
-    if (fn.params.length > params.length) { //If using array notation
+    if (hasArray) { //If using array notation
       throw { message : "Array references are not supported", invalid : true };
     }
-
-    let res = {vars:[], body:[]};
-    let hasIndex = fn.params.length === params.length; //If using index
-    let isStatic = input.key.startsWith('__inline') || !this.analyze().hasClosed
 
     //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions

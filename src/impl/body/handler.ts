@@ -129,7 +129,7 @@ export class BodyTransformHandler {
       let ops = [];
       let inputs = [];
 
-      x[CANDIDATE_FUNCTIONS].map((x:AST.CallExpression) => {
+      x[CANDIDATE_FUNCTIONS].forEach((x:AST.CallExpression) => {
         let name = (
           AST.isMemberExpression(x.callee) && 
           AST.isIdentifier(x.callee.property) && 
