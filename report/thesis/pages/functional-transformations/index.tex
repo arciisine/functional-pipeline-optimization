@@ -1,0 +1,21 @@
+\section{Functional Transformations}
+
+The paper will reference a simple algorithm, to highlight the specific problem, and the necessary steps needed.
+
+\begin{enumerate}
+  \item Recieve text as a string
+  \item Split text into a list of words
+  \item Remove all words that are 3 characters or less
+  \item Convert all remaining items to lower case
+  \item Maintain counter for each word 
+  \item When counter passes threshold, emit value
+\end{enumerate}
+
+Given the above listing, what you can see is that there is a set of filters, transformations, aggreagations that need to be applied in order to produce the desired output.  This results in a sequence of operations that the data will be manipulated through and ultimately producing the correct results.  
+
+This sequence creates the flow of operations that every text block, and word will have to go through.  This form has a few benefits, specifically that each step is clear and easy to verify.  Additionally, because of the modularity of the functions, each step is easy to modify.  This modification will produce a new program with a high certainty of correctness given the isolation from every other step in the sequence.  
+
+Functional isolation and purity ultimately lend themselves to code that is easier to write, easier to maintain, and easier to verify.  
+
+\input{pages/functional-transformations/javascript-array.tex}
+\input{pages/functional-transformations/others.tex}

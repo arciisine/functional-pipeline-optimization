@@ -1,0 +1,50 @@
+\subsection{Different Types of Operators}
+\begin{enumerate}
+  \item Invalid
+    \begin{enumerate}
+      \item Any operation that relies upon knowledge of the intermediate arrays or array size will invalidate optimization and drops to the basic form.  This is due to the fact that most operations discard the intermediate arrays and we gain performance by not creating the array.
+    \end{enumerate}
+  \item Inline
+    \begin{enumerate}
+      \item Closed variables are in scope of the chain expression
+      \item Cannot change at runtime
+    \end{enumerate}
+  \item Static Reference
+    \begin{enumerate}
+      \item Defined by the fact that the variable is not a parameter in any enclosing function scopes.
+        \begin{enumerate}
+          \item This assumption may not be entirely valid as external variables could change, but should generally maintain the same form
+          \item  Will add an optimize flag to override this assumption when needed
+        \end{enumerate}
+      \item Closed variables are not reachable
+        \begin{enumerate}
+          \item Will not know until runtime
+          \item Devolves to dynamic reference
+        \end{enumerate}
+      \item Form without closures can be optimized
+        \begin{enumerate}
+          \item Can act the same as Inline form
+        \end{enumerate}
+    \end{enumerate}
+  \item Dynamic reference
+    \begin{enumerate}
+      \item  Cannot be guaranteed (with a high level of certainty) that the function is the same as previous invocations
+        \begin{enumerate}
+          \item Function references that are passed in ( assuming predicate or transformation is an input )
+          \item Functions that are computed
+            \begin{enumerate}
+              \item e.g. `const adder = y => (x => x + y)` 
+              \item Could result in a dynamic function every time
+              \item Usually will have some sort of closure that we cannot recover from
+              \item Will default to invocation form 
+            \end{enumerate}
+        \end{enumerate}
+      \item Can only result in invocation form
+        \begin{enumerate}
+          \item Will invoke the function passed in with the appropriate parameters
+          \item Sub-optimal, but still avoids penalty of creating the intermediate arrays
+          \item Since the generated theh code will be the same for every
+        \end{enumerate}
+    \end{enumerate}
+\end{enumerate}
+

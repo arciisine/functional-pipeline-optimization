@@ -1,0 +1,28 @@
+\subsection{Case Study: JavaScript Array}
+
+An implementation of this concept of functional sequences can be found in how JavaScript models arrays.  The array class implements a superset of the following functionality:
+
+\begin{enumerate}
+  \item $forEach(operation)$.  $operation$ represents a generic function whose return value is ignored.  This method will invoke $operation$ on every element of the array.
+
+  \item $map(transform)$.  $transform$ represents a mapping of the array contents.  This method will create a new array of identical size to the input, but with every element mapped through the $transform$ function.
+
+  \item $filter(predicate)$.  $predicate$ represents a mapping of the array elements to a boolean value.  This method will return a new array in which every element that has a $predicate$ invocation that returns $true$ will be in the output.
+
+  \item $reduce(accumulate, initial)$.  $accumulate$ represents a function that receives both $accumulator$ and an array element. Every time $accumulate$ is is invoked with $accumulator$ and an array element, the output of the function is stored as a new value for $accumulate$.  This new value will be used on the next iteration or will be returned if it is the final iteration.
+
+\end{enumerate}
+
+Since $map$ and $filter$ both return arrays, this gives way to method chaining. Method chaining is a design pattern in which an operation on an object returns itself or an instance of the same type as the method's owner. Visually, this produces a strong representation of the pseudo code mentioned earlier:
+
+\begin{minipage}{\linewidth}
+\lstinputlisting[frame=single, language=JavaScript]{code/sample-functional.js}
+\end{minipage} 
+
+An even clearer version of this code could be derived by declaring all the operators
+
+\begin{minipage}{\linewidth}
+\lstinputlisting[frame=single, language=JavaScript]{code/sample-functional-declared.js}
+\end{minipage}
+
+This final form even allows for predicates/transformations to be used between multiple transformational sequences.  This leads to higher quality of code by decreasing the testing surface, and preventing code duplication. 
