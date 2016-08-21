@@ -2,7 +2,7 @@ import {BodyTransformHandler} from '../impl/body';
 
 import * as fs from "fs";
 
-let test = 'basic-closed';
+let test = 'text-analysis';
 
 let content = fs.readFileSync(`${__dirname}/${test}.js`).toString();
 

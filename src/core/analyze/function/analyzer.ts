@@ -56,7 +56,8 @@ export class FunctionAnalyzer {
   }
 
   static analyze(fn:Function, globals?:any):Analysis {
-    let analysis = FunctionAnalyzer.analyzed[fn.key];
+    let key = Function.getKey(fn);
+    let analysis = FunctionAnalyzer.analyzed[key];
     if (analysis) {
       return analysis;
     }
@@ -66,8 +67,8 @@ export class FunctionAnalyzer {
     let ast:AST.BaseFunction = ParseUtil.parse(input);
     analysis = FunctionAnalyzer.analyzeAST(ast, globals);
 
-    if (fn.key) {
-      FunctionAnalyzer.analyzed[fn.key] = analysis;
+    if (key) {
+      FunctionAnalyzer.analyzed[key] = analysis;
     }
     return analysis;    
   }

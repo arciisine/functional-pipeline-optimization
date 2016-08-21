@@ -11,29 +11,83 @@
 \usepackage{enumitem}
 \usepackage{verbatim}
 \usepackage{color}
+\usepackage{listings}
 
 \usetikzlibrary{arrows,positioning,calc}
-\usetikzlibrary{graphs,graphdrawing,arrows.meta}
-\usegdlibrary{trees}
+\usetikzlibrary{graphs,arrows.meta}
 
 \setlist[itemize]{leftmargin=*}
 \setlist[enumerate]{leftmargin=*}
 
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{darkblue}{rgb}{.4,.4,0}
+\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, let, const, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this, filter, map, reduce, foreach, some, find, WRAP, EXEC, TAG},
+  ndkeywordstyle=\color{darkblue}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+   language=JavaScript,
+   backgroundcolor=\color{lightgray},
+   extendedchars=true,
+   basicstyle=\footnotesize\ttfamily,
+   showstringspaces=false,
+   showspaces=false,
+   numbers=left,
+   numberstyle=\footnotesize,
+   numbersep=9pt,
+   tabsize=2,
+   breaklines=true,
+   showtabs=false,
+   captionpos=b
+}
+
+
 \usepackage[margin=1in]{geometry}
 
-\title{Masters Thesis}
+\title{Optimization on a Sequence of Functional Transformations}
 \author{Timothy Soehnlin}
 \date{\today}
 
 \begin{document}
 \maketitle
 
-There is a disconnect between how human's organize computer code, and how compilers optimize it.  Many times the act of creating abstractions adds computational weight to the software in order to increase maintainability.  Generally the additional abstractions do not impact performance signficantly due to the frequency with which it is invoked.  However, code that is executed many times over, would benefit from optimization as the cost of the levels of abstraction is amplified.  
+\section{Introduction}
+There has always been a disconnect between how humans organize computer code, and how compilers optimize it.  Many times the act of creating abstractions adds computational weight to software in order to increase maintainability, testability and decrease overall complexity.  Generally the additional abstractions do not impact performance signficantly due to the frequency with which the abstractions are invoked.  However, code that is executed many times over, would benefit from optimization as the cost of the introduced abstractions are amplified.  
 
-In functional programming it is a common practice to handle loop iteration (map, filter, reduce) as applying a function to each iteration.  Then, via functional composition (or method chaining), multiple iterations are composed together to handle more complex iterations.  This allows for fairly elegant iteration code as well as code that is easy to test.  This abstraction though, comes with the expense of $N$ function invocations per iteration, in addition to potentially substation memory allocations for filter/map operations to store the intermediate results.  
+In functional programming it is a common practice to handle loop ($map$, $filter$, $reduce$) as applying a function to each element of the loop.  Via functional composition (or method chaining), multiple iterations are composed together to handle more complex iterations.  This allows for fairly elegant iteration code as well as code that is easy to test.  This abstraction though, comes with the expense of invoking a function per each loop iteration multiplied by the number of transformations per iteration. In addition to the cost of function execution, there is also substantial memory allocations for $filter$ and $map$ operations as they will need to create intermedidate data to pass between functional invocations.  
 
-A common optimization that is encouraged, throughout many programming languages, is to manually convert the clean functional idioms into a more traditional for-loop.  This involes manually projecting the functional composition into standard procedural code.  This would generally translate to something along the lines of function inlining along with a quasi tail recursion optimization.  
+A common optimization that is encouraged, throughout many programming languages, is to manually convert the functional idioms into a more traditional for-loop.  This involes manually projecting the functional composition into standard procedural code.  While increasing performance and decreasing memory allocations, the overall cost is tied to code maintainability, and increasing surface area for bugs.  
 
-The main difference of this optimization is that it is built against the programmer's intent versus the structure of the compiled code.  
+The main difference of manual operation is that it is pitting the programmer's desire (clean, testable code) against the processor's need for tight loops and register references.  
+
+\section{Functional Transformations}
+
+\subsection{JavaScript Array}
+
+\subsection{Other use cases}
+
+\section{Algorithm}
+
+#Flow Diagram / Decision tree
+
+\section{Process}
+
+#Diagram
+
+\section{Implementation}
 
 \end{document}

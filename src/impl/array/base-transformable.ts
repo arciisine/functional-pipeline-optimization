@@ -40,7 +40,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   analyze():Analysis {
     let fn = this.getInput('callback');
-    return FunctionAnalyzer.analyze(fn, fn.key);
+    return FunctionAnalyzer.analyze(fn);
   }
 
   getParams(state:TransformState):AST.Identifier[] {
@@ -99,7 +99,8 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     let pos = m.Id();
     let params = [...this.getParams(state), pos];    
     let res = {vars:[], body:[]};
-    let isStatic = (input.key || '').startsWith('__inline') || !this.analyze().hasClosed
+    let key = Function.getKey(input)
+    let isStatic = key.startsWith('__inline') || !this.analyze().hasClosed
     let fn:AST.FunctionExpression = null;
 
     if (AST.isExpressionStatement(node)) {

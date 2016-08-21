@@ -9,7 +9,7 @@ export function getNumberData():number[] {
   return data
 }
 
-function test<T>(tests:{[key:string]:(nums:T[])=>void}, data:()=>T[]) {
+function test<T>(tests:{[key:string]:(nums:T)=>any}, data:()=>T) {
   let counts = {};
   let keys = Object.keys(tests);
   keys.forEach(t => {
@@ -21,7 +21,7 @@ function test<T>(tests:{[key:string]:(nums:T[])=>void}, data:()=>T[]) {
 
   let d = data() 
   
-  for (let i = 0; i < 100000; i++) {
+  for (let i = 0; i < 2; i++) {
     let k = keys[Math.max(0, Math.min(keys.length-1, parseInt(Math.random()*keys.length as any)))];
     let start = process.hrtime()
     try {
@@ -88,13 +88,13 @@ function areEqual(a, b):boolean {
 }
 
 
-export function doTest<T>(tests:{[key:string]:(input:T[])=>void}, data:()=>T[]) {
+export function doTest<T>(tests:{[key:string]:(input:T)=>any}, data:()=>T) {
   let out:any[][] = [];
   let keys = Object.keys(tests);
   out.push(['Mixed', test(tests, data)]);
 
   keys.forEach(k => {
-    let o:{[key:string]:(input:T[])=>void} = {};
+    let o:{[key:string]:(input:T)=>void} = {};
     o[k] = tests[k];
     out.push([`All ${k}`, test(o, data)])
   })

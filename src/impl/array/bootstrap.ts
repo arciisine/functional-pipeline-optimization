@@ -7,9 +7,11 @@ const is_arr = Array.isArray;
 
 export class Helper {
   static key<T>(el:T, key?:string):string {
-    if (typeof el === 'function') {
+    if (key) {
+      return key;
+    } else if (typeof el === 'function') {
       let fn = el as any 
-      fn.key = fn.key || key || md5(el.toString());
+      fn.key = fn.key || md5(el.toString());
       return fn.key;
     } else {
       return ''+el;
