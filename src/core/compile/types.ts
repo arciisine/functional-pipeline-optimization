@@ -21,13 +21,3 @@ export interface ExecHandler<I, O>{
   (i:ExecInput<I>):ExecOutput<O>
 }
 
-declare global {
-  interface Function {
-    key?:string
-  }
-  interface FunctionConstructor {
-    getKey(fn:Function):string;
-  }  
-}
-
-Function['getKey'] = (fn:Function) => fn.key || fn.name;
