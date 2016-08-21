@@ -25,6 +25,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   public manual:W;
   public position = -1;
+  public posId = null;
 
   constructor(inputs:any[], inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING) {
     super(inputs, inputMapping)
@@ -95,11 +96,14 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     out.body.push(...fn.body.body);
   }
 
+  hasIndex(fn:AST.FunctionExpression, params:AST.Identifier[]):boolean {
+    return fn.params.length === params.length; //If using index;
+  }
+
   transform(state:TransformState):TransformResponse  {
     let input = this.getInput('callback');
     let node = ParseUtil.parse(input) as AST.Node;
-    let pos = m.Id();
-    let params = [...this.getParams(state), pos];    
+    let params = [...this.getParams(state), this.posId];    
     let res = {vars:[], body:[]};
     let key = Function.getKey(input)
     let isStatic = key.startsWith('__inline') || !this.analyze().hasClosed
@@ -115,7 +119,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
       throw { message : `Invalid type: ${node.type}`, invalid : true };
     }
 
-    let hasIndex = fn.params.length === params.length; //If using index
+    let hasIndex = this.hasIndex(fn, params);
     let hasArray = fn.params.length > params.length; //If using index
 
     if (hasArray) { //If using array notation
@@ -131,8 +135,8 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     }
     
     if (hasIndex) { //If using index
-      res.vars.push(pos, m.Literal(0))
-      res.body.push(m.Expr(m.Increment(pos)))
+      res.vars.push(this.posId, m.Literal(0))
+      res.body.push(m.Expr(m.Increment(this.posId)))
     }
 
     return res;

@@ -32,7 +32,15 @@ export class ArrayBuilder<I, O> extends Builder<I[], O[]> {
     return this.chain(Transform.FindTransform, [callback, context]);
   }
 
+  findIndex(callback:Callback.Predicate<O>, context?:any) {
+    return this.chain(Transform.FindIndexTransform, [callback, context]);
+  }
+
   some(callback:Callback.Predicate<O>, context?:any) {
     return this.chain(Transform.SomeTransform, [callback, context]);
+  }
+
+  every(callback:Callback.Predicate<O>, context?:any) {
+    return this.chain(Transform.EveryTransform, [callback, context]);
   }
 }
