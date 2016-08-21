@@ -16,9 +16,6 @@
 \usetikzlibrary{arrows,positioning,calc}
 \usetikzlibrary{graphs,arrows.meta}
 
-\setlist[itemize]{leftmargin=*}
-\setlist[enumerate]{leftmargin=*}
-
 \definecolor{lightgray}{rgb}{.9,.9,.9}
 \definecolor{darkgray}{rgb}{.4,.4,.4}
 \definecolor{darkblue}{rgb}{.4,.4,0}
@@ -66,34 +63,36 @@
 \maketitle
 
 \section{Introduction}
-There has always been a disconnect between how humans organize computer code, and how compilers optimize it.  Many times the act of creating abstractions adds computational weight to software in order to increase maintainability, testability and decrease overall complexity.  Generally the additional abstractions do not impact performance signficantly due to the frequency with which the abstractions are invoked.  However, code that is executed many times over, would benefit from optimization as the cost of the introduced abstractions are amplified.  
+  There has always been a disconnect between how humans organize computer code, and how compilers optimize it.  Many times the act of creating abstractions adds computational weight to software in order to increase maintainability, testability and decrease overall complexity.  Generally the additional abstractions do not impact performance signficantly due to the frequency with which the abstractions are invoked.  However, code that is executed many times over, would benefit from optimization as the cost of the introduced abstractions are amplified.  
 
-In functional programming it is a common practice to handle loop ($map$, $filter$, $reduce$) as applying a function to each element of the loop.  Via functional composition (or method chaining), multiple iterations are composed together to handle more complex iterations.  This allows for fairly elegant iteration code as well as code that is easy to test.  This abstraction though, comes with the expense of invoking a function per each loop iteration multiplied by the number of transformations per iteration. In addition to the cost of function execution, there is also substantial memory allocations for $filter$ and $map$ operations as they will need to create intermedidate data to pass between functional invocations.  
+  In functional programming it is a common practice to handle loop ($map$, $filter$, $reduce$) as applying a function to each element of the loop.  Via functional composition (or method chaining), multiple iterations are composed together to handle more complex iterations.  This allows for fairly elegant iteration code as well as code that is easy to test.  This abstraction though, comes with the expense of invoking a function per each loop iteration multiplied by the number of transformations per iteration. In addition to the cost of function execution, there is also substantial memory allocations for $filter$ and $map$ operations as they will need to create intermedidate data to pass between functional invocations.  
 
-A common optimization that is encouraged, throughout many programming languages, is to manually convert the functional idioms into a more traditional for-loop.  This involes manually projecting the functional composition into standard procedural code.  While increasing performance and decreasing memory allocations, the overall cost is tied to code maintainability, and increasing surface area for bugs.  
+  A common optimization that is encouraged, throughout many programming languages, is to manually convert the functional idioms into a more traditional for-loop.  This involes manually projecting the functional composition into standard procedural code.  While increasing performance and decreasing memory allocations, the overall cost is tied to code maintainability, and increasing surface area for bugs.  
 
-The main difference of manual operation is that it is pitting the programmer's desire (clean, testable code) against the processor's need for tight loops and register references.  
+  The main difference of manual operation is that it is pitting the programmer's desire (clean, testable code) against the processor's need for tight loops and register references.  
 
 \section{Functional Transformations}
 
-\begin{enumerate}
-  \item Recieve text as a string
-  \item Split text into a list of words
-  \item Remove all words that are 3 characters or less
-  \item Convert all remaining items to lower case
-  \item Maintain counter for each word 
-  \item When counter passes threshold, emit value
-\end{enumerate}
+  The paper will reference a simple algorithm, to highlight the specific problem, and the necessary steps needed.
 
-Given the above listing, what you can see is that there is a set of filters, transformations, aggreagations that need to be applied in order to produce the desired output.  This results in a sequence of operations that the data will be manipulated through and ultimately producing the correct results.  
+  \begin{enumerate}
+    \item Recieve text as a string
+    \item Split text into a list of words
+    \item Remove all words that are 3 characters or less
+    \item Convert all remaining items to lower case
+    \item Maintain counter for each word 
+    \item When counter passes threshold, emit value
+  \end{enumerate}
 
-This sequence creates the flow of operations that every text block, and word will have to go through.  This form has a few benefits, specifically that each step is clear and easy to verify.  Additionally, because of the modularity of the functions, each step is easy to modify.  This modification will produce a new program with a high certainty of correctness given the isolation from every other step in the sequence.  
+  Given the above listing, what you can see is that there is a set of filters, transformations, aggreagations that need to be applied in order to produce the desired output.  This results in a sequence of operations that the data will be manipulated through and ultimately producing the correct results.  
 
-Functional isolation and purity ultimately lend themselves to code that is easier to write, easier to maintain, and easier to verify.  
+  This sequence creates the flow of operations that every text block, and word will have to go through.  This form has a few benefits, specifically that each step is clear and easy to verify.  Additionally, because of the modularity of the functions, each step is easy to modify.  This modification will produce a new program with a high certainty of correctness given the isolation from every other step in the sequence.  
+
+  Functional isolation and purity ultimately lend themselves to code that is easier to write, easier to maintain, and easier to verify.  
 
 \subsection{Case Study: JavaScript Array}
 
-An implementation of this concept of functional sequences can be found in how JavaScript models arrays.  The array class implements a superset of the following functionality:
+  An implementation of this concept of functional sequences can be found in how JavaScript models arrays.  The array class implements a superset of the following functionality:
 
   \begin{enumerate}
     \item $forEach(operation)$.  $operation$ represents a generic function whose return value is ignored.  This method will invoke $operation$ on every element of the array.
@@ -108,17 +107,21 @@ An implementation of this concept of functional sequences can be found in how Ja
 
   Since $map$ and $filter$ both return arrays, this gives way to method chaining. Method chaining is a design pattern in which an operation on an object returns itself or an instance of the same type as the method's owner. Visually, this produces a strong representation of the pseudo code mentioned earlier:
   
-  \lstinputlisting[frame=single, language=JavaScript]{code/sample-functional.js} 
+  \begin{minipage}{\linewidth}
+  \lstinputlisting[frame=single, language=JavaScript]{code/sample-functional.js}
+  \end{minipage} 
 
   An even clearer version of this code could be derived by declaring all the operators
 
+  \begin{minipage}{\linewidth}
   \lstinputlisting[frame=single, language=JavaScript]{code/sample-functional-declared.js}
+  \end{minipage}
 
   This final form even allows for predicates/transformations to be used between multiple transformational sequences.  This leads to higher quality of code by decreasing the testing surface, and preventing code duplication. 
 
 \subsection{Other use cases}
 
-This pattern arises in almost every programming language developed in the last 30 years.  The reason for this, is that functional paradigms are seen as beneficial in general, but almost as a necessity in dealing with complex list manipulations.    
+  This pattern arises in almost every programming language developed in the last 30 years.  The reason for this, is that functional paradigms are seen as beneficial in general, but almost as a necessity in dealing with complex list manipulations.    
 
 \section{Algorithm}
 
