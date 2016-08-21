@@ -1,4 +1,4 @@
-import {doTest, getNumberData} from './util';
+import {doTest, makeRandomArray} from './util';
 import '../impl/array/bootstrap';
 
 function even(x) { return x%2 === 0; }
@@ -169,6 +169,6 @@ export function obj(data:number[]) {
   return test
 }
 
-doTest({functional, functionalOptimize, functionalCompiled}, () => getNumberData())
+doTest({functional, functionalOptimize, functionalCompiled}, () => makeRandomArray())
 //doTest({sum, sumOptimize}, () => getNumberData())
 //doTest({functional, functionalCompiled}, () => getNumberData())

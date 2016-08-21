@@ -53,7 +53,8 @@ export class BodyTransformHandler {
   }
 
   FunctionEnd(x:AST.BaseFunction, v:Visitor) {
-    this.active = this.optimize.pop();      
+    this.optimize.pop();
+    this.active = this.optimize[this.optimize.length -1];      
     this.functionScopes.pop();
 
     if (this.thisScopes.length && x === this.thisScopes[this.thisScopes.length-1]) {

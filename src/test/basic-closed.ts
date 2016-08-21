@@ -1,4 +1,4 @@
-import {doTest, getNumberData} from './util';
+import {doTest, makeRandomArray} from './util';
 import '../impl/array/bootstrap';
 
 const even = x => x%2 === 0
@@ -59,6 +59,6 @@ export function functionalOptimize(data:number[]) {
   return [hist, count, evens];
 }
 
-doTest({functional, functionalOptimize}, () => getNumberData())
+doTest({functional, functionalOptimize}, () => makeRandomArray())
 //doTest({sum, sumOptimize}, () => getNumberData())
 //doTest({functional, functionalCompiled}, () => getNumberData())

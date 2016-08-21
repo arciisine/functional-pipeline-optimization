@@ -1,12 +1,14 @@
-import {doTest} from './util';
+import {doTest, readFile} from './util';
+
 type agg = {[key:string]:number};
 type acc = {all:agg, common:agg};
-type sig = {txt:string[], greaterThan:number};
+type sig = {txt:string, greaterThan:number};
 
 function findMostCommonWords({txt, greaterThan}:sig) {
+  let words = txt.split(/[^A-Za-z]*/);
   let check:acc = {all:{}, common:{}};
-  for (let i = 0; i < txt.length; i++) {
-    let word = txt[i];
+  for (let i = 0; i < words.length; i++) {
+    let word = words[i];
     if (word.length < 4) {
       continue;
     }
@@ -21,6 +23,7 @@ function findMostCommonWords({txt, greaterThan}:sig) {
 
 function findMostCommonWordsFunctional({txt, greaterThan}:sig) {
   return txt
+    .split(/[^A-Za-z]*/)
     .filter(word => word.length >= 4)
     .map(word => word.toLowerCase())
     .reduce((check:acc,  word) => {
@@ -36,6 +39,7 @@ function findMostCommonWordsFunctionalOptimized({txt, greaterThan}:sig) {
   "use optimize";
 
   return txt
+    .split(/[^A-Za-z]*/)
     .filter(word => word.length >= 4)
     .map(word => word.toLowerCase())
     .reduce((check:acc, word) => {
@@ -47,7 +51,7 @@ function findMostCommonWordsFunctionalOptimized({txt, greaterThan}:sig) {
     }, {all:{}, common:{}}).common;
 }
 
-import * as fs from "fs";
-let data = fs.readFileSync(`${__dirname.replace('/dist', '')}/war-and-peace.txt`, 'utf8').toString().split(/[^A-Za-z]*/);
-
-doTest({findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized}, () => ({txt:data, greaterThan:20}))
+doTest(
+  {findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized}, 
+  () => ({txt:readFile('resources/war-and-peace.txt.gz'), greaterThan:20}),
+)
