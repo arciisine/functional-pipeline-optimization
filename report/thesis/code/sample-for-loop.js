@@ -7,7 +7,7 @@ function findCommonWords(text, limit) {
     }
     word = word.toLowerCase();
     let count = check.all[word] = (check.all[word] || 0) + 1;
-    if (check.all[word] > greaterThan) {
+    if (check.all[word] > limit) {
       check.common[word] = count;
     }
   }

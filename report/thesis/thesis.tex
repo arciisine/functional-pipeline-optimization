@@ -27,7 +27,7 @@
 \lstdefinelanguage{JavaScript}{
   keywords={typeof, new, let, const, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
   keywordstyle=\color{blue}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this, filter, map, reduce, foreach, some, find, WRAP, EXEC, TAG},
+  ndkeywords={class, export, boolean, throw, implements, import, this, filter, map, reduce, foreach, some, find, EXEC, TAG},
   ndkeywordstyle=\color{darkblue}\bfseries,
   identifierstyle=\color{black},
   sensitive=false,
@@ -76,14 +76,14 @@ The main difference of manual operation is that it is pitting the programmer's d
 
 \section{Functional Transformations}
 
-\begin{enumerate*}
+\begin{enumerate}
   \item Recieve text as a string
   \item Split text into a list of words
   \item Remove all words that are 3 characters or less
   \item Convert all remaining items to lower case
   \item Maintain counter for each word 
   \item When counter passes threshold, emit value
-\end{enumerate*}
+\end{enumerate}
 
 Given the above listing, what you can see is that there is a set of filters, transformations, aggreagations that need to be applied in order to produce the desired output.  This results in a sequence of operations that the data will be manipulated through and ultimately producing the correct results.  
 
@@ -93,15 +93,40 @@ Functional isolation and purity ultimately lend themselves to code that is easie
 
 \subsection{Case Study: JavaScript Array}
 
+An implementation of this concept of functional sequences can be found in how JavaScript models arrays.  The array class implements a superset of the following functionality:
+
+  \begin{enumerate}
+    \item $forEach(operation)$.  $operation$ represents a generic function whose return value is ignored.  This method will invoke $operation$ on every element of the array.
+
+    \item $map(transform)$.  $transform$ represents a mapping of the array contents.  This method will create a new array of identical size to the input, but with every element mapped through the $transform$ function.
+
+    \item $filter(predicate)$.  $predicate$ represents a mapping of the array elements to a boolean value.  This method will return a new array in which every element that has a $predicate$ invocation that returns $true$ will be in the output.
+
+    \item $reduce(accumulate, initial)$.  $accumulate$ represents a function that receives both $accumulator$ and an array element. Every time $accumulate$ is is invoked with $accumulator$ and an array element, the output of the function is stored as a new value for $accumulate$.  This new value will be used on the next iteration or will be returned if it is the final iteration.
+
+  \end{enumerate}
+
+  Since $map$ and $filter$ both return arrays, this gives way to method chaining. Method chaining is a design pattern in which an operation on an object returns itself or an instance of the same type as the method's owner. Visually, this produces a strong representation of the pseudo code mentioned earlier:
+  
+  \lstinputlisting[frame=single, language=JavaScript]{code/sample-functional.js} 
+
+  An even clearer version of this code could be derived by declaring all the operators
+
+  \lstinputlisting[frame=single, language=JavaScript]{code/sample-functional-declared.js}
+
+  This final form even allows for predicates/transformations to be used between multiple transformational sequences.  This leads to higher quality of code by decreasing the testing surface, and preventing code duplication. 
+
 \subsection{Other use cases}
+
+This pattern arises in almost every programming language developed in the last 30 years.  The reason for this, is that functional paradigms are seen as beneficial in general, but almost as a necessity in dealing with complex list manipulations.    
 
 \section{Algorithm}
 
-#Flow Diagram / Decision tree
+;Flow Diagram / Decision tree
 
 \section{Process}
 
-#Diagram
+;Diagram
 
 \section{Implementation}
 

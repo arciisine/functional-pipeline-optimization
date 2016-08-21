@@ -102,34 +102,51 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   transform(state:TransformState):TransformResponse  {
     let input = this.getInput('callback');
-    let node = ParseUtil.parse(input) as AST.Node;
     let params = [...this.getParams(state), this.posId];    
     let res = {vars:[], body:[]};
     let key = Function.getKey(input)
     let isStatic = key.startsWith('__inline') || !this.analyze().hasClosed
+    let isNative = false;
     let fn:AST.FunctionExpression = null;
+    let hasIndex = false;
 
-    if (AST.isExpressionStatement(node)) {
-      node = node.expression;
-    }
+    try {
+      let node = ParseUtil.parse(input) as AST.Node;
 
-    if (AST.isFunction(node)) {
-      fn = node as AST.FunctionExpression;
-    } else {
-      throw { message : `Invalid type: ${node.type}`, invalid : true };
-    }
+      if (AST.isExpressionStatement(node)) {
+        node = node.expression;
+      }
 
-    let hasIndex = this.hasIndex(fn, params);
-    let hasArray = fn.params.length > params.length; //If using index
+      if (AST.isFunction(node)) {
+        fn = node as AST.FunctionExpression;
+      } else {
+        throw { message : `Invalid type: ${node.type}`, invalid : true };
+      }
+    } catch (e) {
+      if (!e.native || e.invalid) {
+        throw e;
+      } else {
+        isNative = true;
+        isStatic = false;
+        hasIndex = true; //Assume always true
+      }
+    } 
+    
+    if (!isNative) {
+      hasIndex = this.hasIndex(fn, params);
 
-    if (hasArray) { //If using array notation
-      throw { message : "Array references are not supported", invalid : true };
+      //Assumes native functions will not access the array, can be wrong
+      let hasArray = fn.params.length > params.length;   
+
+      if (hasArray) { //If using array notation
+        throw { message : "Array references are not supported", invalid : true };
+      }
     }
 
     //If not defined inline, and it has closed variables
     //TODO: Allow for different levels of assumptions
     if (!isStatic) {
-      this.buildFunctionCallResult(state, res, params.slice(0, !hasIndex ? -1 : params.length)); 
+      this.buildFunctionCallResult(state, res, params); 
     } else {
       this.buildInlineResult(state, res, params, fn);
     }

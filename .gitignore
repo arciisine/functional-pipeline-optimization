@@ -1,6 +1,6 @@
 dist/**
 node_modules/**
-report/*.aux
-report/*.pdf
-report/*.log
+report/**/*.aux
+report/**/*.pdf
+report/**/*.log
 **/.DS_STORE
