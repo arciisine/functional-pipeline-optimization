@@ -38,7 +38,8 @@ export class RewriteUtil {
       Function : () => depth++,
       FunctionEnd : () => depth--,
       Declare:(name:AST.Identifier, parent:AST.Node) => {
-        if (depth <= 1) {          
+        //TODO: Find better way of not rewriting special functions        
+        if (depth < 1) {          
           //Skip parents
         } else {
           //Don't declare variables in nested functions
@@ -46,8 +47,9 @@ export class RewriteUtil {
             stack.get(name).rewriteName = name.name;
           } else {           
             let id = m.Id();
-            name.name = id.name;
+            stack.register(name);
             stack.get(name).rewriteName = id.name;
+            name.name = id.name;
           }
         }
       },

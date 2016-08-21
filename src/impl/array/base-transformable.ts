@@ -80,7 +80,9 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     }
 
     //Rewrite all variables in the function
+    console.log("Rewriting");
     let res = RewriteUtil.rewriteVariables(stack, fn, params);
+    console.log(res.body)
     out.vars.push(...res.vars);
     out.body.unshift(...res.body);
     
