@@ -1,50 +1,19 @@
 \subsubsection{Parameter Types}
+When dealing with any inputs that we wish to optimize, all the parameters will generally fall into three main categories.
+
 \begin{enumerate}
-  \item Invalid
-    \begin{enumerate}
-      \item Any operation that relies upon knowledge of the intermediate arrays or array size will invalidate optimization and drops to the basic form.  This is due to the fact that most operations discard the intermediate arrays and we gain performance by not creating the array.
-    \end{enumerate}
-  \item Inline
-    \begin{enumerate}
-      \item Closed variables are in scope of the chain expression
-      \item Cannot change at runtime
-    \end{enumerate}
-  \item Static Reference
-    \begin{enumerate}
-      \item Defined by the fact that the variable is not a parameter in any enclosing function scopes.
-        \begin{enumerate}
-          \item This assumption may not be entirely valid as external variables could change, but should generally maintain the same form
-          \item  Will add an optimize flag to override this assumption when needed
-        \end{enumerate}
-      \item Closed variables are not reachable
-        \begin{enumerate}
-          \item Will not know until runtime
-          \item Devolves to dynamic reference
-        \end{enumerate}
-      \item Form without closures can be optimized
-        \begin{enumerate}
-          \item Can act the same as Inline form
-        \end{enumerate}
-    \end{enumerate}
-  \item Dynamic reference
-    \begin{enumerate}
-      \item  Cannot be guaranteed (with a high level of certainty) that the function is the same as previous invocations
-        \begin{enumerate}
-          \item Function references that are passed in ( assuming predicate or transformation is an input )
-          \item Functions that are computed
-            \begin{enumerate}
-              \item e.g. `const adder = y => (x => x + y)` 
-              \item Could result in a dynamic function every time
-              \item Usually will have some sort of closure that we cannot recover from
-              \item Will default to invocation form 
-            \end{enumerate}
-        \end{enumerate}
-      \item Can only result in invocation form
-        \begin{enumerate}
-          \item Will invoke the function passed in with the appropriate parameters
-          \item Sub-optimal, but still avoids penalty of creating the intermediate arrays
-          \item Since the generated theh code will be the same for every
-        \end{enumerate}
-    \end{enumerate}
+  \item \textbf{Literals}
+    This can be numeric, string, function literals, but the important fact is that they are defined in the scope of the chain.  Additionaly, function literals have the added benefit of being able to read/write closed variables.
+
+  \item \textbf{Static reference}
+    This will generally be constants, static methods, etc that defined outside of your source file (or specifically the scope of the candidate optimization).  These will be assumed to be mostly static, though that may not always be true.  There is a risk of wrong assumptions, but this is the same risk a programmer would face when manually converting the functional form to the procedural form.  
+    
+    At runtime, function references will be interrogated to see if they are able to be inlined or if they fall into the simplistic case.  Any function reference that has closed variables cannot be inlined, as we do not have access to the closure to allow reading and writing.  This can only be tested at runtime, and so this is by far the most complex parameter type.  
+    
+    Note: If we were developing this inside of a JavaScript engine itself, it may be possible to optimiz this as well, since the closures may be known at that point.
+
+  \item \textbf{Dynamic reference}
+    This will be function parameters in scope of the candidate optimization. These are assumed to be dynamic by design and will not be trusted with any level of certainty.  This does not disqualify a candidate optimization, but it does mean that we will never be able to inline the code.
 \end{enumerate}
 
+Given the behavior of programmers to create utilities classes for common, small operations, the static reference case is extremely important to optimize.  It would be very easy to treat it as if it were a dynamic reference, but we would lose a fair amount of our performance gains by incurring unneccesary function invocations.  Again, this will follow the paradigm a programmer would take if trying to hand optimize any code.  If I were using a predicate by the name of $isEven$, I would be inclined to replace that with a check of $x \mod 2 = 0$. 

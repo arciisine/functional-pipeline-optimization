@@ -10,7 +10,8 @@ function simple(specialFilter) {
     [  /* Chain operations  */
       'map',
       'filter',
-      'map'
+      'map',
+      'filter'
     ],
     [ /* Chain inputs */
       [function __inline_1(x) { return  x * 2 }],
