@@ -7,8 +7,8 @@ function sortScoreSumManual(names:string[]) {
   for (let i = 0; i < names.length; i++) {
     let x = names[i];
     let score = 0;
-    for (let ch of x.split('')) {
-      score += ch.charCodeAt(0) - 64;
+    for (let j = 0; j < x.length; j++) {
+      score += x.charCodeAt(j) - 64;
     }
     total += score * (i+1);
   }
