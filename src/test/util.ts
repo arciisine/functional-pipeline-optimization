@@ -228,6 +228,7 @@ export class TestUtil {
   static buildTable(data:TestCaseResult[]):string {
     let out = [['test', 'n', 'min', 'avg', 'max']];
     let keys = Object.keys(data[0].individual);
+
     for (let result of data) {
       for (let key of keys) {
         let m = result.individual[key];

@@ -1,6 +1,6 @@
 import {TestUtil } from '../util';
 
-function sortScoreSum(names:string[]) {
+function Manual(names:string[]) {
   names = names.sort();
   let total = 0;
 
@@ -16,7 +16,7 @@ function sortScoreSum(names:string[]) {
 }
 
 
-function sortScoreSumFunctional(names:string[]) {
+function Functional(names:string[]) {
   return names
     .sort()
     .map((x,i) => {
@@ -28,7 +28,7 @@ function sortScoreSumFunctional(names:string[]) {
     .reduce((acc,v) => acc+v, 0);
 }
 
-function sortScoreSumFunctionalOptimized(names:string[]) {
+function Optimized(names:string[]) {
   'use optimize';
 
   return names
@@ -46,9 +46,9 @@ let names = TestUtil.readFile("resources/names.txt").replace(/"/g, '').split(','
 
 export default {
   tests        : {
-    sortScoreSum, 
-    sortScoreSumFunctional, 
-    sortScoreSumFunctionalOptimized
+    Manual, 
+    Functional, 
+    Optimized
   },
   maxInputSize : names.length,
   data         : (n) => names.slice(0, n),

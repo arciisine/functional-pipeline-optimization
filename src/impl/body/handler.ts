@@ -3,8 +3,7 @@ import {SYMBOL} from './bootstrap';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
 import {BodyTransformUtil, 
-  EXEC, KEY,
-  CANDIDATE, CANDIDATE_FUNCTIONS, CANDIDATE_KEY,
+  EXEC, CANDIDATE, CANDIDATE_FUNCTIONS, CANDIDATE_KEY,
   CANDIDATE_RELATED, CANDIDATE_START, ANALYSIS
 } from './util';
 

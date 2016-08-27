@@ -4,7 +4,7 @@ type agg = {[key:string]:number};
 type acc = {all:agg, common:agg};
 type sig = {text:string[], limit:number};
 
-function findMostCommonWords({text, limit}:sig) {
+function Manual({text, limit}:sig) {
   let words = text
   let check:acc = {all:{}, common:{}};
   for (let i = 0; i < words.length; i++) {
@@ -20,7 +20,7 @@ function findMostCommonWords({text, limit}:sig) {
   return check.common;
 }
 
-function findMostCommonWordsFunctional({text, limit}:sig) {
+function Functional({text, limit}:sig) {
   return text
     .filter(word => word.length >= limit)
     .reduce((check:acc,  word) => {
@@ -32,7 +32,7 @@ function findMostCommonWordsFunctional({text, limit}:sig) {
     }, {all:{}, common:{}}).common;
 }
 
-function findMostCommonWordsFunctionalOptimized({text, limit}:sig) {
+function Optimized({text, limit}:sig) {
   "use optimize";
 
   return text
@@ -49,7 +49,7 @@ function findMostCommonWordsFunctionalOptimized({text, limit}:sig) {
 let text = TestUtil.readFile('resources/war-and-peace.txt.gz').toLowerCase().split(/[^A-Za-z]+/);
 
 export default {
-  tests        : {findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized},
+  tests        : {Manual, Functional, Optimized},
   maxInputSize : text.length, 
   data         : (n) => ({text: text.slice(0, n), limit: 40})
 }

@@ -1,7 +1,7 @@
 import {TestUtil} from '../util';
 
 
-function stdDev(a:number[]) {
+function Manual(a:number[]) {
   let total = 0;
   for (let i = 0; i < a.length; i++) {
     total += a[i];
@@ -15,14 +15,14 @@ function stdDev(a:number[]) {
   return [mean, totalSquared, stddev];
 }
 
-function stdDevFunctional(a:number[]) {
+function Functional(a:number[]) {
   let mean = a.reduce((sum, x) => sum + x, 0) / a.length;
   let total = a.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0);
   let stddev = Math.sqrt(total / a.length);
   return [mean, total, stddev];
 }
 
-function stdDevOptimize(a:number[]) {
+function Optimized(a:number[]) {
   "use optimize";
   let mean = a.reduce((sum, x) => sum + x, 0) / a.length;
   let total = a.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0);
@@ -31,7 +31,7 @@ function stdDevOptimize(a:number[]) {
 }
 
 export default {
-  tests         : {stdDev, stdDevOptimize, stdDevFunctional},
+  tests         : {Manual, Functional, Optimized},
   maxInputSize  : 100000,
   data          : TestUtil.makeRandomArray
 }
