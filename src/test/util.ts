@@ -142,9 +142,9 @@ export function doTest<T>(tests:FunctionMap<T>, data:()=>T, iterations:number = 
     let cur = tests[b](d);
     let eq = areEqual(cur, orig);;
     if (!eq) {
-      console.log(cur);
+      console.log(cur, b);
       console.log("===============")
-      console.log(orig);
+      console.log(orig, keys[0]);
     }
     console.log(eq);
     return cur; 

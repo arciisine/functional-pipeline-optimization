@@ -41,7 +41,7 @@ function sortScoreSumOpt(names:string[]) {
     )
     .reduce((acc,v) => acc+v, 0);
 }
-
+/*
 function sortScoreSumOptOuter(names:string[]) {
   'use optimize';
 
@@ -72,7 +72,7 @@ function sortScoreSumOptInner(names:string[]) {
     })
     .reduce((acc,v) => acc+v, 0);
 }
-
+*/
 
 let names = readFile("resources/names.txt").replace(/"/g, '').split(',');
 doTest(
@@ -80,9 +80,9 @@ doTest(
     sortScoreSum, 
     sortScoreSumOpt, 
     sortScoreSumManual, 
-    sortScoreSumOptOuter,
-    sortScoreSumOptInner
+//    sortScoreSumOptOuter,
+//    sortScoreSumOptInner
   }, 
-  () => names.slice(0, 1000), 
-  10000
+  () => names.slice(0), 
+  10
 )

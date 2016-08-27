@@ -10,6 +10,9 @@ export class FunctionAnalyzer {
   private static id:number = 0;
 
   static analyzeAST(ast:AST.BaseFunction, globals?:any):Analysis {
+    if (!AST.isFunction(ast)) {
+      return null;
+    }
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
     analysis.globals = {};
 

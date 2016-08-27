@@ -132,7 +132,6 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
     if (hasIndex) { //If using index
       res.vars.push(this.posId, m.Literal(0))
-      res.body.push(m.Expr(m.Increment(this.posId)))
       params.push(this.posId)
     }
     
@@ -141,6 +140,10 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
       this.buildInlineResult(state, res, params, fn);
     } else {
       this.buildFunctionCallResult(state, res, params); 
+    }
+
+    if (hasIndex) {
+      res.body.push(m.Expr(m.Increment(this.posId)))
     }
 
     return res;

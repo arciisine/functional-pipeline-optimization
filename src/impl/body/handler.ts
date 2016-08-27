@@ -143,9 +143,9 @@ export class BodyTransformHandler {
 
       //Only process the inline callbacks
       let analysis = x[CANDIDATE_FUNCTIONS]
-        .map(x => AST.isCallExpression(x) && AST.isFunction(x.arguments[0]) ? x.arguments[0] : null)
-        .filter(x => !!x)
+        .map(x => AST.isCallExpression(x) && AST.isFunction(x.arguments[0]) ? x.arguments[0] : x)
         .map(x => FunctionAnalyzer.analyzeAST(x))
+        .filter(x => !!x)
         .reduce((total:Analysis, x) => total.merge(x), new Analysis("~"))
 
       let params = BodyTransformUtil.getExecArguments(x, analysis);
