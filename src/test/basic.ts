@@ -1,5 +1,4 @@
 import {doTest, makeRandomArray} from './util';
-import '../impl/array/bootstrap';
 
 function even(x) { return x%2 === 0; }
 

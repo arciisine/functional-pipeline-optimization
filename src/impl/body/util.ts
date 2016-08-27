@@ -1,6 +1,6 @@
 import {AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import {MAPPING as supported} from '../array/transform';
-import {SYMBOL} from '../array/bootstrap';
+import {SYMBOL} from './bootstrap';
 import {FunctionAnalyzer, VariableVisitorUtil} from '../../core/analyze';
 import {AccessType, Analysis } from '../../core';
 
@@ -70,14 +70,19 @@ export class BodyTransformUtil {
     let assignedIds = Object.keys(assigned).sort().map((x) => m.Id(x));
     let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
-    let execParams:any = [];
+    let execParams:{closed?:AST.Expression, assign?:AST.BaseFunction|AST.Literal} = {
+      closed : m.Literal(null),
+      assign : m.Literal(null),
+    };
+
+    console.log(analysis, closed, assigned);
 
     //Handle if we have to reassign closed variables
     if (allIds.elements.length > 0) {
-      execParams.push(allIds);
+      execParams.closed = allIds;
       if (assignedIds.length > 0) {
         let id = m.Id()
-        execParams.push(AST.ArrowFunctionExpression({
+        execParams.assign = AST.ArrowFunctionExpression({
           params : [id],
           expression: true,
           body : AST.AssignmentExpression({
@@ -87,7 +92,7 @@ export class BodyTransformUtil {
           }),
           generator: false,
           id: null
-        })); 
+        }); 
       }          
     }
     
@@ -95,46 +100,20 @@ export class BodyTransformUtil {
     return execParams;
   }
 
-  static buildKey(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]) {
+  static buildPassed(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]):AST.ArrayExpression {
     let res = inputs.map((x):AST.Expression => {
       let el = x.elements[0];
-
+      let passed = false;
       if (AST.isIdentifier(el)) { //If a variable
-        let passed = false;
         let name = el.name;
         for (let fn of scopes) {
           passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
           if (passed) break;
         }
-        return passed ? m.Call(KEY, el) : m.Literal(m.Id().name);
-      } else if (AST.isFunctionExpression(el)) {
-        return m.Literal(el.id.name);
-      } else if (AST.isLiteral(el)) {
-        return m.Literal(`${el.value}`);
-      } else if (AST.isCallExpression(el)) {
-        return m.Literal(m.genSymbol('__computed'));
       }
-    }).reduce((acc:AST.BinaryExpression, expr:AST.Expression) => {
-      if (AST.isLiteral(acc.left) && acc.left.value === "") {
-        console.log(expr);
-        acc.left = expr;
-      } else if (AST.isLiteral(acc.right) && acc.right.value === "") {
-        console.log(expr);
-        acc.right = expr;
-      } else if (AST.isLiteral(acc.right) && AST.isLiteral(expr)) {
-        acc.right.value += "~" + expr.value;
-      } else {
-        acc.right = AST.BinaryExpression({left:acc.right, operator:"+", right:expr})
-      }
-      return acc;
-    }, AST.BinaryExpression({left:m.Literal(""), operator:"+", right:m.Literal("")}))
-
-    if (AST.isBinaryExpression(res)) {
-      if (AST.isLiteral(res.left) && AST.isLiteral(res.right)) {
-        res = m.Literal(m.Id().name); // Static input, shorten
-      }
-    }
-    return res;
+      return m.Literal(passed);
+    });  
+    return m.Array(...res);
   }
 
   static renameExpressions(x:AST.CallExpression) {

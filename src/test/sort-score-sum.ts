@@ -1,5 +1,4 @@
 import {doTest, readFile } from './util';
-import '../impl/array/bootstrap';
 
 function sortScoreSumManual(names:string[]) {
   names = names.sort();
@@ -85,5 +84,5 @@ doTest(
     //sortScoreSumOptInner
   }, 
   () => names.slice(0), 
-  100
+  1000
 )

@@ -1,3 +1,4 @@
+import {md5} from './md5';
 export const ANALYSIS_BOOLEAN_FIELDS = [
    'ThisReference', 
    'ComputedMemberAccess',
@@ -53,4 +54,9 @@ declare global {
   }  
 }
 
-Function['getKey'] = (fn:Function) => fn.key || fn.name;
+Function['getKey'] = (fn:Function) => {
+  if (!fn.key) {
+    fn.key = md5(fn.toString());
+  }
+  return fn.key || fn.name
+};

@@ -1,5 +1,5 @@
 import {AST, ParseUtil, CompileUtil, Macro as m, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import {SYMBOL} from '../array/bootstrap';
+import {SYMBOL} from './bootstrap';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
 import {BodyTransformUtil, 
@@ -142,18 +142,21 @@ export class BodyTransformHandler {
       });      
 
       let analysis = x[CANDIDATE_FUNCTIONS]
-        .map(x => x[ANALYSIS])
+        .map(x => FunctionAnalyzer.analyzeAST(x))
         .filter(x => !!x)
         .reduce((total:Analysis, x) => total.merge(x), new Analysis("~"))
 
       let params = BodyTransformUtil.getExecArguments(x, analysis);
 
-      return m.Call(EXEC, (
-        x[CANDIDATE_START] as AST.MemberExpression).object, 
-        BodyTransformUtil.buildKey(inputs, this.functionScopes), 
-        AST.ArrayExpression({elements:ops}), 
-        AST.ArrayExpression({elements:inputs}),
-        ...params);
+      return m.Call(EXEC,  
+          (x[CANDIDATE_START] as AST.MemberExpression).object,
+          m.Literal(m.Id('__key', true).name),
+          AST.ArrayExpression({elements:ops}), 
+          AST.ArrayExpression({elements:inputs}),
+          BodyTransformUtil.buildPassed(inputs, this.functionScopes),
+          params.closed,
+          params.assign
+      );
     }
   }
 }

@@ -101,16 +101,15 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   }
 
   transform(state:TransformState):TransformResponse  {
+    let fn:AST.FunctionExpression = null;
     let input = this.getInput('callback');
     let params = [...this.getParams(state), this.posId];    
     let res = {vars:[], body:[]};
-    let key = Function.getKey(input)
-    let isStatic = key.startsWith('__inline') || !this.analyze().hasClosed
-    let isNative = false;
-    let fn:AST.FunctionExpression = null;
-    let hasIndex = false;
-
-    try {
+    let hasSource = !ParseUtil.isNative(input) && !input['passed'];
+    let isInlinable = false;
+    let hasIndex = true
+    
+    if (hasSource) { 
       let node = ParseUtil.parse(input) as AST.Node;
 
       if (AST.isExpressionStatement(node)) {
@@ -119,36 +118,25 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
       if (AST.isFunction(node)) {
         fn = node as AST.FunctionExpression;
+        isInlinable = Function.getKey(input).startsWith('__inline') || !this.analyze().hasClosed
+        hasIndex = this.hasIndex(fn, params);
+
+        //Assumes native functions will not access the array, can be wrong
+        let hasArray = fn.params.length > params.length;   
+
+        if (hasArray) { //If using array notation
+          throw { message : "Array references are not supported", invalid : true };
+        }
       } else {
         throw { message : `Invalid type: ${node.type}`, invalid : true };
       }
-    } catch (e) {
-      if (!e.native || e.invalid) {
-        throw e;
-      } else {
-        isNative = true;
-        isStatic = false;
-        hasIndex = true; //Assume always true
-      }
-    } 
-    
-    if (!isNative) {
-      hasIndex = this.hasIndex(fn, params);
-
-      //Assumes native functions will not access the array, can be wrong
-      let hasArray = fn.params.length > params.length;   
-
-      if (hasArray) { //If using array notation
-        throw { message : "Array references are not supported", invalid : true };
-      }
     }
-
-    //If not defined inline, and it has closed variables
-    //TODO: Allow for different levels of assumptions
-    if (!isStatic) {
-      this.buildFunctionCallResult(state, res, params); 
-    } else {
+    
+    //If can be inlined
+    if (isInlinable) {
       this.buildInlineResult(state, res, params, fn);
+    } else {
+      this.buildFunctionCallResult(state, res, params); 
     }
     
     if (hasIndex) { //If using index

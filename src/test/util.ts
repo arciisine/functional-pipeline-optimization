@@ -1,6 +1,6 @@
-import {Helper} from '../impl/array/bootstrap';
 import * as fs from "fs";
 import * as zlib from "zlib";
+import '../impl/body/bootstrap';
 
 const ITERATIONS = 100000;
 const DATA_SIZE = 10;

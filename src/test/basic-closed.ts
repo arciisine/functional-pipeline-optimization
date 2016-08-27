@@ -1,5 +1,5 @@
 import {doTest, makeRandomArray} from './util';
-import '../impl/array/bootstrap';
+
 
 const even = x => x%2 === 0
 const isLetter = x => x >= 65 && x < 91 || x >= 97 && x < 123;
@@ -59,6 +59,6 @@ export function functionalOptimize(data:number[]) {
   return [hist, count, evens];
 }
 
-doTest({functional, functionalOptimize}, () => makeRandomArray())
+doTest({functional, functionalOptimize}, () => makeRandomArray(1), 1000000)
 //doTest({sum, sumOptimize}, () => getNumberData())
 //doTest({functional, functionalCompiled}, () => getNumberData())
