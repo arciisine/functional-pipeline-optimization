@@ -1,18 +1,17 @@
-import {doTest, readFile} from './util';
+import {readFile} from '../util';
 
 type agg = {[key:string]:number};
 type acc = {all:agg, common:agg};
 type sig = {text:string[], limit:number};
 
 function findMostCommonWords({text, limit}:sig) {
-  let words = text//.split(/[^A-Za-z]*/);
+  let words = text
   let check:acc = {all:{}, common:{}};
   for (let i = 0; i < words.length; i++) {
     let word = words[i];
     if (word.length < 4) {
       continue;
     }
-    word = word.toLowerCase();
     let count = check.all[word] = (check.all[word] || 0) + 1;
     if (check.all[word] > limit) {
       check.common[word] = count;
@@ -23,9 +22,7 @@ function findMostCommonWords({text, limit}:sig) {
 
 function findMostCommonWordsFunctional({text, limit}:sig) {
   return text
-    //.split(/[^A-Za-z]*/)
-    .filter(word => word.length >= 4)
-    .map(word => word.toLowerCase())
+    .filter(word => word.length >= limit)
     .reduce((check:acc,  word) => {
       let count = check.all[word] = (check.all[word] || 0)+1;
       if (count > limit) {
@@ -39,9 +36,7 @@ function findMostCommonWordsFunctionalOptimized({text, limit}:sig) {
   "use optimize";
 
   return text
-    //.split(/[^A-Za-z]*/)
-    .filter(word => word.length >= 4)
-    .map(word => word.toLowerCase())
+    .filter(word => word.length >= limit)
     .reduce((check:acc, word) => {
       let count = check.all[word] = (check.all[word] || 0)+1;
       if (count > limit) {
@@ -51,8 +46,9 @@ function findMostCommonWordsFunctionalOptimized({text, limit}:sig) {
     }, {all:{}, common:{}}).common;
 }
 
-doTest(
-  {findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized}, 
-  () => ({text:readFile('resources/war-and-peace.txt.gz').split(/[^A-Za-z]+/), limit:20}),
-  100
-)
+let text = readFile('resources/war-and-peace.txt.gz').toLowerCase().split(/[^A-Za-z]+/);
+
+export default {
+  tests : {findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized}, 
+  data : (n) => ({text: text.slice(0, n < 1 ? parseInt(''+text.length*n) : n), limit: 40})
+}

@@ -1,4 +1,4 @@
-import {doTest} from './util';
+import {doTest} from '../util';
 
 export function functional(data:number[]) {
     

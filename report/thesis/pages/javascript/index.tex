@@ -1,1 +1,16 @@
-\section{Javascript}
+\section{JavaScript}
+
+JavaScript (ECMAScript is the official title) is a high-level, dynamic, untyped, and interpreted programming language. Although there are strong outward similarities between JavaScript and Java, including language name, syntax, and respective standard libraries, the two are distinct languages and differ greatly in their design. JavaScript was influenced by programming languages such as Self and Scheme. JavaScript has been traditionally implemented as an interpreted language, but more recent implementations perform just-in-time compilation. %Cite wikipedia
+
+JavaScript is a very powerful language, supporting functional programming, as well as procedural and object oriented paradigms.  Additionally, the ability to compile code at runtime makes it extremely powerful (and dangerous) for expressing complex operations or computations.  
+
+\subsection{ES2015}
+ES2015 is the 2015 revision of the JavaScript language. This revision introduces some extremely powerful concepts, though this makes the language implementation more complicated as a result.  Some of the primary features introduce in ES2015 are:
+
+  \begin{enumerate}
+    \item \textbf{Let, Const} These concepts allow for local variable declaration and local constant declaration.  The main chaing with this feature is that JavaScript now supports block level scoping as opposed to the previous state of only scoping at the functional or global level.  This allows for clearer code (and less bugs) but requires a different algorithm for calculating variable scopes.  By contrast $var$ scopes at the function level, regardless of location within the function (or nested blocks).  This is known as variable-hoisting as all variables are assumed to be available at the first point of the function.
+    \item \textbf{Fat Arrow Functions} This is generally a short-hand for anonymous functions with one major caveat.  The fat arrow function ($x => x * this.y$) treats the $this$ variable differently.  Generally most functions have their own context, referenced by a variable $this$.  Since functions and classes are nearly identical in JavaScript, $this$ is your instance.  Fat arrow functions refuse to create a this for itself, and instead defer to the function it's defined in for it's reference of $this$. Again, variable declaration and tracing are now more compilcated we have to handle another scoping methodology.
+    \item \textbf{Object/Array Destructuring}  This concept allows you to unpack the contents of an array or an object literal into it's constituent pieces, at assignment time.  This includes variable declarations as well as function parameters.  Exteremly convient, but also greatly increases the complexity of variable tracking.  
+  \end{enumerate}
+
+The reason these features are highlighted is that they all play a role in the final solution.  This is also to highlight that as the language grows and changes, the optimization algorithm may need to be modified to say consistent. 

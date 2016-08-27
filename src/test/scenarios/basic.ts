@@ -1,4 +1,4 @@
-import {doTest, makeRandomArray} from './util';
+import {makeRandomArray} from '../util';
 
 function even(x) { return x%2 === 0; }
 
@@ -168,6 +168,6 @@ export function obj(data:number[]) {
   return test
 }
 
-doTest({functional, functionalOptimize, functionalCompiled}, () => makeRandomArray())
+//doTest({functional, functionalOptimize, functionalCompiled}, () => makeRandomArray())
 //doTest({sum, sumOptimize}, () => getNumberData())
 //doTest({functional, functionalCompiled}, () => getNumberData())
