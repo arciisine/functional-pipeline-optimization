@@ -6,8 +6,6 @@ import {FunctionAnalyzer, VariableVisitorUtil} from '../../core/analyze';
 import {AccessType, Analysis } from '../../core';
 
 export const EXEC = m.Id(`${SYMBOL}_exec`);
-export const KEY  = m.Id(`${SYMBOL}_key`)
-export const FREE = m.Id()
 
 export const CANDIDATE = m.genSymbol();
 export const CANDIDATE_KEY = m.genSymbol();
