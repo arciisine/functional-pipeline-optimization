@@ -80,9 +80,9 @@ doTest(
     sortScoreSum, 
     sortScoreSumOpt, 
     sortScoreSumManual, 
-    //sortScoreSumOptOuter,
-    //sortScoreSumOptInner
+    sortScoreSumOptOuter,
+    sortScoreSumOptInner
   }, 
-  () => names.slice(0), 
-  1000
+  () => names.slice(0, 1000), 
+  10000
 )

@@ -25,7 +25,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   public manual:W;
   public position = -1;
-  public posId = null;
+  public posId = m.Id();
 
   constructor(inputs:any[], inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING) {
     super(inputs, inputMapping)
@@ -81,9 +81,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     }
 
     //Rewrite all variables in the function
-    console.log("Rewriting");
     let res = RewriteUtil.rewriteVariables(stack, fn, params);
-    console.log(res.body)
     out.vars.push(...res.vars);
     out.body.unshift(...res.body);
     
@@ -97,13 +95,13 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   }
 
   hasIndex(fn:AST.FunctionExpression, params:AST.Identifier[]):boolean {
-    return fn.params.length === params.length; //If using index;
+    return fn.params.length === params.length + 1; //If using index;
   }
 
   transform(state:TransformState):TransformResponse  {
     let fn:AST.FunctionExpression = null;
     let input = this.getInput('callback');
-    let params = [...this.getParams(state), this.posId];    
+    let params = this.getParams(state);    
     let res = {vars:[], body:[]};
     let hasSource = !ParseUtil.isNative(input) && !input['passed'];
     let isInlinable = false;
@@ -122,7 +120,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
         hasIndex = this.hasIndex(fn, params);
 
         //Assumes native functions will not access the array, can be wrong
-        let hasArray = fn.params.length > params.length;   
+        let hasArray = fn.params.length === params.length + 2;   
 
         if (hasArray) { //If using array notation
           throw { message : "Array references are not supported", invalid : true };
@@ -131,17 +129,18 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
         throw { message : `Invalid type: ${node.type}`, invalid : true };
       }
     }
+
+    if (hasIndex) { //If using index
+      res.vars.push(this.posId, m.Literal(0))
+      res.body.push(m.Expr(m.Increment(this.posId)))
+      params.push(this.posId)
+    }
     
     //If can be inlined
     if (isInlinable) {
       this.buildInlineResult(state, res, params, fn);
     } else {
       this.buildFunctionCallResult(state, res, params); 
-    }
-    
-    if (hasIndex) { //If using index
-      res.vars.push(this.posId, m.Literal(0))
-      res.body.push(m.Expr(m.Increment(this.posId)))
     }
 
     return res;
