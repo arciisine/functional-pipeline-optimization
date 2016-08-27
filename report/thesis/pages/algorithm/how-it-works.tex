@@ -1,6 +1,0 @@
-\subsection{How the algorithm works}
-In general, the algorithm attempts to mimic the assumptions and behavior of programmers when converting functional list operations ($map$, $reduce$, $filter$, etc.) into $for-loop$ semantics.
-
-When dealing with the common cases and patterns, the algorithm is simple.  The real complexity arises in ensure all places where this could be used do not violate correctness.  There is still the real issue of write-dependence between operations as each iteration runs through all operations instead of running an operation through all elements at once.
-
-Also, with respect to closed variables, the assumption is made that certain member expressions (`a.b.c`) are  global and therefore not counted as preclusions for inlining.  With respect to total correctness, this assumption is wrong, as every function, variable etc. can be re-written, redefined, and shadowed in javacript.  If someone has a local variable called `String` we will fail.  The odds of this are fairly low, but are still a reality, especially for included predicates/transformations from other sources.  We take a minimalist approach to only assume global access on the most commonly used expressions (e.g. `String.fromCharCode` vs just `String`)

@@ -9,7 +9,7 @@
 
 * Determine comprehensive baseline
 * Collect metrics
-    * Platforms (node/v8, firefox, safari, chrome, Edge, IE 11)
+    * Platforms (node/v8, firefox/spidermonkey, safari, chrome, Edge/chakra, IE 11)
     * Perhaps build a benchmark site that can record
         * browser
         * code version
@@ -19,7 +19,8 @@
     * Write it out
 
 **Coding Tasks**
-
+* Cleanup
+    * Better handling of 'passed' variables
 * Handle Closed Variables
     * Handle Global Variables (augmentable via pragma)
     * Differentiate closed variables from non-local functions in Analysis (right now mingled)
@@ -29,7 +30,7 @@
     * Apply access level verification
     * Set via pragma
 * Look for more performance enhancements
-    * Might be some areas where we can precompute part of the transformation key
+    * Look for way of inlining nested chains 
 
 **Refactoring**
 

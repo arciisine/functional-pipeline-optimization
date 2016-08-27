@@ -1,0 +1,12 @@
+\subsubsection{Identifying Chains}
+
+The way identifying chains works, is to search the AST for call expressions.  We are essentially looking for a specific call expression, that has an array as the callee. 
+
+\begin{minipage}{\linewidth}
+\lstinputlisting[frame=single, language=JavaScript]{code/simple-functional.js}
+\end{minipage}
+
+What you will see is that the $map$ call expression on line 4 is the the beginning of our chain, and the chain terminates on line 11 with a $map$ call expression.  It is fairly easy to recognize this visually, but the source code analysis can only be so certain.  In general it finds a compatible call expression.  Compatible is defined as a call expression in which the function is a well known identifier (e.g. $map$, $filter$, $reduce$, etc.). Once the base of the call chain is determined, the code will follow the chain until there are no further call expressions or a non compatible call expression is found (e.g. $sort$, $reverse$, etc.)
+
+At this point the candidate optimization is identified.  It is still not know if the source of the chain is truly an array or if it can alternate types at runtime, and this is why the chain is identified as a candidate for optimization. 
+
