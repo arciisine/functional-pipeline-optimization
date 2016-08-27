@@ -209,7 +209,7 @@ export class TestUtil {
     }
   } 
 
-  static runTestSuite<T>({tests, data}:TestScenario<T>, iterations:Range, inputSize:Range) {
+  static runTestSuite<T>({tests, data}:TestScenario<T>, inputSize:Range, iterations:Range, ) {
     TestUtil.validateRange(inputSize);
     TestUtil.validateRange(iterations);
     let out = [];

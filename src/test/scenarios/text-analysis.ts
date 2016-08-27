@@ -1,4 +1,4 @@
-import {readFile} from '../util';
+import {TestUtil} from '../util';
 
 type agg = {[key:string]:number};
 type acc = {all:agg, common:agg};
@@ -46,7 +46,7 @@ function findMostCommonWordsFunctionalOptimized({text, limit}:sig) {
     }, {all:{}, common:{}}).common;
 }
 
-let text = readFile('resources/war-and-peace.txt.gz').toLowerCase().split(/[^A-Za-z]+/);
+let text = TestUtil.readFile('resources/war-and-peace.txt.gz').toLowerCase().split(/[^A-Za-z]+/);
 
 export default {
   tests : {findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized}, 

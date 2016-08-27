@@ -1,5 +1,3 @@
-import {doTest} from '../util';
-
 export function functional(data:number[]) {
     
   let hist = data

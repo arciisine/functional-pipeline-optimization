@@ -3,12 +3,18 @@ import {TestUtil, TestScenario} from './util';
 import * as fs from "fs";
 
 let testName = process.argv[2];
-let args = process.argv.slice(3);
+let iters = parseInt(process.argv[3]);
 
 let file = `scenarios/${testName}`;
 let content = fs.readFileSync(`${__dirname}/${file}.js`).toString();
 let out = BodyTransformHandler.transform(content)
 fs.writeFileSync(`${__dirname}/${file}.alt.js`, out);
-let data:TestScenario<any> = require(`${file}.alt.js`);
+let data:TestScenario<any> = require(`./${file}.alt.js`)['default'];
 
-console.log(TestUtil.runTestSuite(data))
+let res = TestUtil.runTestSuite(data, 
+  {start:.1, stop:1, step:.1}, 
+  {start:1, stop:iters, step: iters/10}
+);
+
+
+console.log(res);

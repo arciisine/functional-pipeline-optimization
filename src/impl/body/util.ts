@@ -75,8 +75,6 @@ export class BodyTransformUtil {
       assign : m.Literal(null),
     };
 
-    console.log(analysis, closed, assigned);
-
     //Handle if we have to reassign closed variables
     if (allIds.elements.length > 0) {
       execParams.closed = allIds;

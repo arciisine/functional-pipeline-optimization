@@ -1,4 +1,4 @@
-import {makeRandomArray} from '../util';
+import {TestUtil} from '../util';
 
 
 const even = x => x%2 === 0
