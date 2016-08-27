@@ -1,12 +1,13 @@
 import {ArrayBuilder} from '../array/builder';
+import {VariableState} from '../array/types';
 import {MAPPING} from '../array/transform';
 import {Util, CompilerUtil, ExecOutput, Compilable} from '../../core';
 
 export class Helper {
 
-  static exec<T>(data:T[], key:string, ops:string[], context:any[][],  variableState:boolean[], closed:any[], post:(all:any[])=>T):T[] {
+  static exec<T>(data:T[], key:string, ops:string[], context:any[][], closed:any[], post:(all:any[])=>T, variableState:VariableState[]):T[] {
     let res = CompilerUtil.computed[key];    
-    if (res) {
+    if (!!res) {
       let ret = res({value:data, closed, context })
       post && post(ret.assigned);
       return ret.value; 
@@ -35,7 +36,7 @@ export class Helper {
       } 
     }
     //Recurse on invalid states
-    return Helper.exec(data, key, ops, context, variableState, closed, post);
+    return Helper.exec(data, key, ops, context, closed, post, variableState);
   }
 } 
 

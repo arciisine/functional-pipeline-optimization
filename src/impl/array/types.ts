@@ -1,6 +1,10 @@
 import { AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 
-export type VariableState = 'dynamic'|'inline'|'static'
+export enum VariableState { 
+  'dynamic', 
+  'inline', 
+  'static' 
+}
 
 export interface TransformState {
   contextId:AST.Identifier,

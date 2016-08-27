@@ -1,5 +1,6 @@
 import {AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import {MAPPING as supported} from '../array/transform';
+import {VariableState} from '../array/types';
 import {SYMBOL} from './bootstrap';
 import {FunctionAnalyzer, VariableVisitorUtil} from '../../core/analyze';
 import {AccessType, Analysis } from '../../core';
@@ -99,7 +100,7 @@ export class BodyTransformUtil {
   static buildVariableStates(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]):AST.ArrayExpression {
     let res = inputs.map((x):AST.Expression => {
       let el = x.elements[0];
-      let state = 'dynamic';
+      let state = VariableState.dynamic;
       if (AST.isIdentifier(el)) { //If a variable
         let passed = false;
         let name = el.name;
@@ -108,10 +109,10 @@ export class BodyTransformUtil {
           if (passed) break;
         }
         if (!passed) {
-          state = 'static';
+          state = VariableState.static;
         }
       } else if (AST.isFunction(el)) { //If a literal
-        state = 'inline';
+        state = VariableState.inline;
       }
       return m.Literal(state);
     });  

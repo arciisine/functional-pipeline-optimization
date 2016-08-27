@@ -155,9 +155,9 @@ export class BodyTransformHandler {
           m.Literal(m.Id('__key', true).name),
           AST.ArrayExpression({elements:ops}), 
           AST.ArrayExpression({elements:inputs}),
-          BodyTransformUtil.buildVariableStates(inputs, this.functionScopes),
           params.closed,
-          params.assign
+          params.assign,
+          BodyTransformUtil.buildVariableStates(inputs, this.functionScopes)          
       );
     }
   }

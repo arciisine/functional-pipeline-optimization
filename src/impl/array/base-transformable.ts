@@ -2,7 +2,7 @@ import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcs
 import { Transformable, TransformResponse, BaseTransformable} from '../../core';
 import { Analysis, FunctionAnalyzer } from '../../core/analyze';
 import { RewriteContext, VariableStack, RewriteUtil }  from '../../core/analyze/variable';
-import { TransformState } from './types';
+import { TransformState, VariableState } from './types';
 
 export abstract class BaseArrayTransformable<T, U, V extends Function, W extends Function> extends BaseTransformable<T[], U>
 {
@@ -104,8 +104,8 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     let params = this.getParams(state);    
     let res = {vars:[], body:[]};
     let variableState = state.variableState[this.position];
-    let hasSource = !ParseUtil.isNative(input) && variableState !== 'dynamic'
-    let isInlinable = variableState === 'inlinable';
+    let hasSource = !ParseUtil.isNative(input) && variableState !== VariableState.dynamic
+    let isInlinable = variableState === VariableState.inline;
     let hasIndex = true
     
     if (hasSource) { 
