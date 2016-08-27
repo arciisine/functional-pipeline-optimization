@@ -103,8 +103,9 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     let input = this.getInput('callback');
     let params = this.getParams(state);    
     let res = {vars:[], body:[]};
-    let hasSource = !ParseUtil.isNative(input) && !input['passed'];
-    let isInlinable = false;
+    let variableState = state.variableState[this.position];
+    let hasSource = !ParseUtil.isNative(input) && variableState !== 'dynamic'
+    let isInlinable = variableState === 'inlinable';
     let hasIndex = true
     
     if (hasSource) { 
@@ -116,7 +117,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
       if (AST.isFunction(node)) {
         fn = node as AST.FunctionExpression;
-        isInlinable = Function.getKey(input).startsWith('__inline') || !this.analyze().hasClosed
+        isInlinable = isInlinable || !this.analyze().hasClosed
         hasIndex = this.hasIndex(fn, params);
 
         //Assumes native functions will not access the array, can be wrong

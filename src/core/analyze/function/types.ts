@@ -58,5 +58,5 @@ Function['getKey'] = (fn:Function) => {
   if (!fn.key) {
     fn.key = md5(fn.toString());
   }
-  return fn.key || fn.name
+  return fn.key;
 };

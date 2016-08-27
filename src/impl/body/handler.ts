@@ -3,7 +3,7 @@ import {SYMBOL} from './bootstrap';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
 import {BodyTransformUtil, 
-  EXEC, KEY, INLINE_PREFIX,
+  EXEC, KEY,
   CANDIDATE, CANDIDATE_FUNCTIONS, CANDIDATE_KEY,
   CANDIDATE_RELATED, CANDIDATE_START, ANALYSIS
 } from './util';
@@ -155,7 +155,7 @@ export class BodyTransformHandler {
           m.Literal(m.Id('__key', true).name),
           AST.ArrayExpression({elements:ops}), 
           AST.ArrayExpression({elements:inputs}),
-          BodyTransformUtil.buildPassed(inputs, this.functionScopes),
+          BodyTransformUtil.buildVariableStates(inputs, this.functionScopes),
           params.closed,
           params.assign
       );

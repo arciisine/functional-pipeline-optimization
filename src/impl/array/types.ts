@@ -1,5 +1,7 @@
 import { AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 
+export type VariableState = 'dynamic'|'inline'|'static'
+
 export interface TransformState {
   contextId:AST.Identifier,
   elementId:AST.Identifier,
@@ -10,6 +12,11 @@ export interface TransformState {
   arrayId:AST.Identifier,
   functionId:AST.Identifier,
   buildReturn:(val:AST.Node)=>AST.ReturnStatement
+  variableState:VariableState[]
+}
+
+export interface ExtraState {
+  variableState:VariableState[]
 }
 
 export namespace Callback { 

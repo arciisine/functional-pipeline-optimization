@@ -15,8 +15,6 @@ export const CANDIDATE_FUNCTIONS = m.genSymbol();
 export const CANDIDATE_RELATED = m.genSymbol();
 export const ANALYSIS = m.genSymbol();
 
-export const INLINE_PREFIX = '__inline';
-
 export class BodyTransformUtil {
 
   static getPragmas(nodes:AST.Node[]):string[] {
@@ -98,18 +96,24 @@ export class BodyTransformUtil {
     return execParams;
   }
 
-  static buildPassed(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]):AST.ArrayExpression {
+  static buildVariableStates(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]):AST.ArrayExpression {
     let res = inputs.map((x):AST.Expression => {
       let el = x.elements[0];
-      let passed = false;
+      let state = 'dynamic';
       if (AST.isIdentifier(el)) { //If a variable
+        let passed = false;
         let name = el.name;
         for (let fn of scopes) {
           passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
           if (passed) break;
         }
+        if (!passed) {
+          state = 'static';
+        }
+      } else if (AST.isFunction(el)) { //If a literal
+        state = 'inline';
       }
-      return m.Literal(passed);
+      return m.Literal(state);
     });  
     return m.Array(...res);
   }
@@ -128,7 +132,7 @@ export class BodyTransformUtil {
           id : null
         })
       }
-      fn.id = m.Id(INLINE_PREFIX, true)
+      fn.id = m.Id()
       x[CANDIDATE_KEY] = fn.id.name;
       x.arguments[0] = fn
     } 

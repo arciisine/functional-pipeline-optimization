@@ -1,11 +1,11 @@
 import { AST, Macro as m, Util as ASTUtil} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../core';
-import { TransformState } from './types';
+import { TransformState, ExtraState } from './types';
 import { AccessType } from '../../core'; 
 
 export class ArrayCompiler implements Compiler<TransformState> {
 
-  createState():TransformState {
+  createState(extraState:ExtraState):TransformState {
     let state = {
       contextId: m.Id(),
       elementId : m.Id(),
@@ -15,7 +15,8 @@ export class ArrayCompiler implements Compiler<TransformState> {
       iteratorId : m.Id(),
       arrayId : m.Id(),
     	functionId : m.Id(),
-      buildReturn : null
+      buildReturn : null,
+      variableState : extraState.variableState
     }
     return state;
   }

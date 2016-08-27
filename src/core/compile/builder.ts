@@ -19,8 +19,8 @@ export class Builder<I, O> {
     return this as any as Builder<I, V>;
   }
 
-  compile(key:string = null):ExecHandler<I,O> {
-    return CompilerUtil.compile(this.compiler, this.compilable, key);
+  compile(key:string = null, extraState?:any):ExecHandler<I,O> {
+    return CompilerUtil.compile(this.compiler, this.compilable, key, extraState);
   }
 
   manual():ExecOutput<O> {

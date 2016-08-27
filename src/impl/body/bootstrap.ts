@@ -4,7 +4,7 @@ import {Util, CompilerUtil, ExecOutput, Compilable} from '../../core';
 
 export class Helper {
 
-  static exec<T>(data:T[], key:string, ops:string[], context:any[][],  passed:boolean[], closed:any[], post:(all:any[])=>T):T[] {
+  static exec<T>(data:T[], key:string, ops:string[], context:any[][],  variableState:boolean[], closed:any[], post:(all:any[])=>T):T[] {
     let res = CompilerUtil.computed[key];    
     if (res) {
       let ret = res({value:data, closed, context })
@@ -21,14 +21,10 @@ export class Helper {
       let ret:ExecOutput<T[]> = null;
       let builder = new ArrayBuilder<any, T>(data);
       for (let i = 0; i < ops.length; i++) {
-        if (passed[i]) {
-          //Tag function as passed
-          context[i][0]['passed'] = true;
-        }
         builder.chain(MAPPING[ops[i]], context[i]);
       }
       try {
-        builder.exec(closed, key)
+        builder.compile(key, {variableState})
       } catch (e) {
         if (e.invalid) {
           CompilerUtil.computed[key] = null;
@@ -39,7 +35,7 @@ export class Helper {
       } 
     }
     //Recurse on invalid states
-    return Helper.exec(data, key, ops, context, passed, closed, post);
+    return Helper.exec(data, key, ops, context, variableState, closed, post);
   }
 } 
 

@@ -21,15 +21,15 @@ export class CompilerUtil {
       }, {vars:[], body:[]});
   }
 
-  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null):ExecHandler<I,O> {
+  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null, extraState:any = null):ExecHandler<I,O> {
     if (key && CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
     }
 
-    //Generate merged analysis 
-    let state = compiler.createState();
-    compilable.finalize(); //Prep final state
+    //Generate merged analysis and prep final state 
+    compilable.finalize(); 
 
+    let state = compiler.createState(extraState);
     let ast = compiler.compile(compilable, state);
     let res = CompileUtil.compile(ast as any, {}) as ExecHandler<I,O>;
     console.log(res.toString())
