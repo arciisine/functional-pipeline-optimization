@@ -31,6 +31,7 @@ function stdDevOptimize(a:number[]) {
 }
 
 export default {
-  tests : {stdDev, stdDevOptimize, stdDevFunctional},
-  data : TestUtil.makeRandomArray
+  tests         : {stdDev, stdDevOptimize, stdDevFunctional},
+  maxInputSize  : 100000,
+  data          : TestUtil.makeRandomArray
 }

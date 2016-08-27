@@ -45,10 +45,11 @@ function sortScoreSumFunctionalOptimized(names:string[]) {
 let names = TestUtil.readFile("resources/names.txt").replace(/"/g, '').split(',');
 
 export default {
-  tests : {
+  tests        : {
     sortScoreSum, 
     sortScoreSumFunctional, 
     sortScoreSumFunctionalOptimized
   },
-  data : (n) => names.slice(0, n > 1 ? n : parseInt(''+(names.length * n))),
+  maxInputSize : names.length,
+  data         : (n) => names.slice(0, n),
 };

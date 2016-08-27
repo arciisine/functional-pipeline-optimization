@@ -15,6 +15,11 @@ export interface TestResultMap {
   [key:string]:TestResults
 }
 
+export interface TestCaseResult { 
+  mixed:TestResultMap, 
+  individual:TestResultMap
+}
+
 export interface Range {
   start:number, 
   stop?:number, 
@@ -23,6 +28,7 @@ export interface Range {
 
 export interface TestScenario<T> {
   tests:FunctionMap<T>, 
+  maxInputSize: number,
   data:(number)=>T
 };
 
@@ -135,7 +141,7 @@ export class TestUtil {
       try {
         tests[k](d)
         let [sec, nano] = process.hrtime(start)
-        counts[k].push(sec/1000 + nano/1e9);
+        counts[k].push(sec*1e6 + nano);
       } catch(e) {
         console.log(e ,k);
       }
@@ -179,7 +185,7 @@ export class TestUtil {
     return range;
   }
 
-  static execTest<T>({tests, data, inputSize, iterations}:TestCase<T>) {
+  static execTest<T>({tests, data, inputSize, iterations}:TestCase<T>):TestCaseResult {
     let out:TestResultMap = {};
     let keys = Object.keys(tests);
     let individual:TestResultMap = {}
@@ -191,7 +197,7 @@ export class TestUtil {
       individual[k] = TestUtil.test({tests:o, data, inputSize, iterations})[k];
     })
     
-    return [mixed, individual]
+    return {mixed, individual }
   } 
 
   static singleTest<T>(input:TestCase<T>) {
@@ -209,16 +215,25 @@ export class TestUtil {
     }
   } 
 
-  static runTestSuite<T>({tests, data}:TestScenario<T>, inputSize:Range, iterations:Range, ) {
-    TestUtil.validateRange(inputSize);
+  static runTestSuite<T>({tests, data}:TestScenario<T>, inputSize:number, iterations:Range):TestCaseResult[] {
     TestUtil.validateRange(iterations);
     let out = [];
     for (let {start:i, stop:istop, step:istep} = iterations; i <= istop; i+= istep) {
-      for (let {start:j, stop:jstop, step:jstep} = inputSize; j <= jstop; j+= jstep) {
-        let ret = TestUtil.execTest({tests, data, inputSize:j, iterations:i});
-        out.push({inputSize:j, iterations:i, results:ret});
-      }  
+      let ret = TestUtil.execTest({tests, data, inputSize, iterations:i});
+      out.push(ret);
     }
     return out;
+  }
+
+  static buildTable(data:TestCaseResult[]):string {
+    let out = [['test', 'n', 'min', 'avg', 'max']];
+    let keys = Object.keys(data[0].individual);
+    for (let result of data) {
+      for (let key of keys) {
+        let m = result.individual[key];
+        out.push([key, ''+m.n, ''+Math.round(m.min), ''+Math.round(m.avg), ''+Math.round(m.max)]);
+      }
+    }
+    return out.join('\n');
   }
 }

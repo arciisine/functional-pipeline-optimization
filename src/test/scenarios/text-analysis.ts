@@ -49,6 +49,7 @@ function findMostCommonWordsFunctionalOptimized({text, limit}:sig) {
 let text = TestUtil.readFile('resources/war-and-peace.txt.gz').toLowerCase().split(/[^A-Za-z]+/);
 
 export default {
-  tests : {findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized}, 
-  data : (n) => ({text: text.slice(0, n < 1 ? parseInt(''+text.length*n) : n), limit: 40})
+  tests        : {findMostCommonWords, findMostCommonWordsFunctional, findMostCommonWordsFunctionalOptimized},
+  maxInputSize : text.length, 
+  data         : (n) => ({text: text.slice(0, n), limit: 40})
 }
