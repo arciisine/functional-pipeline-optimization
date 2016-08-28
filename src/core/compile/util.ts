@@ -25,7 +25,7 @@ export class CompilerUtil {
     if (key && CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
     }
-
+    
     //Generate merged analysis and prep final state 
     compilable.finalize(); 
 

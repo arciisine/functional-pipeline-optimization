@@ -62,16 +62,11 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let wrapperId = m.Id();
     let closedId = m.Id();
     let inputId = m.Id();
+    let allIds = closedIds.concat(assignedIds)
 
     return m.Func(wrapperId, [state.arrayId, state.contextId, closedId], [
-      m.Vars('var',
-        ...[...assignedIds, ...closedIds].map((x,i) =>
-        [x, m.GetProperty(closedId, m.Literal(i))])
-      ),
-      m.Vars('var',
-        ...vars, 
-        lengthId,  m.GetProperty(state.arrayId, "length"),
-      ),
+      m.Vars('var', ...allIds.map((x,i) => [x, m.GetProperty(closedId, m.Literal(i))])),
+      m.Vars('var', ...vars, lengthId,  m.GetProperty(state.arrayId, "length")),
       m.Labeled(state.continueLabel,
         m.ForLoop(state.iteratorId, m.Literal(0), lengthId,
           [
