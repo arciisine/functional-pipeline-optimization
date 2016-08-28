@@ -30,6 +30,6 @@ export class Builder<I, O> {
   exec(closed:any[] = [], key:string = null):ExecOutput<O> {
     //Ready directly from cache to minimize multiple fn calls
     let fn = this.compile(key);
-    return fn({value:this.data, context:this.context, closed})
+    return fn(this.data, this.context, closed)
   }
 }

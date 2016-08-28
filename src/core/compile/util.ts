@@ -1,6 +1,6 @@
 import { CompileUtil, AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Compilable } from './compilable';
-import { Compiler, ExecInput, ExecOutput, ExecHandler } from './types';
+import { Compiler, ExecOutput, ExecHandler } from './types';
 import { TransformResponse } from '../transform';
 
 export class CompilerUtil {

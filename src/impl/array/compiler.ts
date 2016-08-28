@@ -63,11 +63,8 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let closedId = m.Id();
     let inputId = m.Id();
 
-    return m.Func(wrapperId, [inputId], [
+    return m.Func(wrapperId, [state.arrayId, state.contextId, closedId], [
       m.Vars('var',
-        [state.arrayId, m.GetProperty(inputId, 'value')],
-        [state.contextId, m.GetProperty(inputId, 'context')],
-        [closedId, m.GetProperty(inputId, 'closed')],
         ...[...assignedIds, ...closedIds].map((x,i) =>
         [x, m.GetProperty(closedId, m.Literal(i))])
       ),

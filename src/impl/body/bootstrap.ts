@@ -8,7 +8,7 @@ export class Helper {
   static exec<T>(data:T[], key:string, ops:string[], context:any[][], closed:any[], post:(all:any[])=>T, variableState:VariableState[]):T[] {
     let res = CompilerUtil.computed[key];    
     if (!!res) {
-      let ret = res({value:data, closed, context })
+      let ret = res(data, context, closed)
       post && post(ret.assigned);
       return ret.value; 
     } else if (res === null) {
