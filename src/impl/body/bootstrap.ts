@@ -16,7 +16,13 @@ export class Helper {
         data = (data[ops[i]] as any)(...context[i]);
       }
       return data;
-    } else if (!Array.isArray(data)) {
+    } else{
+      return Helper.interrogate(data, key, ops, context, closed, post, variableState)
+    }
+  }
+
+  static interrogate<T>(data:T[], key:string, ops:string[], context:any[][], closed:any[], post:(all:any[])=>T, variableState:VariableState[]):T[] {
+    if (!Array.isArray(data)) {
       CompilerUtil.computed[key] = null;
     } else {
       let ret:ExecOutput<T[]> = null;
@@ -24,16 +30,7 @@ export class Helper {
       for (let i = 0; i < ops.length; i++) {
         builder.chain(MAPPING[ops[i]], context[i]);
       }
-      try {
-        builder.compile(key, {variableState})
-      } catch (e) {
-        if (e.invalid) {
-          CompilerUtil.computed[key] = null;
-        } else {
-          console.log(e);
-          throw e;
-        }
-      } 
+      builder.compile(key, {variableState})
     }
     //Recurse on invalid states
     return Helper.exec(data, key, ops, context, closed, post, variableState);

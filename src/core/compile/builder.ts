@@ -20,7 +20,16 @@ export class Builder<I, O> {
   }
 
   compile(key:string = null, extraState?:any):ExecHandler<I,O> {
-    return CompilerUtil.compile(this.compiler, this.compilable, key, extraState);
+    try {
+      return CompilerUtil.compile(this.compiler, this.compilable, key, extraState);
+    } catch (e) {
+      if (e.invalid) {
+        CompilerUtil.computed[key] = null;
+      } else {
+        console.log(e);
+        throw e;
+      }
+    } 
   }
 
   manual():ExecOutput<O> {
