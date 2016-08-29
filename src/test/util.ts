@@ -7,8 +7,10 @@ const DATA_SIZE = 1000;
 export interface TestResults {
   min:number,
   max:number,
+  median:number,
   n:number,
-  avg:number
+  avg:number,
+  wavg:number,
 };
 
 export interface TestResultMap {
@@ -124,7 +126,7 @@ export class TestUtil {
   }
 
   static test<T>({tests, data, inputSize, iterations}:TestCase<T>) {
-    let counts = {};
+    let counts:{[key:string]:number[]} = {};
     let keys = Object.keys(tests);
     keys.forEach(t => {
       counts[t] = []
@@ -149,11 +151,19 @@ export class TestUtil {
 
     let out:TestResultMap = {};
     keys.forEach(k => {
+      let data = counts[k].sort();
+      let len = data.length
+      let mid = parseInt(''+Math.ceil(len/2))
+      let wstart = parseInt(''+Math.floor(len * .1))
+      let wend   = parseInt(''+Math.floor(len * .9))
+
       out[k] = {
-        min : counts[k].reduce((min, v) => v < min ? v : min, Number.MAX_SAFE_INTEGER, counts),
-        max : counts[k].reduce((max, v) => v > max ? v : max, 0, counts),
-        n   : counts[k].length,
-        avg : counts[k].reduce((acc, v) => acc+v, 0)/counts[k].length
+        min    : data.reduce((min, v) => v < min ? v : min, Number.MAX_SAFE_INTEGER),
+        max    : data.reduce((max, v) => v > max ? v : max, 0),
+        median : data[mid],
+        n      : len,
+        avg    : data.reduce((acc, v) => acc+v, 0)/len,
+        wavg   : data.slice(wstart, wend).reduce((acc, v) => acc+v, 0)/(wend-wstart)
       }
     });
     return out;
@@ -226,15 +236,33 @@ export class TestUtil {
   }
 
   static buildTable(data:TestCaseResult[]):string {
-    let out = [['test', 'n', 'min', 'avg', 'max']];
+    let out:any[][] = [
+      ['test', 'n', 'wavg', 'median', 'min', 'avg', 'max']
+    ];
+    
     let keys = Object.keys(data[0].individual);
 
     for (let result of data) {
       for (let key of keys) {
         let m = result.individual[key];
-        out.push([key, ''+m.n, ''+Math.round(m.min), ''+Math.round(m.avg), ''+Math.round(m.max)]);
+        out.push([
+          key, 
+          m.n, 
+          Math.round(m.wavg),
+          m.median, 
+          Math.round(m.min), 
+          Math.round(m.avg), 
+          Math.round(m.max)
+        ]);
       }
     }
-    return out.join('\n');
+    function pad(len, x) {
+      let str = `${x}`;
+      while (str.length < len) {
+        str = str + ' ';
+      }
+      return str;
+    }
+    return out.map(y => y.map(pad.bind(null, 12)).join('|')).join('\n');
   }
 }
