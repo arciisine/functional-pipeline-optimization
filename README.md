@@ -30,6 +30,7 @@
     * Apply access level verification
     * Set via pragma
 * Look for more performance enhancements
+    * Need to minimize amount of object construction overhead on final form
     * Look for way of inlining nested chains 
 
 **Refactoring**
