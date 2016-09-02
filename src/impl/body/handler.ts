@@ -136,7 +136,12 @@ export class BodyTransformHandler {
           x.callee.property.name
         );
 
-        ops.push(m.Literal(name));
+        ops.push(
+          m.Array(
+            m.Literal(name), 
+            BodyTransformUtil.buildVariableState(x.arguments, this.functionScopes)
+          )
+        );
         inputs.push(AST.ArrayExpression({ elements : x.arguments }))
       });      
 
@@ -149,14 +154,28 @@ export class BodyTransformHandler {
 
       let params = BodyTransformUtil.getExecArguments(x, analysis);
 
+      let root = visitor.parents[visitor.parents.length-1].node;
+
+      let opsId = m.Id();
+
+      if (AST.isProgram(root)) {
+        root.body.push(m.Vars(opsId, m.Array(...ops)))
+      }
+
+      let extra = [];
+      if (params.closed) {
+        extra.push(params.closed);
+        if (params.assign) {
+          extra.push(params.assign);
+        }
+      }
+
       return m.Call(EXEC,  
           (x[CANDIDATE_START] as AST.MemberExpression).object,
           m.Literal(m.Id('__key', true).name),
-          AST.ArrayExpression({elements:ops}), 
-          AST.ArrayExpression({elements:inputs}),
-          params.closed,
-          params.assign,
-          BodyTransformUtil.buildVariableStates(inputs, this.functionScopes)          
+          opsId,
+          m.Array(...inputs),
+          ...extra
       );
     }
   }

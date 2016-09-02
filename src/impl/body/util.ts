@@ -68,8 +68,8 @@ export class BodyTransformUtil {
     let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
     let execParams:{closed?:AST.Expression, assign?:AST.BaseFunction|AST.Literal} = {
-      closed : m.Literal(null),
-      assign : m.Literal(null),
+      closed : null,
+      assign : null,
     };
 
     //Handle if we have to reassign closed variables
@@ -95,26 +95,23 @@ export class BodyTransformUtil {
     return execParams;
   }
 
-  static buildVariableStates(inputs:AST.ArrayExpression[], scopes:AST.BaseFunction[]):AST.ArrayExpression {
-    let res = inputs.map((x):AST.Expression => {
-      let el = x.elements[0];
-      let state = VariableState.dynamic;
-      if (AST.isIdentifier(el)) { //If a variable
-        let passed = false;
-        let name = el.name;
-        for (let fn of scopes) {
-          passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
-          if (passed) break;
-        }
-        if (!passed) {
-          state = VariableState.static;
-        }
-      } else if (AST.isFunction(el)) { //If a literal
-        state = VariableState.inline;
+  static buildVariableState(args:AST.Expression[], scopes:AST.BaseFunction[]):AST.Literal {
+    let el = args[0];
+    let state = VariableState.dynamic;
+    if (AST.isIdentifier(el)) { //If a variable
+      let passed = false;
+      let name = el.name;
+      for (let fn of scopes) {
+        passed = passed || VariableVisitorUtil.readPatternIds(fn.params).some(x => x.name === name);
+        if (passed) break;
       }
-      return m.Literal(state);
-    });  
-    return m.Array(...res);
+      if (!passed) {
+        state = VariableState.static;
+      }
+    } else if (AST.isFunction(el)) { //If a literal
+      state = VariableState.inline;
+    }
+    return m.Literal(state);
   }
 
   static renameExpressions(x:AST.CallExpression) {

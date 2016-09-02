@@ -103,7 +103,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     let input = this.getInput('callback');
     let params = this.getParams(state);    
     let res = {vars:[], body:[]};
-    let variableState = state.variableState[this.position];
+    let variableState = state.operations[this.position][1];
     let hasSource = !ParseUtil.isNative(input) && variableState !== VariableState.dynamic
     let isInlinable = variableState === VariableState.inline;
     let hasIndex = true

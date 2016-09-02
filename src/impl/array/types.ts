@@ -6,7 +6,11 @@ export enum VariableState {
   'static' 
 }
 
-export interface TransformState {
+export interface ExtraState {
+  operations:[string, VariableState][]
+}
+
+export interface TransformState extends ExtraState {
   contextId:AST.Identifier,
   elementId:AST.Identifier,
   returnValueId:AST.Identifier
@@ -16,12 +20,8 @@ export interface TransformState {
   arrayId:AST.Identifier,
   functionId:AST.Identifier,
   buildReturn:(val:AST.Node)=>AST.ReturnStatement
-  variableState:VariableState[]
 }
 
-export interface ExtraState {
-  variableState:VariableState[]
-}
 
 export namespace Callback { 
   export interface Transform<T, W> {

@@ -16,7 +16,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
       arrayId : m.Id(),
     	functionId : m.Id(),
       buildReturn : null,
-      variableState : extraState.variableState
+      operations : extraState.operations
     }
     return state;
   }
