@@ -159,7 +159,7 @@ export class BodyTransformHandler {
       let opsId = m.Id();
 
       if (AST.isProgram(root)) {
-        root.body.push(m.Vars(opsId, m.Array(...ops)))
+        root.body.push(m.Vars('const', opsId, m.Array(...ops)))
       }
 
       let extra = [];

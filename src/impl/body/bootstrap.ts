@@ -7,13 +7,15 @@ export class Helper {
 
   static exec<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
     let res = CompilerUtil.computed[key];    
-    if (!!res) {
+    if (!!res && data.length > 1) {
       let ret = res(data, context, closed)
       post && post(ret.assigned);
       return ret.value; 
-    } else if (res === null) {
-      for (let i = 0; i < operations.length; i++) {
-        data = (data[operations[i][0]] as any)(...context[i]);
+    } else if (res !== undefined) {
+      let len = operations.length;
+      for (let i = 0; i < len; i++) {
+        let ctx = context[i];
+        data = (data[operations[i][0]] as any)(ctx[0], ctx[1], ctx[2], ctx[3], ctx[4]);
       }
       return data;
     } else{
