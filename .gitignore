@@ -7,4 +7,6 @@ report/**/*.lof
 report/**/*.lot
 report/**/*.toc
 report/**/*.nlo
+report/**/*.ps
+report/**/*.dat
 **/.DS_STORE
