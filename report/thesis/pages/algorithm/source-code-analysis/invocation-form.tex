@@ -1,4 +1,4 @@
-\subsubsection{Invocation Form}
+\subsection{Invocation Form}
 The next step is to process the candidate optimization into the final invocation form.  This massages the the call chain into a final form that allows for maximal performance at runtime.  The entire goal of the invocation form is to minimize any overhead at runtime.  The reason for this, is that the overhead for execution of the optimized form, assuming chain target is an array, will have significant performance impact smaller arrays.  For the transformation to be generally useful it needs to perform well on arrays of size $0$ as well as arrays of size $100000$.  
 
 \begin{minipage}{\linewidth}

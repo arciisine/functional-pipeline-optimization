@@ -1,4 +1,4 @@
-\subsubsection{Compilation}
+\subsection{Compilation}
 When constructing the resultant optimized code, we need to initialialize the environment the code will be running in.  This involves aliasing in closed variables, exposing all the input parameters for the individual transformations (e.g. this context, or the intial value for an accumulator, etc.).  The goal here is to provide all the relevant structure needed for runtime.  
 
 In additional to the initialization, the compilation process also provides the for loop to iterate through all the data elements as well as mapping the closed variables into the final output, for reassignment once the function finishes.  A simple example of a transformation could look like:

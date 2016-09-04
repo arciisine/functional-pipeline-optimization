@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[12pt]{report}
 \usepackage[utf8]{inputenc}
 \usepackage[table]{xcolor}
 \usepackage{tikz}
@@ -12,6 +12,11 @@
 \usepackage{verbatim}
 \usepackage{color}
 \usepackage{listings}
+\usepackage{aums}       % For Master's papers
+\usepackage{ulem}       % underlining on style-page; see \normalem below
+\usepackage{url}
+\usepackage{tikz}
+\usepackage{pgf}
 
 \usetikzlibrary{arrows,positioning,calc}
 \usetikzlibrary{graphs,arrows.meta}
@@ -53,16 +58,34 @@
    captionpos=b
 }
 
+%%%%%Format rules: Normal margins are 1 in. If you need to print with 1.5in margins, uncomment the line below
+%\oddsidemargin0.5in \textwidth6in
 
-\usepackage[margin=1in]{geometry}
+%% If you do not need a List of Abbreviations, then comment out the lines below and the \printnomenclature line.
+%%for List of Abbreviations information:  (see http://www.mackichan.com/TECHTALK/509.htm  )
+\usepackage[intoc]{nomencl}
+\renewcommand{\nomname}{List of Abbreviations}   	       
+\makenomenclature 
 
+% Put the title, author, and date in. 
 \title{Optimization on a Sequence of Functional Transformations}
-\author{Timothy Soehnlin}
-\date{\today}
+\author{Timothy Soehnlin} 
+\date{\today}         %date of graduation
+\copyrightyear{2016} %copyright year
+
+\keywords{keyword1, keyword2, keyword3}
+
+% Put the Thesis Adviser here. 
+\adviser{Jeff Overbey}
+
+% Put the committee here (including the adviser), one \professor for each. 
+% The advisor must be first, and the dean of the graduate school must be last.
+\professor{Jeff Overbey, Chair, Associate Professor of Computer Science}
+\professor{Kai Chang, Professor of Computer Science}
+\professor{Limnaz, Professor of Computer Science}
 
 \begin{document}
-\maketitle
-
+\input{pages/title.tex}
 \input{pages/introduction.tex}
 \input{pages/javascript/index.tex}
 \input{pages/functional-transformations/index.tex}
@@ -71,5 +94,5 @@
 \input{pages/results/index.tex}
 \input{pages/related-work/index.tex}
 \input{pages/conclusion/index.tex}
-
+%\bibliography{}
 \end{document}

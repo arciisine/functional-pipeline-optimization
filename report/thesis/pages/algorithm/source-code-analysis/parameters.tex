@@ -1,4 +1,4 @@
-\paragraph{Parameters}
+\subsubsection{Parameters}
 Another piece of the invocation form is knowledge of which parameters are passed in as function parameters versus which are inline or are globally defined.
 
 The issue here is that we should assume that any parameter passed in will not be static and thus we have to treat as simply as possible, due to the fact that even analysis of the function itself may take longer than running the code in the original form.  And so we assume the worst case scenario for these functions and limit the optimization to merely invoking the parameter as opposed to attempting to inline the function at runtime.

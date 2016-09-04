@@ -19,8 +19,6 @@
     * Write it out
 
 **Coding Tasks**
-* Cleanup
-    * Better handling of 'passed' variables
 * Handle Closed Variables
     * Handle Global Variables (augmentable via pragma)
     * Differentiate closed variables from non-local functions in Analysis (right now mingled)
@@ -30,8 +28,8 @@
     * Apply access level verification
     * Set via pragma
 * Look for more performance enhancements
-    * Need to minimize amount of object construction overhead on final form
-    * Look for way of inlining nested chains 
+    * Look for way of inlining nested chains (must assume array)
+    * If all operations are inline, compile immediately (must assume array) 
 
 **Refactoring**
 

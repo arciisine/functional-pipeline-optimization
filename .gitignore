@@ -3,4 +3,8 @@ node_modules/**
 report/**/*.aux
 report/**/*.pdf
 report/**/*.log
+report/**/*.lof
+report/**/*.lot
+report/**/*.toc
+report/**/*.nlo
 **/.DS_STORE
