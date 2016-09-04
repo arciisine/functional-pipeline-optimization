@@ -222,11 +222,26 @@ export class TestUtil {
     return out;
   }
 
+  static expandIterations(op) {
+    if (op.indexOf('..') > 0) {
+      let [start,stop,step] = op.split('..').map(x => parseInt(x));
+      step = step || 1;
+      let out = [];        
+      for (let i = start; i < stop; i+= step) {
+        out.push(''+i);
+      }
+      return out.join(',');
+    } else {
+      return op;
+    }
+  }
+
   static testInputs(data:string[]):TestInput[] {
     return data.map(x => {
-      let [a,b] = x.split('x');
+      let [a,b] = x.split('x').map(TestUtil.expandIterations);
       let asl = a.split(',').map(x => +x);
       let bsl = b.split(',').map(x => +x);
+
       let out = [];
       for (let asi of asl) {
         for (let bsi of bsl) {

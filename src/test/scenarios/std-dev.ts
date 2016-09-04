@@ -30,7 +30,9 @@ function Optimized(a:number[]) {
   return [mean, total, stddev];
 }
 
+let data = TestUtil.makeRandomArray(100000)
+
 export default {
   tests         : {Manual, Functional, Optimized},
-  data          : TestUtil.makeRandomArray
+  data          : n => data.slice(0, n)
 }
