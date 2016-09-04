@@ -80,6 +80,23 @@ def generate_data_files(rows, keys):
     data_files[k] = f.name
   return data_files
 
+def plot(plot):
+  f = tempfile.NamedTemporaryFile(delete=False)
+  with f:
+    f.write(plot)
+  run('gnuplot %s -p'% f.name, log=False)
+  os.unlink(f.name)
+
+def gnuplot_lines(name, rows, headers, xl, yl, xi, yi, with_stmt):
+  data_files = generate_data_files(rows, headers)
+  plot(GNUPLOT_TPL % {
+    "name"   : pdf_file,
+    "title"  : "%s vs %s with %s" % (xl, yl, with_stmt),
+    "xlabel" : xl,
+    "ylabel" : yl,
+    "data"   : ','.join([ "'%s' using %s:%s with lines title '%s'"%(data_files[k], xi, yi, k)  for k in data_files.keys()])
+  })
+
 def generate_charts(name, *args):
   data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
   (rows, headers) = parseCsvData(data)
@@ -89,42 +106,30 @@ def generate_charts(name, *args):
   iterations = map(lambda a: a[ITERS], rows)
   iter_constant = reduce(lambda same, a: same and a == iterations[0], iterations, True)
 
-  plot = ''
   name = ("%s_%s" % (name, '-'.join(args))).replace(',','+')
+  dat_file = '%s/%s.dat'%(OUTPUT_FOLDER,name)
+  pdf_file = '%s/%s.pdf'%(OUTPUT_FOLDER,name)
 
-  with open('%s/%s.dat'%(OUTPUT_FOLDER,name), 'w') as f:
+  with open(dat_file, 'w') as f:
     f.write(data)
 
   #iterations is x axis 
   if input_constant:
-    data_files = generate_data_files(rows, headers)
-    plot = GNUPLOT_TPL % {
-      "name"   : '%s/%s.pdf'%(OUTPUT_FOLDER,name),
-      "title"  : "Time vs Iterations with an Input Size of %s" % input_sizes[0],
-      "xlabel" : "Iterations",
-      "ylabel" : "Time",
-      "data"   : ','.join([ "'%s' using %s:%s with lines title '%s'"%(data_files[k], ITER_IDX, MEDIAN_IDX, k)  for k in data_files.keys()])
-    }
+    gnuplot_lines(
+      name, rows, headers, 
+      "Iterations", "Time", 
+      ITER_IDX, MEDIAN_IDX, 
+      "an Input Size of %s"%input_sizes[0])
   #iterations is y axis
   elif iter_constant:
-    data_files = generate_data_files(rows, headers)
-    plot = GNUPLOT_TPL % {
-      "name"   : '%s/%s.pdf'%(OUTPUT_FOLDER,name),
-      "title"  : "Time vs Input Sizes with %s Iterations" % iterations[0],
-      "xlabel" : "Input Size",
-      "ylabel" : "Time",
-      "data"   : ','.join([ "'%s' using %s:%s with lines title '%s'"%(data_files[k], INPUT_IDX, MEDIAN_IDX, k)  for k in data_files.keys()])
-    }
+    gnuplot_lines(
+      name, rows, headers, 
+      "Input Size", "Time", 
+      ITER_IDX, MEDIAN_IDX, 
+      "%s Iteraions"%iterations[0])
   #Build 3d chart
   else:
     pass
-  
-  if plot:
-    f = tempfile.NamedTemporaryFile(delete=False)
-    with f:
-      f.write(plot)
-    run('gnuplot %s -p'% f.name, log=False)
-    os.unlink(f.name)
 
 if __name__ == '__main__':
   generate_charts(*sys.argv[1:])
