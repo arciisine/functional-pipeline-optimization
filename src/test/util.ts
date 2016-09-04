@@ -227,7 +227,7 @@ export class TestUtil {
       let [start,stop,step] = op.split('..').map(x => parseInt(x));
       step = step || 1;
       let out = [];        
-      for (let i = start; i < stop; i+= step) {
+      for (let i = start; i <= stop; i+= step) {
         out.push(''+i);
       }
       return out.join(',');

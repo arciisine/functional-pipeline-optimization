@@ -16,19 +16,30 @@ ITER_IDX=3
 WAVG_IDX=4
 MEDIAN_IDX=5
 
-GNUPLOT_TPL = \
-"""set title "%(title)s"
-set xlabel '%(xlabel)s'
-set ylabel '%(ylabel)s'
-set autoscale
-unset autoscale y
+GNUPLOT_2D_LINES="""set title "%(xl)s vs %(yl)s with %(with_stmt)s"
+set xlabel '%(xl)s'
+set ylabel '%(yl)s'
+set autoscale x
 set logscale y 10
 set yrange [100:10000000] 
 set datafile separator ","
 set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
-set output '|ps2pdf -dEPSCrop - %(name)s'
-plot  %(data)s
-"""
+set output '|ps2pdf -dEPSCrop - %(OUTPUT_FOLDER)s/%(name)s.pdf'
+plot """
+
+GNUPLOT_2D_DATA="'%s' using %%(xi)s:%%(yi)s with lines title '%s'"
+
+GNUPLOT_3D_POINTS="""set title "%(xl)s vs %(yl)s vs %(zl)s"
+set xlabel '%(xl)s'
+set ylabel '%(yl)s'
+set autoscale x
+set autoscale y
+set datafile separator ","
+set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
+set output '|ps2pdf -dEPSCrop - %(OUTPUT_FOLDER)s/%(name)s.pdf'
+plot """
+
+GNUPLOT_3D_DATA="'%s' using %%(xi)s:%%(yi)s with points title '%s' pt 7 ps (log10(%%(zi)s)/2)"
 
 def run(exe, log=True, throwError=True):
   if isinstance(exe, list):
@@ -80,22 +91,24 @@ def generate_data_files(rows, keys):
     data_files[k] = f.name
   return data_files
 
-def plot(plot):
+def plot(plot, mix):
   f = tempfile.NamedTemporaryFile(delete=False)
+  mix['OUTPUT_FOLDER'] = OUTPUT_FOLDER
   with f:
-    f.write(plot)
+    f.write(plot % mix)
   run('gnuplot %s -p'% f.name, log=False)
   os.unlink(f.name)
 
 def gnuplot_lines(name, rows, headers, xl, yl, xi, yi, with_stmt):
   data_files = generate_data_files(rows, headers)
-  plot(GNUPLOT_TPL % {
-    "name"   : pdf_file,
-    "title"  : "%s vs %s with %s" % (xl, yl, with_stmt),
-    "xlabel" : xl,
-    "ylabel" : yl,
-    "data"   : ','.join([ "'%s' using %s:%s with lines title '%s'"%(data_files[k], xi, yi, k)  for k in data_files.keys()])
-  })
+  plot(GNUPLOT_2D_LINES + (','.join([GNUPLOT_2D_DATA%(f, k)  for k,f in data_files.items()])), locals())
+
+def gnuplot_3d(name, rows, headers, xl, yl, zl, xi, yi, zi):
+  data_files = generate_data_files(rows, headers)
+  og_name = name
+  for k,f in data_files.items():
+    name = '%s_%s' %(og_name, k)
+    plot(GNUPLOT_3D_POINTS + (GNUPLOT_3D_DATA%(f, k)), locals())
 
 def generate_charts(name, *args):
   data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
@@ -107,10 +120,8 @@ def generate_charts(name, *args):
   iter_constant = reduce(lambda same, a: same and a == iterations[0], iterations, True)
 
   name = ("%s_%s" % (name, '-'.join(args))).replace(',','+')
-  dat_file = '%s/%s.dat'%(OUTPUT_FOLDER,name)
-  pdf_file = '%s/%s.pdf'%(OUTPUT_FOLDER,name)
 
-  with open(dat_file, 'w') as f:
+  with open('%s/%s.dat'%(OUTPUT_FOLDER,name), 'w') as f:
     f.write(data)
 
   #iterations is x axis 
@@ -129,7 +140,9 @@ def generate_charts(name, *args):
       "%s Iteraions"%iterations[0])
   #Build 3d chart
   else:
-    pass
+    gnuplot_3d(name, rows, headers, 
+      'Input Size', 'Iterations',  'Time',  
+      INPUT_IDX, ITER_IDX,  MEDIAN_IDX)
 
 if __name__ == '__main__':
   generate_charts(*sys.argv[1:])
