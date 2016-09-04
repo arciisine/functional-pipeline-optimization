@@ -139,7 +139,7 @@ export class TestUtil {
       try {
         tests[k](d)
         let [sec, nano] = process.hrtime(start)
-        counts[k].push(sec*1e6 + nano);
+        counts[k].push(parseInt(''+(sec*1e6 + nano)/input[0]));
       } catch(e) {
         console.log(e ,k);
       }

@@ -11,6 +11,7 @@ TEST_COMMAND='node --stack-trace-limit=1000 dist/src/test/test.js'
 
 INPUT = 'n'
 ITERS = 'iter'
+MEDIAN = 'median'
 INPUT_IDX=2
 ITER_IDX=3
 WAVG_IDX=4
@@ -26,7 +27,7 @@ set xlabel '%(xl)s'
 set ylabel '%(yl)s'
 set autoscale x
 set logscale y 10
-set yrange [100:10000000]
+set yrange [100:100000]
 """ 
 
 GNUPLOT_2D_DATA="'%s' using %%(xi)s:%%(yi)s with lines title '%s'"
@@ -37,7 +38,7 @@ set ylabel '%(yl)s'
 set autoscale 
 """
 
-GNUPLOT_3D_DATA="'%s' using %%(xi)s:%%(yi)s with points title '%s' pt 7 ps (log10(%%(zi)s))"
+GNUPLOT_3D_DATA="'%s' using %(xi)s:%(yi)s:((log($%(zi)s)/log(%(minz)s))*2) with points title '%(zl)s' pt 7 ps var"
 
 def run(exe, log=True, throwError=True):
   if isinstance(exe, list):
@@ -104,9 +105,11 @@ def gnuplot_lines(name, rows, headers, xl, yl, xi, yi, with_stmt):
 def gnuplot_3d(name, rows, headers, xl, yl, zl, xi, yi, zi):
   data_files = generate_data_files(rows, headers)
   og_name = name
+  minz = min(*map(lambda x: x[MEDIAN], rows))
+  print minz
   for k,f in data_files.items():
     name = '%s_%s' %(og_name, k)
-    plot(GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA%(f, k)), locals())
+    plot(GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA.replace('%', '%%').replace('%%s', '%s')%f), locals())
 
 def generate_charts(name, *args):
   data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
@@ -134,8 +137,8 @@ def generate_charts(name, *args):
     gnuplot_lines(
       name, rows, headers, 
       "Input Size", "Time", 
-      ITER_IDX, MEDIAN_IDX, 
-      "%s Iteraions"%iterations[0])
+      INPUT_IDX, MEDIAN_IDX, 
+      "%s Iterations"%iterations[0])
   #Build 3d chart
   else:
     gnuplot_3d(name, rows, headers, 
