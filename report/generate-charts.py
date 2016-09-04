@@ -16,30 +16,28 @@ ITER_IDX=3
 WAVG_IDX=4
 MEDIAN_IDX=5
 
+GNUPLOT_COMMON = """set datafile separator ","
+set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
+set output '|ps2pdf -dEPSCrop - %(OUTPUT_FOLDER)s/%(name)s.pdf'
+plot"""
+
 GNUPLOT_2D_LINES="""set title "%(xl)s vs %(yl)s with %(with_stmt)s"
 set xlabel '%(xl)s'
 set ylabel '%(yl)s'
 set autoscale x
 set logscale y 10
-set yrange [100:10000000] 
-set datafile separator ","
-set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
-set output '|ps2pdf -dEPSCrop - %(OUTPUT_FOLDER)s/%(name)s.pdf'
-plot """
+set yrange [100:10000000]
+""" 
 
 GNUPLOT_2D_DATA="'%s' using %%(xi)s:%%(yi)s with lines title '%s'"
 
 GNUPLOT_3D_POINTS="""set title "%(xl)s vs %(yl)s vs %(zl)s"
 set xlabel '%(xl)s'
 set ylabel '%(yl)s'
-set autoscale x
-set autoscale y
-set datafile separator ","
-set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
-set output '|ps2pdf -dEPSCrop - %(OUTPUT_FOLDER)s/%(name)s.pdf'
-plot """
+set autoscale 
+"""
 
-GNUPLOT_3D_DATA="'%s' using %%(xi)s:%%(yi)s with points title '%s' pt 7 ps (log10(%%(zi)s)/2)"
+GNUPLOT_3D_DATA="'%s' using %%(xi)s:%%(yi)s with points title '%s' pt 7 ps (log10(%%(zi)s))"
 
 def run(exe, log=True, throwError=True):
   if isinstance(exe, list):
@@ -101,14 +99,14 @@ def plot(plot, mix):
 
 def gnuplot_lines(name, rows, headers, xl, yl, xi, yi, with_stmt):
   data_files = generate_data_files(rows, headers)
-  plot(GNUPLOT_2D_LINES + (','.join([GNUPLOT_2D_DATA%(f, k)  for k,f in data_files.items()])), locals())
+  plot(GNUPLOT_2D_LINES + GNUPLOT_COMMON + (','.join([GNUPLOT_2D_DATA%(f, k)  for k,f in data_files.items()])), locals())
 
 def gnuplot_3d(name, rows, headers, xl, yl, zl, xi, yi, zi):
   data_files = generate_data_files(rows, headers)
   og_name = name
   for k,f in data_files.items():
     name = '%s_%s' %(og_name, k)
-    plot(GNUPLOT_3D_POINTS + (GNUPLOT_3D_DATA%(f, k)), locals())
+    plot(GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA%(f, k)), locals())
 
 def generate_charts(name, *args):
   data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
