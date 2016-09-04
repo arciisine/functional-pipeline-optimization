@@ -27,7 +27,7 @@ set xlabel '%(xl)s'
 set ylabel '%(yl)s'
 set autoscale x
 set logscale y 10
-set yrange [100:100000]
+set yrange [50:50000]
 """ 
 
 GNUPLOT_2D_DATA="'%s' using %%(xi)s:%%(yi)s with lines title '%s'"
@@ -115,9 +115,9 @@ def generate_charts(name, *args):
   data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
   (rows, headers) = parseCsvData(data)
 
-  input_sizes = map(lambda a: a[INPUT], rows)
+  input_sizes = map(lambda a: int(a[INPUT]), rows)
   input_constant = reduce(lambda same, a: same and a == input_sizes[0], input_sizes, True)
-  iterations = map(lambda a: a[ITERS], rows)
+  iterations = map(lambda a: int(a[ITERS]), rows)
   iter_constant = reduce(lambda same, a: same and a == iterations[0], iterations, True)
 
   name = ("%s_%s" % (name, '-'.join(args))).replace(',','+')
