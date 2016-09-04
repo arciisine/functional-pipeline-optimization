@@ -21,7 +21,9 @@ GNUPLOT_TPL = \
 set xlabel '%(xlabel)s'
 set ylabel '%(ylabel)s'
 set autoscale
+unset autoscale y
 set logscale y 10
+set yrange [100:10000000] 
 set datafile separator ","
 set terminal postscript eps enhanced color dashed lw 1 'Helvetica' 14
 plot  %(data)s
