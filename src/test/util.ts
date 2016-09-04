@@ -5,10 +5,11 @@ import '../impl/body/bootstrap';
 const DATA_SIZE = 1000;
 
 export interface TestResults {
+  n:number,
+  iter:number,
   min:number,
   max:number,
   median:number,
-  n:number,
   avg:number,
   wavg:number,
 };
@@ -22,23 +23,18 @@ export interface TestCaseResult {
   individual:TestResultMap
 }
 
-export interface Range {
-  start:number, 
-  stop?:number, 
-  step?:number
-}
-
 export interface TestScenario<T> {
   tests:FunctionMap<T>, 
   maxInputSize: number,
   data:(number)=>T
 };
 
+export type TestInput  = [number,number];
+
 export interface TestCase<T> {
   tests:FunctionMap<T>, 
   data:(number)=>T, 
-  iterations:number,
-  inputSize:number
+  input:TestInput
 };
 
 
@@ -125,19 +121,19 @@ export class TestUtil {
     console.log()
   }
 
-  static test<T>({tests, data, inputSize, iterations}:TestCase<T>) {
+  static test<T>({tests, data, input}:TestCase<T>) {
     let counts:{[key:string]:number[]} = {};
     let keys = Object.keys(tests);
     keys.forEach(t => {
       counts[t] = []
-      tests[t](data(inputSize))
+      tests[t](data(input[0]))
     });
 
     let time = 0;
 
-    let d = data(inputSize) 
+    let d = data(input[0]) 
   
-      for (let i = 0; i < iterations; i++) {
+    for (let i = 0; i < input[1]; i++) {
       let k = keys[Math.max(0, Math.min(keys.length-1, parseInt(Math.random()*keys.length as any)))];
       let start = process.hrtime()
       try {
@@ -153,25 +149,26 @@ export class TestUtil {
     keys.forEach(k => {
       let data = counts[k].sort();
       let len = data.length
-      let mid = parseInt(''+Math.ceil(len/2))
+      let mid = parseInt(''+Math.floor(len/2))
       let wstart = parseInt(''+Math.floor(len * .1))
       let wend   = parseInt(''+Math.floor(len * .9))
 
       out[k] = {
+        n      : input[0],
+        iter   : input[1],
         min    : data.reduce((min, v) => v < min ? v : min, Number.MAX_SAFE_INTEGER),
         max    : data.reduce((max, v) => v > max ? v : max, 0),
         median : data[mid],
-        n      : len,
         avg    : data.reduce((acc, v) => acc+v, 0)/len,
-        wavg   : data.slice(wstart, wend).reduce((acc, v) => acc+v, 0)/(wend-wstart)
+        wavg   : len > 1 ? data.slice(wstart, wend).reduce((acc, v) => acc+v, 0)/(wend-wstart) : data[0]
       }
     });
     return out;
   }
 
-  static validateTests<T>({tests,data,inputSize}:TestCase<T>) {
+  static validateTests<T>({tests,data,input}:TestCase<T>) {
     let keys = Object.keys(tests);
-    let d = data(inputSize)
+    let d = data(input[0])
     let orig = tests[keys[0]](d);
     let invalid = null;
     keys.slice(1).reduce((a,b) => {
@@ -186,25 +183,16 @@ export class TestUtil {
     return invalid;
   }
 
-  static validateRange(range:Range) {
-    if (range.stop === undefined) {
-      range.stop = range.start;
-    } else if (range.step == undefined) {
-      range.step = (range.stop-range.start)/10;
-    }
-    return range;
-  }
-
-  static execTest<T>({tests, data, inputSize, iterations}:TestCase<T>):TestCaseResult {
+  static execTest<T>({tests, data, input}:TestCase<T>):TestCaseResult {
     let out:TestResultMap = {};
     let keys = Object.keys(tests);
     let individual:TestResultMap = {}
-    let mixed = TestUtil.test({tests, data, inputSize, iterations});
+    let mixed = TestUtil.test({tests, data, input});
 
     keys.forEach(k => {
       let o:FunctionMap<T> = {};
       o[k] = tests[k];
-      individual[k] = TestUtil.test({tests:o, data, inputSize, iterations})[k];
+      individual[k] = TestUtil.test({tests:o, data, input})[k];
     })
     
     return {mixed, individual }
@@ -225,29 +213,44 @@ export class TestUtil {
     }
   } 
 
-  static runTestSuite<T>({tests, data}:TestScenario<T>, inputSize:number, iterations:Range):TestCaseResult[] {
-    TestUtil.validateRange(iterations);
+  static runTestSuite<T>({tests, data}:TestScenario<T>, testInputs:TestInput[]):TestCaseResult[] {
     let out = [];
-    for (let {start:i, stop:istop, step:istep} = iterations; i <= istop; i+= istep) {
-      let ret = TestUtil.execTest({tests, data, inputSize, iterations:i});
+    for (let input of testInputs) {
+      let ret = TestUtil.execTest({tests, data, input});
       out.push(ret);
     }
     return out;
   }
 
+  static testInputs(data:string[]):TestInput[] {
+    return data.map(x => {
+      let [a,b] = x.split('x');
+      let asl = a.split(',').map(x => +x);
+      let bsl = b.split(',').map(x => +x);
+      let out = [];
+      for (let asi of asl) {
+        for (let bsi of bsl) {
+          out.push([asi, bsi])
+        }
+      }
+      return out;
+    }).reduce((flat, arr) => flat.push(...arr) && flat, []);
+  }
+
   static buildTable(data:TestCaseResult[]):string {
     let out:any[][] = [
-      ['test', 'n', 'wavg', 'median', 'min', 'avg', 'max']
+      ['test', 'n', 'iter', 'wavg', 'median', 'min', 'avg', 'max']
     ];
-    
+
     let keys = Object.keys(data[0].individual);
 
     for (let result of data) {
       for (let key of keys) {
         let m = result.individual[key];
         out.push([
-          key, 
-          m.n, 
+          key,
+          m.n,
+          m.iter, 
           Math.round(m.wavg),
           m.median, 
           Math.round(m.min), 

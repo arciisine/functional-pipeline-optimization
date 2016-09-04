@@ -12,7 +12,7 @@ function Manual({text, limit}:sig) {
     if (word.length < 4) {
       continue;
     }
-    let count = check.all[word] = (check.all[word] || 0) + 1;
+    let count = check.common[word] || (check.all[word] = (check.all[word] || 0)+1);
     if (check.all[word] > limit) {
       check.common[word] = count;
     }
@@ -24,7 +24,7 @@ function Functional({text, limit}:sig) {
   return text
     .filter(word => word.length >= limit)
     .reduce((check:acc,  word) => {
-      let count = check.all[word] = (check.all[word] || 0)+1;
+      let count = check.common[word] || (check.all[word] = (check.all[word] || 0)+1);
       if (count > limit) {
         check.common[word] = count;
       }
@@ -38,7 +38,7 @@ function Optimized({text, limit}:sig) {
   return text
     .filter(word => word.length >= limit)
     .reduce((check:acc, word) => {
-      let count = check.all[word] = (check.all[word] || 0)+1;
+      let count = check.common[word] || (check.all[word] = (check.all[word] || 0)+1);
       if (count > limit) {
         check.common[word] = count;
       }
@@ -50,6 +50,5 @@ let text = TestUtil.readFile('resources/war-and-peace.txt.gz').toLowerCase().spl
 
 export default {
   tests        : {Manual, Functional, Optimized},
-  maxInputSize : text.length, 
-  data         : (n) => ({text: text.slice(0, n), limit: 40})
+  data         : (n) => ({text: text.slice(0, n), limit: 20})
 }

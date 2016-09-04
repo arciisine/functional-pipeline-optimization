@@ -32,6 +32,5 @@ function Optimized(a:number[]) {
 
 export default {
   tests         : {Manual, Functional, Optimized},
-  maxInputSize  : 100000,
   data          : TestUtil.makeRandomArray
 }

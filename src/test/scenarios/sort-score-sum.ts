@@ -50,6 +50,5 @@ export default {
     Functional, 
     Optimized
   },
-  maxInputSize : names.length,
   data         : (n) => names.slice(0, n),
 };
