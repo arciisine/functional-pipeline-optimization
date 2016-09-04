@@ -9,7 +9,7 @@ function Manual({text, limit}:sig) {
   let check:acc = {all:{}, common:{}};
   for (let i = 0; i < words.length; i++) {
     let word = words[i];
-    if (word.length < 4) {
+    if (word.length < limit) {
       continue;
     }
     let count = check.common[word] || (check.all[word] = (check.all[word] || 0)+1);
@@ -50,5 +50,5 @@ let text = TestUtil.readFile('resources/war-and-peace.txt.gz').toLowerCase().spl
 
 export default {
   tests        : {Manual, Functional, Optimized},
-  data         : (n) => ({text: text.slice(0, n), limit: 20})
+  data         : (n) => ({text: text.slice(0, n), limit: 4})
 }
