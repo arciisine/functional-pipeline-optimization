@@ -25,7 +25,8 @@ unset autoscale y
 set logscale y 10
 set yrange [100:10000000] 
 set datafile separator ","
-set terminal postscript eps enhanced color dashed lw 1 'Helvetica' 14
+set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
+set output '|ps2pdf -dEPSCrop - %(name)s'
 plot  %(data)s
 """
 
@@ -82,7 +83,7 @@ def generate_data_files(rows, keys):
 def generate_charts(name, *args):
   data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
   (rows, headers) = parseCsvData(data)
-  
+
   input_sizes = map(lambda a: a[INPUT], rows)
   input_constant = reduce(lambda same, a: same and a == input_sizes[0], input_sizes, True)
   iterations = map(lambda a: a[ITERS], rows)
@@ -91,11 +92,14 @@ def generate_charts(name, *args):
   plot = ''
   name = ("%s_%s" % (name, '-'.join(args))).replace(',','+')
 
+  with open('%s/%s.dat'%(OUTPUT_FOLDER,name), 'w') as f:
+    f.write(data)
+
   #iterations is x axis 
   if input_constant:
     data_files = generate_data_files(rows, headers)
-    name = 'iterations_'+name
     plot = GNUPLOT_TPL % {
+      "name"   : '%s/%s.pdf'%(OUTPUT_FOLDER,name),
       "title"  : "Time vs Iterations with an Input Size of %s" % input_sizes[0],
       "xlabel" : "Iterations",
       "ylabel" : "Time",
@@ -103,9 +107,9 @@ def generate_charts(name, *args):
     }
   #iterations is y axis
   elif iter_constant:
-    name = 'input-size_'+name
     data_files = generate_data_files(rows, headers)
     plot = GNUPLOT_TPL % {
+      "name"   : '%s/%s.pdf'%(OUTPUT_FOLDER,name),
       "title"  : "Time vs Input Sizes with %s Iterations" % iterations[0],
       "xlabel" : "Input Size",
       "ylabel" : "Time",
@@ -119,12 +123,8 @@ def generate_charts(name, *args):
     f = tempfile.NamedTemporaryFile(delete=False)
     with f:
       f.write(plot)
-    output = run('gnuplot %s -p'% f.name, log=False)
+    run('gnuplot %s -p'% f.name, log=False)
     os.unlink(f.name)
-    with open('%s/%s.ps'%(OUTPUT_FOLDER,name), 'w') as f:
-      f.write(output)    
-    with open('%s/%s.dat'%(OUTPUT_FOLDER,name), 'w') as f:
-      f.write(data)
 
 if __name__ == '__main__':
   generate_charts(*sys.argv[1:])
