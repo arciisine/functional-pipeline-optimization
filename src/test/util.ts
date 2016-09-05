@@ -118,13 +118,9 @@ export class TestUtil {
     for (let i = 0; i < input[1]; i++) {
       let k = keys[Math.max(0, Math.min(keys.length-1, Math.trunc(Math.random()*keys.length)))];
       let start = process.hrtime()
-      try {
-        tests[k](d)
-        let [sec, nano] = process.hrtime(start)
-        counts[k].push(toInt((sec*1e6 + nano)/input[0]));
-      } catch(e) {
-        console.log(e ,k);
-      }
+      tests[k](d)
+      let [sec, nano] = process.hrtime(start)
+      counts[k].push((sec*1e6 + nano)/input[0]);
     }
 
     let out:TestResultMap = {};
@@ -141,8 +137,8 @@ export class TestUtil {
         min    : data.reduce((min, v) => v < min ? v : min, Number.MAX_SAFE_INTEGER),
         max    : data.reduce((max, v) => v > max ? v : max, 0),
         median : data[mid],
-        avg    : toInt(data.reduce((acc, v) => acc+v, 0)/len),
-        wavg   : len > 1 ? toInt(data.slice(wstart, wend).reduce((acc, v) => acc+v, 0)/(wend-wstart)) : data[0]
+        avg    : data.reduce((acc, v) => acc+v, 0)/len,
+        wavg   : len > 1 ? data.slice(wstart, wend).reduce((acc, v) => acc+v, 0)/(wend-wstart) : data[0]
       }
     });
     return out;
@@ -233,11 +229,11 @@ export class TestUtil {
           key,
           m.n,
           m.iter, 
-          m.wavg,
-          m.median, 
-          m.min, 
-          m.avg, 
-          m.max
+          m.wavg.toFixed(3),
+          m.median.toFixed(3), 
+          m.min.toFixed(3), 
+          m.avg.toFixed(3), 
+          m.max.toFixed(3)
         ]);
       }
     }
