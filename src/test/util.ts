@@ -4,6 +4,8 @@ import '../impl/body/bootstrap';
 
 const DATA_SIZE = 1000;
 
+let toInt = n => Math.trunc(Math.ceil(n))
+
 export interface TestResults {
   n:number,
   iter:number,
@@ -43,13 +45,9 @@ let fileCache = {};
 export class TestUtil {
 
   static makeRandomArray(size:number):number[] {
-    if (size < 1) {
-      size = parseInt('' + DATA_SIZE*size);
-    }
-
     let data:number[] = Array(size);
     for (let i = 0; i < data.length; i++) {
-      data[i] = parseInt(''+(Math.random() * 255));
+      data[i] = Math.trunc(Math.random() * 255);
     }
     return data
   }
@@ -112,22 +110,18 @@ export class TestUtil {
   static test<T>({tests, data, input}:TestCase<T>) {
     let counts:{[key:string]:number[]} = {};
     let keys = Object.keys(tests);
-    keys.forEach(t => {
-      counts[t] = []
-      tests[t](data(input[0]))
-    });
-
     let time = 0;
+    keys.forEach(t =>  counts[t] = []);
 
     let d = data(input[0]) 
   
     for (let i = 0; i < input[1]; i++) {
-      let k = keys[Math.max(0, Math.min(keys.length-1, parseInt(Math.random()*keys.length as any)))];
+      let k = keys[Math.max(0, Math.min(keys.length-1, Math.trunc(Math.random()*keys.length)))];
       let start = process.hrtime()
       try {
         tests[k](d)
         let [sec, nano] = process.hrtime(start)
-        counts[k].push(parseInt(''+(sec*1e6 + nano)/input[0]));
+        counts[k].push(toInt((sec*1e6 + nano)/input[0]));
       } catch(e) {
         console.log(e ,k);
       }
@@ -137,9 +131,9 @@ export class TestUtil {
     keys.forEach(k => {
       let data = counts[k].sort();
       let len = data.length
-      let mid = parseInt(''+Math.floor(len/2))
-      let wstart = parseInt(''+Math.floor(len * .1))
-      let wend   = parseInt(''+Math.floor(len * .9))
+      let mid = Math.trunc(len/2)
+      let wstart = Math.trunc(len * .1)
+      let wend   = Math.trunc(len * .9)
 
       out[k] = {
         n      : input[0],
@@ -147,8 +141,8 @@ export class TestUtil {
         min    : data.reduce((min, v) => v < min ? v : min, Number.MAX_SAFE_INTEGER),
         max    : data.reduce((max, v) => v > max ? v : max, 0),
         median : data[mid],
-        avg    : data.reduce((acc, v) => acc+v, 0)/len,
-        wavg   : len > 1 ? data.slice(wstart, wend).reduce((acc, v) => acc+v, 0)/(wend-wstart) : data[0]
+        avg    : toInt(data.reduce((acc, v) => acc+v, 0)/len),
+        wavg   : len > 1 ? toInt(data.slice(wstart, wend).reduce((acc, v) => acc+v, 0)/(wend-wstart)) : data[0]
       }
     });
     return out;
@@ -164,16 +158,24 @@ export class TestUtil {
       let eq = TestUtil.areEqual(cur, orig);;
       if (!eq) {
         invalid = [[cur, b], [orig, keys[0]]]
-
       }
       return cur; 
     }, orig)
-    return invalid;
+    return !invalid;
   }
 
   static runTests<T>({tests, data}:TestScenario<T>, testInputs:TestInput[]):TestResultMap[] {
     let out = [];
     let keys = Object.keys(tests);
+
+    if (!TestUtil.validateTests({tests, data, input:testInputs[0]})) {
+      throw new Error("Tests are invalid"); 
+    }
+
+    keys.forEach(t => {
+      tests[t](data(testInputs[0][0]))
+    });
+
     for (let input of testInputs) {
       let individual:TestResultMap = {}
 
@@ -189,7 +191,7 @@ export class TestUtil {
 
   static expandIterations(op) {
     if (op.indexOf('..') > 0) {
-      let [start,stop,step] = op.split('..').map(x => parseInt(x));
+      let [start,stop,step] = op.split('..').map(x => +x);
       step = step || 1;
       let out = [];        
       for (let i = start; i <= stop; i+= step) {
@@ -231,11 +233,11 @@ export class TestUtil {
           key,
           m.n,
           m.iter, 
-          Math.round(m.wavg),
+          m.wavg,
           m.median, 
-          Math.round(m.min), 
-          Math.round(m.avg), 
-          Math.round(m.max)
+          m.min, 
+          m.avg, 
+          m.max
         ]);
       }
     }
