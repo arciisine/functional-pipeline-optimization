@@ -120,7 +120,7 @@ export class TestUtil {
       let start = process.hrtime()
       tests[k](d)
       let [sec, nano] = process.hrtime(start)
-      counts[k].push((sec*1e6 + nano)/input[0]);
+      counts[k].push((sec*1e6 + nano)/input[0] /* Divide by inputs*/); //Time per input item
     }
 
     let out:TestResultMap = {};
