@@ -17,5 +17,5 @@ let data:TestScenario<any> = require(`./${file}.alt.js`)['default'];
 
 let tests = TestUtil.testInputs(process.argv.slice(3));
 
-let res = TestUtil.runTestSuite(data, tests); 
+let res = TestUtil.runTests(data, tests); 
 console.log(TestUtil.buildTable(res));

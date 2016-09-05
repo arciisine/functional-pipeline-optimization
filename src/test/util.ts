@@ -18,11 +18,6 @@ export interface TestResultMap {
   [key:string]:TestResults
 }
 
-export interface TestCaseResult { 
-  mixed:TestResultMap, 
-  individual:TestResultMap
-}
-
 export interface TestScenario<T> {
   tests:FunctionMap<T>, 
   maxInputSize: number,
@@ -114,13 +109,6 @@ export class TestUtil {
     }
   }
 
-  static log(title, o){
-    console.log(title)
-    console.log('='.repeat(20)) 
-    console.log(JSON.stringify(o, null, 2))
-    console.log()
-  }
-
   static test<T>({tests, data, input}:TestCase<T>) {
     let counts:{[key:string]:number[]} = {};
     let keys = Object.keys(tests);
@@ -183,41 +171,18 @@ export class TestUtil {
     return invalid;
   }
 
-  static execTest<T>({tests, data, input}:TestCase<T>):TestCaseResult {
-    let out:TestResultMap = {};
-    let keys = Object.keys(tests);
-    let individual:TestResultMap = {}
-    let mixed = TestUtil.test({tests, data, input});
-
-    keys.forEach(k => {
-      let o:FunctionMap<T> = {};
-      o[k] = tests[k];
-      individual[k] = TestUtil.test({tests:o, data, input})[k];
-    })
-    
-    return {mixed, individual }
-  } 
-
-  static singleTest<T>(input:TestCase<T>) {
-    let results = TestUtil.execTest(input);
-
-    TestUtil.log('Mixed', results[0]);
-
-    Object.keys(input.tests).forEach(k => {
-      TestUtil.log(`All ${k}`, results[1][k])
-    })
-
-    let invalid = TestUtil.validateTests(input);
-    if (invalid) {
-      console.log(invalid);
-    }
-  } 
-
-  static runTestSuite<T>({tests, data}:TestScenario<T>, testInputs:TestInput[]):TestCaseResult[] {
+  static runTests<T>({tests, data}:TestScenario<T>, testInputs:TestInput[]):TestResultMap[] {
     let out = [];
+    let keys = Object.keys(tests);
     for (let input of testInputs) {
-      let ret = TestUtil.execTest({tests, data, input});
-      out.push(ret);
+      let individual:TestResultMap = {}
+
+      keys.forEach(k => {
+        let o:FunctionMap<T> = {};
+        o[k] = tests[k];
+        individual[k] = TestUtil.test({tests:o, data, input})[k];
+      })
+      out.push(individual);
     }
     return out;
   }
@@ -252,16 +217,16 @@ export class TestUtil {
     }).reduce((flat, arr) => flat.push(...arr) && flat, []);
   }
 
-  static buildTable(data:TestCaseResult[]):string {
+  static buildTable(data:TestResultMap[]):string {
     let out:any[][] = [
       ['test', 'n', 'iter', 'wavg', 'median', 'min', 'avg', 'max']
     ];
 
-    let keys = Object.keys(data[0].individual);
+    let keys = Object.keys(data[0]);
 
     for (let result of data) {
       for (let key of keys) {
-        let m = result.individual[key];
+        let m = result[key];
         out.push([
           key,
           m.n,

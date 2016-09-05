@@ -5,6 +5,7 @@ import csv
 import io
 import re
 import tempfile
+import math
 
 OUTPUT_FOLDER='report/thesis/graphs'
 TEST_COMMAND='node --stack-trace-limit=1000 dist/src/test/test.js'
@@ -22,17 +23,17 @@ set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
 set output '|ps2pdf -dEPSCrop - %(OUTPUT_FOLDER)s/%(name)s.pdf'
 plot"""
 
-GNUPLOT_2D_LINES="""set title "%(xl)s vs %(yl)s with %(with_stmt)s"
+GNUPLOT_2D_LINES="""set title "{/*1.2 %(test)s}\\n{/*0.8 %(xl)s vs %(yl)s with %(with_stmt)s }"
 set xlabel '%(xl)s'
 set ylabel '%(yl)s'
 set autoscale x
 set logscale y 10
-set yrange [50:50000]
+set yrange [%(ymin)s:%(ymax)s]
 """ 
 
 GNUPLOT_2D_DATA="'%s' using %%(xi)s:%%(yi)s with lines title '%s'"
 
-GNUPLOT_3D_POINTS="""set title "%(xl)s vs %(yl)s vs %(zl)s"
+GNUPLOT_3D_POINTS="""set title "{/*1.2 %(test)s}\\n{/*0.8  %(xl)s vs %(yl)s vs %(zl)s }"
 set xlabel '%(xl)s'
 set ylabel '%(yl)s'
 set autoscale 
@@ -90,26 +91,35 @@ def generate_data_files(rows, keys):
     data_files[k] = f.name
   return data_files
 
-def plot(plot, mix):
-  f = tempfile.NamedTemporaryFile(delete=False)
+def plot(name, plot, mix):
   mix['OUTPUT_FOLDER'] = OUTPUT_FOLDER
-  with f:
+  fname ='%s/%s.gplot' % (OUTPUT_FOLDER, name)
+  with open(fname, 'w') as f:
     f.write(plot % mix)
-  run('gnuplot %s -p'% f.name, log=False)
-  os.unlink(f.name)
+
+  run('gnuplot %s -p'% fname, log=False)
 
 def gnuplot_lines(name, rows, headers, xl, yl, xi, yi, with_stmt):
   data_files = generate_data_files(rows, headers)
-  plot(GNUPLOT_2D_LINES + GNUPLOT_COMMON + (','.join([GNUPLOT_2D_DATA%(f, k)  for k,f in data_files.items()])), locals())
+  data = map(lambda y: y[headers[yi]], rows)
+  ymin = min(data)
+  ymax = max(data)
+  ymin = 10 ** max(0, math.floor(math.log10(ymin)))
+  ymax = 10 ** max(1, math.ceil(math.log10(ymax)))
+  test = name.split('_')[0]
+
+  plot(name, GNUPLOT_2D_LINES + GNUPLOT_COMMON + (','.join([GNUPLOT_2D_DATA%(f, k)  for k,f in data_files.items()])), locals())
 
 def gnuplot_3d(name, rows, headers, xl, yl, zl, xi, yi, zi):
   data_files = generate_data_files(rows, headers)
   og_name = name
   minz = min(*map(lambda x: x[MEDIAN], rows))
-  print minz
+  og_test = name.split('_')[0]
+
   for k,f in data_files.items():
     name = '%s_%s' %(og_name, k)
-    plot(GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA.replace('%', '%%').replace('%%s', '%s')%f), locals())
+    test = '%s_%s' %(og_test, k)
+    plot(name, GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA.replace('%', '%%').replace('%%s', '%s')%f), locals())
 
 def generate_charts(name, *args):
   data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
@@ -129,20 +139,20 @@ def generate_charts(name, *args):
   if input_constant:
     gnuplot_lines(
       name, rows, headers, 
-      "Iterations", "Time", 
+      "Iterations", "Time (ns)", 
       ITER_IDX, MEDIAN_IDX, 
       "an Input Size of %s"%input_sizes[0])
   #iterations is y axis
   elif iter_constant:
     gnuplot_lines(
       name, rows, headers, 
-      "Input Size", "Time", 
+      "Input Size", "Time (ns)", 
       INPUT_IDX, MEDIAN_IDX, 
       "%s Iterations"%iterations[0])
   #Build 3d chart
   else:
     gnuplot_3d(name, rows, headers, 
-      'Input Size', 'Iterations',  'Time',  
+      'Input Size', 'Iterations',  'Time (ns)',  
       INPUT_IDX, ITER_IDX,  MEDIAN_IDX)
 
 if __name__ == '__main__':
