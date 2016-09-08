@@ -39,7 +39,7 @@ set ylabel '%(yl)s'
 set autoscale 
 """
 
-GNUPLOT_3D_DATA="'%s' using %(xi)s:%(yi)s:((log($%(zi)s)/log(%(minz)s))*2) with points title '%(zl)s' pt 7 ps var"
+GNUPLOT_3D_DATA="'%s' using %(xi)s:%(yi)s:((log($%(zi)s)/log(sqrt(%(medz)s)))/2) with points title '%(zl)s' pt 7 ps var"
 
 def run(exe, log=True, throwError=True):
   if isinstance(exe, list):
@@ -113,12 +113,12 @@ def gnuplot_lines(name, rows, headers, xl, yl, xi, yi, with_stmt):
 def gnuplot_3d(name, rows, headers, xl, yl, zl, xi, yi, zi):
   data_files = generate_data_files(rows, headers)
   og_name = name
-  minz = min(*map(lambda x: x[MEDIAN], rows))
+  medz = sum(map(lambda x: x[MEDIAN], rows))/len(rows)
   og_test = name.split('_')[0]
 
   for k,f in data_files.items():
     name = '%s_%s' %(og_name, k)
-    test = '%s_%s' %(og_test, k)
+    test = '%s %s' %(og_test, k)
     plot(name, GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA.replace('%', '%%').replace('%%s', '%s')%f), locals())
 
 def generate_charts(name, *args):
