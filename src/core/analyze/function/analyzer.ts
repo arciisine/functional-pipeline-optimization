@@ -1,5 +1,5 @@
 import { ParseUtil, AST, Visitor, Macro as m} from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Analysis, Analyzable, AccessType } from './types';
+import { Analysis, AccessType } from './types';
 import {VariableStack, VariableNodeHandler} from '../variable';
 import {Util} from '../../util';
 

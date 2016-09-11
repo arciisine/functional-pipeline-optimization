@@ -1,5 +1,4 @@
 import { Transformable, TransformableConstructor } from '../transform';
-import { Analysis, Analyzable } from '../analyze';
 
 export class Compilable<I,O> {
   public chain:Transformable<any, any>[] = null;

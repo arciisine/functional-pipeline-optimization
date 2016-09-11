@@ -61,10 +61,6 @@ export class Analysis {
   }
 }
 
-export interface Analyzable {
-  analyze():Analysis
-};
-
 declare global {
   interface Function {
     key?:string
