@@ -1,50 +1,42 @@
 import {AST, ParseUtil, CompileUtil, Macro as m, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import {SYMBOL} from './bootstrap';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
-import {BodyTransformUtil, 
+import {BodyTransformUtil} from './util';
+import {
+  OptimizeState, SYMBOL,
   EXEC, CANDIDATE, CANDIDATE_FUNCTIONS, CANDIDATE_KEY,
   CANDIDATE_RELATED, CANDIDATE_START, ANALYSIS
-} from './util';
+} from './types';
 
 //Function wrappers
 export class BodyTransformHandler {
 
   static transform(content:string) {
     let body = ParseUtil.parseProgram<AST.Node>(content);
-    Visitor.exec(new BodyTransformHandler(BodyTransformUtil.getPragmas(body.body)), body);
+    Visitor.exec(new BodyTransformHandler(body), body);
     let source = CompileUtil.compileExpression(body);
     return source;
   }
 
-  optimize:boolean[]
-  active:boolean;
+  optimize:OptimizeState[]
+  state:OptimizeState;
   thisScopes:(AST.FunctionDeclaration|AST.FunctionExpression)[] = [];
   functionScopes:AST.BaseFunction[] = [];
 
   constructor(pragmas) {
 
-    this.optimize = [
-      pragmas.some(x => x.startsWith('use optimize'))
-    ]
-
-    this.active = this.optimize[0]
+    this.optimize = [BodyTransformUtil.parsePragma(pragmas)]
+    this.state = this.optimize[0]
   }
 
   Function(x:AST.BaseFunction) {
     let block = VariableVisitorUtil.getFunctionBlock(x);
-    let pragmas = BodyTransformUtil.getPragmas(block.body);
+    let state = BodyTransformUtil.parsePragma(block);
 
-    if (pragmas.some(x => x.startsWith('use optimize'))) {
-      this.active = true;
-    } else if (pragmas.some(x => x.startsWith('disable optimize'))) {
-      this.active = false;
-    }
-
-    this.optimize.push(this.active);
+    this.optimize.push(state || this.state);
     this.functionScopes.push(x);
 
-    if (this.active && (AST.isFunctionExpression(x) || AST.isFunctionDeclaration(x))) {
+    if (this.state.active && (AST.isFunctionExpression(x) || AST.isFunctionDeclaration(x))) {
       this.thisScopes.push(x);
     }
 
@@ -53,7 +45,7 @@ export class BodyTransformHandler {
 
   FunctionEnd(x:AST.BaseFunction, v:Visitor) {
     this.optimize.pop();
-    this.active = this.optimize[this.optimize.length -1];      
+    this.state = this.optimize[this.optimize.length -1];      
     this.functionScopes.pop();
 
     if (this.thisScopes.length && x === this.thisScopes[this.thisScopes.length-1]) {
@@ -72,7 +64,7 @@ export class BodyTransformHandler {
 
   ThisExpressionEnd(x:AST.ThisExpression, v:Visitor) {
     let fnScope = this.functionScopes[this.functionScopes.length-1]; 
-    if (this.active && AST.isArrowFunctionExpression(fnScope))  {
+    if (this.state.active && AST.isArrowFunctionExpression(fnScope))  {
       let body  = this.thisScopes[this.thisScopes.length-1].body;
       let id:AST.Identifier = null;
 

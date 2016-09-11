@@ -2,6 +2,7 @@ import {ArrayBuilder} from '../array/builder';
 import {VariableState} from '../array/types';
 import {MAPPING} from '../array/transform';
 import {Util, CompilerUtil, ExecOutput, Compilable} from '../../core';
+import {SYMBOL} from './types';
 
 export class Helper {
 
@@ -39,5 +40,4 @@ export class Helper {
   }
 } 
 
-export let SYMBOL = "_zzx8";
 Util.global[`${SYMBOL}_exec`] = Helper.exec

@@ -3,6 +3,7 @@ import {md5 as Manual} from '../../core/analyze/function/md5'
 
 const HEX_CHR = '0123456789abcdef'.split('');
 const FOUR = [0,1,2,3]
+global['HEX_CHR'] = HEX_CHR;
 
 const INITIAL_STATE = [1732584193, -271733879, -1732584194, 271733878];
 const INITIAL_TAIL = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -162,7 +163,7 @@ let Functional = (function() {
 
 
 let Optimized = (function() {
-  "use optimize"
+  "use optimize globals=HEX_CHR"
 
   function md5cycle(x:number[], k:number[]) {
     let xorig = [x[0], x[1], x[2], x[3]];

@@ -1,18 +1,9 @@
 import {AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import {MAPPING as supported} from '../array/transform';
 import {VariableState} from '../array/types';
-import {SYMBOL} from './bootstrap';
 import {FunctionAnalyzer, VariableVisitorUtil} from '../../core/analyze';
 import {AccessType, Analysis } from '../../core';
-
-export const EXEC = m.Id(`${SYMBOL}_exec`);
-
-export const CANDIDATE = m.genSymbol();
-export const CANDIDATE_KEY = m.genSymbol();
-export const CANDIDATE_START = m.genSymbol();
-export const CANDIDATE_FUNCTIONS = m.genSymbol();
-export const CANDIDATE_RELATED = m.genSymbol();
-export const ANALYSIS = m.genSymbol();
+import {OptimizeState, OPTIMIZE_ON, OPTIMIZE_OFF, ANALYSIS, CANDIDATE_KEY} from './types';
 
 export class BodyTransformUtil {
 
@@ -28,6 +19,30 @@ export class BodyTransformUtil {
       out.push(child.expression.value as string);
     }
     return out;
+  }
+
+
+  static parsePragma(body:AST.BlockStatement) {
+    let pragmas = BodyTransformUtil.getPragmas(body.body)
+    let pragma = pragmas.find(x => x.startsWith(OPTIMIZE_ON) || x.startsWith(OPTIMIZE_OFF))
+
+    if (!pragma) {
+      return null;
+    } else if (pragma.startsWith(OPTIMIZE_OFF)) {
+      return { active : false };
+    } else {
+      let config:any = pragma
+        .split(OPTIMIZE_ON, 1).pop()
+        .split(' ')
+        .map(x => x.split('=', 1))
+        .reduce((acc, pair) => acc[pair[0]] = pair[1] && acc, {active:true})
+
+      if (config.globals && typeof config.globals === 'string') {
+        config.globals = config.globals.split(',');
+      }
+      
+      return config as OptimizeState;
+    }
   }
 
   static isChainStart(callee:AST.MemberExpression):boolean {
