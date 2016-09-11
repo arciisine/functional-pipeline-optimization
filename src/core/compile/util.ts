@@ -15,10 +15,11 @@ export class CompilerUtil {
     return compilable.chain
       .map(t => t.transform(state))
       .reduce((res, e) => {
-        res.body.push(...e.body)
-        res.vars.push(...e.vars);
+        res.body.push(...(e.body||[]));
+        res.vars.push(...(e.vars||[]));
+        res.after.push(...(e.after||[]));
         return res;
-      }, {vars:[], body:[]});
+      }, {vars:[], body:[], after:[]});
   }
 
   static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null, extraState:any = null):ExecHandler<I,O> {

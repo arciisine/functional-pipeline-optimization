@@ -56,28 +56,29 @@ export class JoinTransform<T> extends BaseTransformable<T[], string>  {
 
   transform(state:TransformState):TransformResponse {
     let res = state.returnValueId;
+    let sepId = m.Id();
     
     return {
       vars : [
         state.returnValueId, m.Literal(''),
+        sepId,  this.getContextValue(state, 'separator')
       ],
       body : [
         m.Assign(
           res, 
           m.BinaryExpr(res, '+', 
-            m.BinaryExpr(state.elementId, '+', 
-              this.getContextValue(state, 'separator'))))
+            m.BinaryExpr(state.elementId, '+', sepId)))
       ],
       after : [
-        m.Assign(res, 
+        m.Expr(m.Assign(res, 
           m.Call(
             m.GetProperty(res, 'substring'), 
             m.Literal(0), 
             m.BinaryExpr(
               m.GetProperty(res, 'length'), 
               '-', 
-              m.GetProperty(this.getContextValue(state, 'separator'), 'length'))))
-      ]
+              m.GetProperty(sepId, 'length')))))
+        ]
     }
   }
 
