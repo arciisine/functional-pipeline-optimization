@@ -103,7 +103,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     let hasSource = !ParseUtil.isNative(input) && variableState !== VariableState.dynamic
     let isInlinable = variableState === VariableState.inline;
     let hasIndex = true    
-    let analysis = FunctionAnalyzer.analyzeAST(fn);
+    let analysis = null;
 
     if (hasSource) { 
       let node = ParseUtil.parse(input) as AST.Node;
@@ -114,6 +114,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
       if (AST.isFunction(node)) {
         fn = node as AST.FunctionExpression;
+        analysis = FunctionAnalyzer.analyzeAST(fn);
         isInlinable = isInlinable || !analysis.hasClosed
         hasIndex = this.hasIndex(fn, params);
 
