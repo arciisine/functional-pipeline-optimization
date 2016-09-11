@@ -21,7 +21,7 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
     let ogd = handler.Declare;
 
     handler.Block = (a) => { this.stack.push(); ogbs(a) }
-    handler.BlockEnd = (a) => { this.stack.push(); ogbe(a) }
+    handler.BlockEnd = (a) => { this.stack.pop(); ogbe(a) }
     handler.Declare = (name, a) => { this.stack.register(name); ogd(name, a); }      
   }
 
