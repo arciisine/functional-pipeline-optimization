@@ -98,6 +98,7 @@ export class BodyTransformUtil {
   static buildVariableState(args:AST.Expression[], scopes:AST.BaseFunction[]):AST.Literal {
     let el = args[0];
     let state = VariableState.dynamic;
+
     if (AST.isIdentifier(el)) { //If a variable
       let passed = false;
       let name = el.name;
@@ -111,6 +112,7 @@ export class BodyTransformUtil {
     } else if (AST.isFunction(el)) { //If a literal
       state = VariableState.inline;
     }
+
     return m.Literal(state);
   }
 

@@ -21,30 +21,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
     return state;
   }
 
-  compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
-    let x = compilable.analysis.closed;
-    let assigned = {};
-    let closed = {}
-    for (var k in x) {
-      if ((x[k] & AccessType.WRITE) > 0) {
-        assigned[k] = true;
-      } else if (x[k] > 0) {
-        closed[k] = true;
-      }
-    }
-
-    //Define call site
-    let closedIds =  Object.keys(closed).sort().map((x)=>m.Id(x));
-    let assignedIds = Object.keys(assigned).sort().map((x)=>m.Id(x));
-
-    //Exposed build return function
-    state.buildReturn = (id:AST.Node) => {
-      return m.Return(m.ObjectExpr({
-        value : id, 
-        assigned : m.Array(...assignedIds)
-      }));
-    }
-
+  compileBody<I, O>(compilable:Compilable<I, O>, state:TransformState):TransformResponse {
     let {vars, body, after} = CompilerUtil.readChain(compilable, state);
 
     let last = compilable.chain[compilable.chain.length-1];
@@ -57,14 +34,48 @@ export class ArrayCompiler implements Compiler<TransformState> {
     if (vars.length === 0) {
       vars.push(state.returnValueId, undefined);
     }
+    return {vars,body,after};
+  }
 
-    let lengthId = m.Id();
-    let wrapperId = m.Id();
-    let closedId = m.Id();
-    let inputId = m.Id();
+  processIds<I, O>(compilable:Compilable<I,O>):{closedIds:AST.Identifier[], assignedIds:AST.Identifier[], allIds:AST.Identifier[]} {
+
+    let x = compilable.analysis.closed;
+    let assignedNames = {};
+    let closedNmaes = {}
+    for (var k in x) {
+      if ((x[k] & AccessType.WRITE) > 0) {
+        assignedNames[k] = true;
+      } else if (x[k] > 0) {
+        closedNmaes[k] = true;
+      }
+    }
+
+    //Define call site
+    let closedIds =  Object.keys(closedNmaes).sort().map((x)=>m.Id(x));
+    let assignedIds = Object.keys(assignedNames).sort().map((x)=>m.Id(x));
     let allIds = closedIds.concat(assignedIds)
+    return {closedIds, assignedIds, allIds}
+  }
 
-    return m.Func(wrapperId, [state.arrayId, state.contextId, closedId], [
+  compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
+    let assignedRet = m.Array()    
+    let lengthId = m.Id();
+    let closedId = m.Id();
+
+    //Exposed build return function
+    state.buildReturn = (id:AST.Node) => {
+      return m.Return(m.ObjectExpr({
+        value : id, 
+        assigned : assignedRet
+      }));
+    }
+
+    let {body,vars,after} = this.compileBody(compilable, state);
+    let {closedIds, assignedIds, allIds} = this.processIds(compilable);
+
+    assignedRet.elements = assignedIds
+
+    return m.Func(m.Id(), [state.arrayId, state.contextId, closedId], [
       allIds.length ? m.Vars('var', ...allIds.map((x,i) => [x, m.GetProperty(closedId, m.Literal(i))])) : null,
       m.Vars('var', ...vars, lengthId,  m.GetProperty(state.arrayId, "length")),
       m.Labeled(state.continueLabel,

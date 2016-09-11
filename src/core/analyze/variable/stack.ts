@@ -12,6 +12,7 @@ export class VariableStack<T> {
 
     let res = {} as T
     this.variables[key].push(res)
+    //console.log('Register', key, this.variables[key]);
     return res; 
   }
 
@@ -22,20 +23,21 @@ export class VariableStack<T> {
   }
 
   contains(name:string|AST.Identifier) {
-    let key = typeof name === 'string' ? name : name.name;
-    return this.variables.hasOwnProperty(key);
+    return this.get(name) !== undefined;
   }
 
   push() {
     this.stack.push(this.top = {});
+    //console.log('Push', this.stack);
   }
 
   pop() {
     if (this.stack.length > 1) { //Always leave global
-      let toPop = this.stack.pop();
-      for (let k of Object.keys(toPop)) {
+      //console.log('Pop', this.top);
+      for (let k of Object.keys(this.top)) {
         this.variables[k].pop();
       }
+      this.stack.pop();
       this.top = this.stack[this.stack.length-1];
     }
   }
