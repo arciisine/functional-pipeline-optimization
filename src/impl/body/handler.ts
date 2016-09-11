@@ -145,6 +145,14 @@ export class BodyTransformHandler {
         inputs.push(AST.ArrayExpression({ elements : x.arguments }))
       });      
 
+      if (ops.length === 1) {
+        //Dont optimize slice if its the only one
+        let name = ops[0].elements[0].value 
+        if (name === 'slice' || name === 'join') {
+          return;
+        }
+      }
+
       //Only process the inline callbacks
       let analysis = x[CANDIDATE_FUNCTIONS]
         .map(x => AST.isCallExpression(x) && AST.isFunction(x.arguments[0]) ? x.arguments[0] : x)

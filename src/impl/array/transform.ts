@@ -63,11 +63,11 @@ export class JoinTransform<T> extends BaseTransformable<T[], string>  {
   }
 
   transform(state:TransformState):TransformResponse {
-    let res = m.Id();
+    let res = state.returnValueId;
     
     return {
       vars : [
-        res, m.Literal(''),
+        state.returnValueId, m.Literal(''),
       ],
       body : [
         m.Assign(
@@ -206,7 +206,8 @@ export class ReduceTransform<T, U>  extends
 export const MAPPING = [
   FilterTransform, MapTransform, FindTransform, 
   SomeTransform, ReduceTransform, ForEachTransform,
-  SliceTransform, EveryTransform, FindIndexTransform
+  SliceTransform, EveryTransform, FindIndexTransform,
+  JoinTransform
 ]
   .map(x => { 
     let name = x.name.split('Transform')[0];
