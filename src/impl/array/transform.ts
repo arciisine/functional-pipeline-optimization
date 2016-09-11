@@ -52,6 +52,48 @@ export class SliceTransform<T> extends BaseTransformable<T[], T[]>  {
   }
 }
 
+export class JoinTransform<T> extends BaseTransformable<T[], string>  {
+
+  constructor(inputs:[string]) {
+    super(inputs, { separator : 0 })
+  }
+
+  analyze():Analysis {
+    return new Analysis("~");
+  }
+
+  transform(state:TransformState):TransformResponse {
+    let res = m.Id();
+    
+    return {
+      vars : [
+        res, m.Literal(''),
+      ],
+      body : [
+        m.Assign(
+          res, 
+          m.BinaryExpr(res, '+', 
+            m.BinaryExpr(state.elementId, '+', 
+              this.getContextValue(state, 'separator'))))
+      ],
+      after : [
+        m.Assign(res, 
+          m.Call(
+            m.GetProperty(res, 'substring'), 
+            m.Literal(0), 
+            m.BinaryExpr(
+              m.GetProperty(res, 'length'), 
+              '-', 
+              m.GetProperty(this.getContextValue(state, 'separator'), 'length'))))
+      ]
+    }
+  }
+
+  manualTransform(data:T[]):string {
+    return data.join(this.inputs[0]);
+  }
+}
+
 export class FilterTransform<T> extends 
   BaseArrayTransformable<T, T[], Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
 {

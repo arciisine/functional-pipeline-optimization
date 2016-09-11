@@ -157,15 +157,15 @@ export class TestUtil {
       }
       return cur; 
     }, orig)
-    return !invalid;
+    return invalid;
   }
 
   static runTests<T>({tests, data}:TestScenario<T>, testInputs:TestInput[]):TestResultMap[] {
     let out = [];
     let keys = Object.keys(tests);
-
-    if (!TestUtil.validateTests({tests, data, input:testInputs[0]})) {
-      throw new Error("Tests are invalid"); 
+    let invalid = TestUtil.validateTests({tests, data, input:testInputs[0]});
+    if (invalid) {
+      throw new Error("Tests are invalid: " + invalid.map(x => x[0])); 
     }
 
     keys.forEach(t => {
