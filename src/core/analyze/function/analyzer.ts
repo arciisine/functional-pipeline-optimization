@@ -45,8 +45,8 @@ export class FunctionAnalyzer {
       ThisAccess : (node:AST.ThisExpression) => {
         analysis.hasThisReference = true;
       },
-      Write : (name:AST.Identifier) => {
-        checkClosed(name, AccessType.WRITE)
+      Write : (name:AST.Identifier, node:AST.Node) => {
+        checkClosed(name, AST.isIdentifier(node) ? AccessType.ASSIGN : AccessType.WRITE)
       },
       Invoke : (name:AST.Identifier) => {
         checkClosed(name, AccessType.INVOKE)

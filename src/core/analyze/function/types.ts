@@ -7,7 +7,7 @@ export const ANALYSIS_BOOLEAN_FIELDS = [
 ];
 
 export enum AccessType {
-  ACCESS = 0b1, WRITE = 0b10, INVOKE = 0b100
+  ACCESS = 0b1, WRITE = 0b10, INVOKE = 0b100, ASSIGN = 0b1000
 }
 
 export class Analysis {
@@ -46,7 +46,7 @@ export class Analysis {
 
     for (var k in this.closed) {
       let v = this.closed[k];
-      if ((v & AccessType.WRITE) > 0) {
+      if ((v & AccessType.ASSIGN) > 0) {
         assigned[k] = true;
       } else if (v > 0) {
         closed[k] = true;
