@@ -120,7 +120,7 @@ export class BodyTransformUtil {
           id : null
         })
       }
-      fn.id = m.Id()
+      fn.id = m.Id(fn.id && fn.id.name+'_', true)
       x[CANDIDATE_KEY] = fn.id.name;
       x.arguments[0] = fn
     } 

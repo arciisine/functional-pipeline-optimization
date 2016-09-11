@@ -23,7 +23,7 @@ export class RewriteUtil {
         body.unshift(m.Vars(p, params[i]))
         VariableVisitorUtil.readPatternIds(p).forEach(id => {
           let data = stack.register(id);
-          id.name = data.rewriteName = m.Id().name
+          id.name = data.rewriteName = m.Id(id.name+'_', true).name
         })
       } else if (AST.isIdentifier(p)) {
         let data = stack.register(p);
@@ -46,7 +46,7 @@ export class RewriteUtil {
           if (depth > 1 && stack.contains(name)) {
             stack.get(name).rewriteName = name.name;
           } else {           
-            let id = m.Id();
+            let id = m.Id(name.name+'_', true);
             stack.register(name);
             stack.get(name).rewriteName = id.name;
             name.name = id.name;

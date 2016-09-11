@@ -102,13 +102,14 @@ const OPS:[number[][], OpFn][] = [
 ];
 
 let Functional = (function() {
-  function md5cycle(x:number[], k:number[]) {
+  function md5cycle(x:number[], k:number[], debug:boolean = false) {
     let xorig = [x[0], x[1], x[2], x[3]];
     OPS.forEach((pair, z) => {
       let [ops, fn] = pair;
       ops.reduce((x, op, i) => { 
           let j = ((3-i%4)+1)%4;
           x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
+          if (debug) console.log(j, x, k[op[0]],op[1], op[2] );
           return x; 
       }, x)
     });
@@ -117,13 +118,14 @@ let Functional = (function() {
   }
 
   function md51(s) {
+    console.log("Functional")
     const n = s.length;
     let state = INITIAL_STATE.slice(0);
     let tail = INITIAL_TAIL.slice(0);
 
     let i = 0;
     for (i = 64; i <= s.length; i += 64) {
-      md5cycle(state, md5blk(s.substring(i - 64, i)));
+      md5cycle(state, md5blk(s.substring(i - 64, i)), i === 64);
     }
     s = s.substring(i - 64);
 
@@ -165,13 +167,14 @@ let Functional = (function() {
 let Optimized = (function() {
   "use optimize"
 
- function md5cycle(x:number[], k:number[]) {
+  function md5cycle(x:number[], k:number[], debug:boolean = false) {
     let xorig = [x[0], x[1], x[2], x[3]];
     OPS.forEach((pair, z) => {
       let [ops, fn] = pair;
       ops.reduce((x, op, i) => { 
           let j = ((3-i%4)+1)%4;
           x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
+          if (debug) console.log(j, x, k[op[0]], op[1], op[2]);
           return x; 
       }, x)
     });
@@ -180,13 +183,14 @@ let Optimized = (function() {
   }
 
   function md51(s) {
+    console.log("Optimized")
     const n = s.length;
     let state = INITIAL_STATE.slice(0);
     let tail = INITIAL_TAIL.slice(0);
 
     let i = 0;
     for (i = 64; i <= s.length; i += 64) {
-      md5cycle(state, md5blk(s.substring(i - 64, i)));
+      md5cycle(state, md5blk(s.substring(i - 64, i)), i === 64);
     }
     s = s.substring(i - 64);
 
