@@ -1,5 +1,5 @@
 import { AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse, Analysis} from '../../core';
+import { Transformable, TransformResponse } from '../../core';
 
 export abstract class BaseTransformable<I, O> implements Transformable<I, O>  {
 
@@ -13,7 +13,6 @@ export abstract class BaseTransformable<I, O> implements Transformable<I, O>  {
         AST.Literal({value:this.inputMapping[key]}));
   }
 
-  abstract analyze():Analysis;
   abstract transform<S>(state:S):TransformResponse;
   abstract manualTransform(data:I):O;
 }

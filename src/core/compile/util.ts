@@ -24,10 +24,9 @@ export class CompilerUtil {
   static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key:string = null, extraState:any = null):ExecHandler<I,O> {
     if (key && CompilerUtil.computed[key]) {
       return CompilerUtil.computed[key];
-    }
-    
-    //Generate merged analysis and prep final state 
-    compilable.finalize(); 
+    }    
+
+    compilable.finalize();
 
     let state = compiler.createState(extraState);
     let ast = compiler.compile(compilable, state);

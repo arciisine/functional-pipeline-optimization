@@ -1,11 +1,12 @@
 import { AST, Macro as m, Util as ASTUtil} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../core';
 import { TransformState, ExtraState } from './types';
-import { AccessType } from '../../core'; 
+import { AccessType, Analysis } from '../../core'; 
 
 export class ArrayCompiler implements Compiler<TransformState> {
 
   createState(extraState:ExtraState):TransformState {
+    let assignedReturn = m.Array();
     let state = {
       contextId: m.Id(),
       elementId : m.Id(),
@@ -15,7 +16,14 @@ export class ArrayCompiler implements Compiler<TransformState> {
       iteratorId : m.Id(),
       arrayId : m.Id(),
     	functionId : m.Id(),
-      buildReturn : null,
+      assignedReturn,
+      buildReturn : (id:AST.Node) => {
+        return m.Return(m.ObjectExpr({
+          value : id, 
+          assigned : assignedReturn
+        }));
+      },
+      analysis : new Analysis("~"),
       operations : extraState.operations
     }
     return state;
@@ -37,9 +45,10 @@ export class ArrayCompiler implements Compiler<TransformState> {
     return {vars,body,after};
   }
 
-  processIds<I, O>(compilable:Compilable<I,O>):{closedIds:AST.Identifier[], assignedIds:AST.Identifier[], allIds:AST.Identifier[]} {
+  processIds<I, O>(compilable:Compilable<I,O>, state:TransformState):{closedIds:AST.Identifier[], assignedIds:AST.Identifier[], allIds:AST.Identifier[]} {
 
-    let x = compilable.analysis.closed;
+    let x = state.analysis.closed;
+
     let assignedNames = {};
     let closedNmaes = {}
     for (var k in x) {
@@ -58,22 +67,13 @@ export class ArrayCompiler implements Compiler<TransformState> {
   }
 
   compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
-    let assignedRet = m.Array()    
     let lengthId = m.Id();
     let closedId = m.Id();
 
-    //Exposed build return function
-    state.buildReturn = (id:AST.Node) => {
-      return m.Return(m.ObjectExpr({
-        value : id, 
-        assigned : assignedRet
-      }));
-    }
-
     let {body,vars,after} = this.compileBody(compilable, state);
-    let {closedIds, assignedIds, allIds} = this.processIds(compilable);
+    let {closedIds, assignedIds, allIds} = this.processIds(compilable, state);
 
-    assignedRet.elements = assignedIds
+    state.assignedReturn.elements = assignedIds
 
     return m.Func(m.Id(), [state.arrayId, state.contextId, closedId], [
       allIds.length ? m.Vars('var', ...allIds.map((x,i) => [x, m.GetProperty(closedId, m.Literal(i))])) : null,

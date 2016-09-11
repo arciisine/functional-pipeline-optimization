@@ -9,10 +9,6 @@ export class SliceTransform<T> extends BaseTransformable<T[], T[]>  {
     super(inputs, { start : 0, end : 1})
   }
 
-  analyze():Analysis {
-    return new Analysis("~");
-  }
-
   transform(state:TransformState):TransformResponse {
     let counter = m.Id();
     let start = m.Id();
@@ -56,10 +52,6 @@ export class JoinTransform<T> extends BaseTransformable<T[], string>  {
 
   constructor(inputs:[string]) {
     super(inputs, { separator : 0 })
-  }
-
-  analyze():Analysis {
-    return new Analysis("~");
   }
 
   transform(state:TransformState):TransformResponse {

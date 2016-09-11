@@ -1,4 +1,5 @@
 import { AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { Analysis } from '../../core';
 
 export enum VariableState { 
   'dynamic', 
@@ -11,6 +12,7 @@ export interface ExtraState {
 }
 
 export interface TransformState extends ExtraState {
+  analysis:Analysis,
   contextId:AST.Identifier,
   elementId:AST.Identifier,
   returnValueId:AST.Identifier
@@ -19,6 +21,7 @@ export interface TransformState extends ExtraState {
   iteratorId:AST.Identifier,
   arrayId:AST.Identifier,
   functionId:AST.Identifier,
+  assignedReturn:AST.ArrayExpression,
   buildReturn:(val:AST.Node)=>AST.ReturnStatement
 }
 

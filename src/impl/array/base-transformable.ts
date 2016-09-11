@@ -26,6 +26,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   public manual:W;
   public position = -1;
   public posId = m.Id();
+  private analysis:Analysis = null
 
   constructor(inputs:any[], inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING) {
     super(inputs, inputMapping)
@@ -37,11 +38,6 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   getInput(key:'callback'):V
   getInput(key:string) {
     return this.inputs[this.inputMapping[key]];
-  }
-
-  analyze():Analysis {
-    let fn = this.getInput('callback');
-    return FunctionAnalyzer.analyze(fn);
   }
 
   getParams(state:TransformState):AST.Identifier[] {
@@ -106,8 +102,9 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     let variableState = state.operations[this.position][1];
     let hasSource = !ParseUtil.isNative(input) && variableState !== VariableState.dynamic
     let isInlinable = variableState === VariableState.inline;
-    let hasIndex = true
-    
+    let hasIndex = true    
+    let analysis = FunctionAnalyzer.analyzeAST(fn);
+
     if (hasSource) { 
       let node = ParseUtil.parse(input) as AST.Node;
 
@@ -117,7 +114,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
       if (AST.isFunction(node)) {
         fn = node as AST.FunctionExpression;
-        isInlinable = isInlinable || !this.analyze().hasClosed
+        isInlinable = isInlinable || !analysis.hasClosed
         hasIndex = this.hasIndex(fn, params);
 
         //Assumes native functions will not access the array, can be wrong
@@ -139,6 +136,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     //If can be inlined
     if (isInlinable) {
       this.buildInlineResult(state, res, params, fn);
+      state.analysis.merge(analysis)
     } else {
       this.buildFunctionCallResult(state, res, params); 
     }

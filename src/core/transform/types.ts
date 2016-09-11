@@ -1,5 +1,4 @@
 import {AST} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
-import {Analysis, Analyzable} from '../analyze';
 
 export interface TransformResponse {
   vars?:AST.Node[],
@@ -7,7 +6,7 @@ export interface TransformResponse {
   after?:AST.Node[]
 }
 
-export interface Transformable<I, O> extends Analyzable {
+export interface Transformable<I, O>  {
   position?:number;
   
   transform<T>(state:T):TransformResponse;
