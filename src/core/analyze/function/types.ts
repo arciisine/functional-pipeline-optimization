@@ -39,6 +39,26 @@ export class Analysis {
       .forEach(k => { this[k] = this[k] || obj[k];})
     return this;
   }
+
+  getExternalVariables():{closed:string[], assigned:string[] } {
+    let closed = {};
+    let assigned = {};
+
+    for (var k in this.closed) {
+      let v = this.closed[k];
+      if ((v & AccessType.WRITE) > 0) {
+        assigned[k] = true;
+      } else if (v > 0) {
+        closed[k] = true;
+      }
+    }
+
+    //Define call site    
+    return { 
+      closed:Object.keys(closed).sort(), 
+      assigned:Object.keys(assigned).sort()
+     };
+  }
 }
 
 export interface Analyzable {

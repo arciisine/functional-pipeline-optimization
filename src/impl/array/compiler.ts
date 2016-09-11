@@ -46,23 +46,13 @@ export class ArrayCompiler implements Compiler<TransformState> {
   }
 
   processIds<I, O>(compilable:Compilable<I,O>, state:TransformState):{closedIds:AST.Identifier[], assignedIds:AST.Identifier[], allIds:AST.Identifier[]} {
-
-    let x = state.analysis.closed;
-
-    let assignedNames = {};
-    let closedNmaes = {}
-    for (var k in x) {
-      if ((x[k] & AccessType.WRITE) > 0) {
-        assignedNames[k] = true;
-      } else if (x[k] > 0) {
-        closedNmaes[k] = true;
-      }
-    }
+    let ids = state.analysis.getExternalVariables();
 
     //Define call site
-    let closedIds =  Object.keys(closedNmaes).sort().map((x)=>m.Id(x));
-    let assignedIds = Object.keys(assignedNames).sort().map((x)=>m.Id(x));
-    let allIds = closedIds.concat(assignedIds)
+    let closedIds =  ids.closed.map((x) => m.Id(x));
+    let assignedIds = ids.assigned.map((x) => m.Id(x));
+    let allIds =  [...assignedIds, ...closedIds]
+
     return {closedIds, assignedIds, allIds}
   }
 

@@ -122,6 +122,10 @@ export class MapTransform<T, U> extends
 export class ForEachTransform<T> extends 
   BaseArrayTransformable<T, void, Callback.Void<T>, Handler.Standard<T, T, void>>
 {
+  init(state:TransformState) {
+    return m.Literal(null);
+  }
+
   onReturn(state:TransformState, node:AST.ReturnStatement) {
     return m.Block(node.argument, m.Continue(state.continueLabel));
   }

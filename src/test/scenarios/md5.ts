@@ -102,30 +102,31 @@ const OPS:[number[][], OpFn][] = [
 ];
 
 let Functional = (function() {
-  function md5cycle(x:number[], k) {
-    let xorig = x.slice(0);
-    OPS.forEach(pair => {
+  function md5cycle(x:number[], k:number[]) {
+    let xorig = [x[0], x[1], x[2], x[3]];
+    OPS.forEach((pair, z) => {
       let [ops, fn] = pair;
       ops.reduce((x, op, i) => { 
-          let j = 4-i%4;
-          x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%i], k[op[0]], op[1], op[2]);
+          let j = ((3-i%4)+1)%4;
+          x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
           return x; 
       }, x)
     });
 
-    return x.map((v,i) => add32(v, xorig[i]));
+    x.forEach((v,i) => x[i] = add32(v, xorig[i]));
   }
 
   function md51(s) {
     const n = s.length;
     let state = INITIAL_STATE.slice(0);
+    let tail = INITIAL_TAIL.slice(0);
+
     let i = 0;
     for (i = 64; i <= s.length; i += 64) {
       md5cycle(state, md5blk(s.substring(i - 64, i)));
     }
     s = s.substring(i - 64);
 
-    let tail = INITIAL_TAIL.slice(0);
     for (i = 0; i < s.length; i++) {
       tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
     }
@@ -146,7 +147,7 @@ let Functional = (function() {
   function md5blk(s) {
     let md5blks = [];
     for (let i = 0; i < 64; i += 4) {
-      md5blks[i >> 2] = FOUR.map(j => s.charCodeAt(i + j) << (8*j)).join('');
+      md5blks[i >> 2] = FOUR.map(j => s.charCodeAt(i + j) << (8*j)).reduce((acc, x) => acc+x, 0);
     }
     return md5blks;
   }
@@ -164,30 +165,31 @@ let Functional = (function() {
 let Optimized = (function() {
   "use optimize"
 
-  function md5cycle(x:number[], k) {
-    let xorig = x.slice(0);
-    OPS.forEach(pair => {
+ function md5cycle(x:number[], k:number[]) {
+    let xorig = [x[0], x[1], x[2], x[3]];
+    OPS.forEach((pair, z) => {
       let [ops, fn] = pair;
       ops.reduce((x, op, i) => { 
-          let j = (4-i)%4;
-          x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%i], k[op[0]], op[1], op[2]);
+          let j = ((3-i%4)+1)%4;
+          x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
           return x; 
       }, x)
     });
 
-    return x.map((v,i) => add32(v, xorig[i]));
+    x.forEach((v,i) => x[i] = add32(v, xorig[i]));
   }
 
   function md51(s) {
     const n = s.length;
     let state = INITIAL_STATE.slice(0);
+    let tail = INITIAL_TAIL.slice(0);
+
     let i = 0;
     for (i = 64; i <= s.length; i += 64) {
       md5cycle(state, md5blk(s.substring(i - 64, i)));
     }
     s = s.substring(i - 64);
 
-    let tail = INITIAL_TAIL.slice(0);
     for (i = 0; i < s.length; i++) {
       tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
     }
@@ -208,7 +210,7 @@ let Optimized = (function() {
   function md5blk(s) {
     let md5blks = [];
     for (let i = 0; i < 64; i += 4) {
-      md5blks[i >> 2] = FOUR.map(j => s.charCodeAt(i + j) << (8*j)).join('');
+      md5blks[i >> 2] = FOUR.map(j => s.charCodeAt(i + j) << (8*j)).reduce((acc, x) => acc+x, 0);
     }
     return md5blks;
   }

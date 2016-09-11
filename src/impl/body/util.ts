@@ -50,21 +50,11 @@ export class BodyTransformUtil {
   }
 
   static getExecArguments(x:AST.CallExpression, analysis:Analysis) {
-    let closed = {};
-    let assigned = {};
-
-    for (var k in analysis.closed) {
-      let v = analysis.closed[k];
-      if ((v & AccessType.WRITE) > 0) {
-        assigned[k] = true;
-      } else if (v > 0) {
-        closed[k] = true;
-      }
-    }
+    let ids = analysis.getExternalVariables();
 
     //Define call site
-    let closedIds =  Object.keys(closed).sort().map((x) => m.Id(x));
-    let assignedIds = Object.keys(assigned).sort().map((x) => m.Id(x));
+    let closedIds =  ids.closed.map((x) => m.Id(x));
+    let assignedIds = ids.assigned.map((x) => m.Id(x));
     let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
     let execParams:{closed?:AST.Expression, assign?:AST.BaseFunction|AST.Literal} = {
