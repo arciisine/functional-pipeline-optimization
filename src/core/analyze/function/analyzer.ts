@@ -1,7 +1,8 @@
 import { ParseUtil, AST, Visitor, Macro as m} from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, AccessType } from './types';
 import {VariableStack, VariableNodeHandler} from '../variable';
-import {Util} from '../../util';
+import {Util, GLOBALS} from '../../util';
+
 
 export class FunctionAnalyzer {
   
@@ -9,12 +10,16 @@ export class FunctionAnalyzer {
   private static analyzed:{[key:string]:Analysis} = {};
   private static id:number = 0;
 
-  static analyzeAST(ast:AST.BaseFunction, globals?:any):Analysis {
+  static analyzeAST(ast:AST.BaseFunction, globals?:string[]|{[key:string]:any}):Analysis {
     if (!AST.isFunction(ast)) {
       return null;
     }
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
-    analysis.globals = {};
+    if (Array.isArray(globals)) {
+      analysis.globals = globals.reduce((acc, x) => acc[x] = true && acc, {});
+    } else {
+      analysis.globals = globals || {};
+    }
 
     let stack = new VariableStack();
 
@@ -29,8 +34,19 @@ export class FunctionAnalyzer {
         analysis.hasComputedMemberAccess = true;
       },
       PropertyAccess : (chain:AST.Identifier[], node:AST.Node) =>{
-        //TODO: implement proper global check
-        let resolved = chain.reduce((o, p) => o ? o[p.name] : null, {});
+        
+        let resolved = null
+
+        //Check vm globals
+        if (!resolved) {
+          resolved = chain.reduce((o, p) => o ? o[p.name] : null, GLOBALS);
+        }
+
+        //Check supplied globals
+        if (!resolved) {
+          resolved = chain.reduce((o, p) => o ? o[p.name] : null, analysis.globals);
+        }        
+
         if (resolved) {
           analysis.globals[chain[0].name] = true;
         }

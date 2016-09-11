@@ -76,3 +76,4 @@ Function['getKey'] = (fn:Function) => {
   }
   return fn.key;
 };
+

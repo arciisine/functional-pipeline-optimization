@@ -25,7 +25,7 @@ export class BodyTransformHandler {
 
   constructor(pragmas) {
 
-    this.optimize = [BodyTransformUtil.parsePragma(pragmas)]
+    this.optimize = [BodyTransformUtil.parsePragma(pragmas) || {active:false}]
     this.state = this.optimize[0]
   }
 
@@ -148,7 +148,7 @@ export class BodyTransformHandler {
       //Only process the inline callbacks
       let analysis = x[CANDIDATE_FUNCTIONS]
         .map(x => AST.isCallExpression(x) && AST.isFunction(x.arguments[0]) ? x.arguments[0] : x)
-        .map(x => FunctionAnalyzer.analyzeAST(x))
+        .map(x => FunctionAnalyzer.analyzeAST(x, this.state.globals))
         .filter(x => !!x)
         .reduce((total:Analysis, x) => total.merge(x), new Analysis("~"))
 

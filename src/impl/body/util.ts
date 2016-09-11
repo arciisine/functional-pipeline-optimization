@@ -35,7 +35,7 @@ export class BodyTransformUtil {
         .split(OPTIMIZE_ON, 1).pop()
         .split(' ')
         .map(x => x.split('=', 1))
-        .reduce((acc, pair) => acc[pair[0]] = pair[1] && acc, {active:true})
+        .reduce((acc, pair) => { acc[pair[0]] = pair[1]; return acc }, {active:true})
 
       if (config.globals && typeof config.globals === 'string') {
         config.globals = config.globals.split(',');
