@@ -44,7 +44,7 @@ GNUPLOT_3D_DATA="'%s' using %(xi)s:%(yi)s:((log($%(zi)s)/log(sqrt(%(medz)s)))/2)
 def run(exe, log=True, throwError=True):
   if isinstance(exe, list):
     exe = ' '.join(exe)
-  p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+  p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=None, shell=True)
   res = p.stdout
   if log:
     for x in iter(res.readline, ''):
@@ -121,8 +121,8 @@ def gnuplot_3d(name, rows, headers, xl, yl, zl, xi, yi, zi):
     test = '%s %s' %(og_test, k)
     plot(name, GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA.replace('%', '%%').replace('%%s', '%s')%f), locals())
 
-def generate_charts(name, *args):
-  data = run('%s %s %s'%(TEST_COMMAND, name, ' '.join(args)), log=False)
+def generate_charts(*args):
+  data = run('%s %s'%(TEST_COMMAND, ' '.join(args)), log=False)
   (rows, headers) = parseCsvData(data)
 
   input_sizes = map(lambda a: int(a[INPUT]), rows)
@@ -130,7 +130,7 @@ def generate_charts(name, *args):
   iterations = map(lambda a: int(a[ITERS]), rows)
   iter_constant = reduce(lambda same, a: same and a == iterations[0], iterations, True)
 
-  name = ("%s_%s" % (name, '-'.join(args))).replace(',','+')
+  name = '_'.join(args[1:]).replace(',','+')
 
   with open('%s/%s.dat'%(OUTPUT_FOLDER,name), 'w') as f:
     f.write(data)

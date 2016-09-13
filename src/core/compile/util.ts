@@ -33,7 +33,7 @@ export class CompilerUtil {
     let ast = compiler.compile(compilable, state);
     let res = CompileUtil.compile(ast as any, {}) as ExecHandler<I,O>;
     
-    console.log(res.toString());
+    console.error(res.toString());
 
     if (key) {
       CompilerUtil.computed[key] = res;
