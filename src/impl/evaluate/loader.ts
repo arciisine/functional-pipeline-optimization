@@ -1,5 +1,5 @@
-import '../impl/body/bootstrap';
-import {BodyTransformHandler} from '../../impl/body';
+import '../body/bootstrap';
+import {BodyTransformHandler} from '../body';
 import {TestUtil, TestScenario} from '../../core';
 import * as fs from "fs";
 

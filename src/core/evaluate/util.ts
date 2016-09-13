@@ -51,20 +51,19 @@ export class TestUtil {
     return data
   }
 
-  static readFile(base:string, name:string, cache:boolean = true):string {
-    if (fileCache[name] && cache) {
-      return fileCache[name];
+  static readFile(path:string, cache:boolean = true):string {
+    path = path.replace('/dist', '')
+
+    if (fileCache[path] && cache) {
+      return fileCache[path];
     }
-    if (!name.endsWith('.js')) {
-      base = base.replace('/dist', '')
-    }
-    let src = fs.readFileSync(`${base}/${name}`);
-    if (name.endsWith('.gz')) {
+    let src = fs.readFileSync(`${path}`);
+    if (path.endsWith('.gz')) {
       src =  zlib.deflateSync(src);
     }
     let text = src.toString();
     if (cache) {
-      fileCache[name] = text;
+      fileCache[path] = text;
     }
     return text;
   }

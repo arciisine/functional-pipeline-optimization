@@ -1,5 +1,4 @@
-import {TestUtil} from './util';
-
+import {TestUtil} from '../../../core';
 
 function Manual(a:number[]) {
   let total = 0;

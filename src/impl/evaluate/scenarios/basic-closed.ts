@@ -1,6 +1,3 @@
-import {TestUtil} from './util';
-
-
 const even = x => x%2 === 0
 const isLetter = x => x >= 65 && x < 91 || x >= 97 && x < 123;
 const toUpperCase = x => x >= 97 ? x - 32 : x;

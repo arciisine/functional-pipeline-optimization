@@ -1,5 +1,5 @@
-import {TestUtil} from './util';
-import {md5 as Manual} from './../core/analyze/function/md5'
+import {TestUtil} from '../../../core';
+import {md5 as Manual} from '../../../core/analyze/function/md5'
 
 const HEX_CHR = '0123456789abcdef'.split('');
 const FOUR = [0,1,2,3]
@@ -223,7 +223,7 @@ let Optimized = (function() {
   }
 })();
 
-let text = TestUtil.readFile('resources/war-and-peace.txt.gz').toLowerCase();
+let text = TestUtil.readFile(`${__dirname}/../resources/war-and-peace.txt.gz`).toLowerCase();
 
 export default {
   tests        : {Manual, Functional, Optimized},

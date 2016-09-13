@@ -1,5 +1,3 @@
-import {TestUtil} from './util';
-
 function even(x) { return x%2 === 0; }
 
 export function functional(data:number[]) {

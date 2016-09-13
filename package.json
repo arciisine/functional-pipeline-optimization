@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eval:console" : "node --stack-trace-limit=1000 dist/src/core/evaluate/console.js",
+    "eval:gnuplot" : "python src/core/evaluate/gnuplot.py"
   },
   "author": "",
   "license": "ISC",

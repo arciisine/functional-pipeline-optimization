@@ -1,4 +1,4 @@
-import {TestUtil } from './util';
+import {TestUtil} from '../../../core';
 
 function Manual(names:string[]) {
   names = names.sort();
@@ -42,7 +42,7 @@ function Optimized(names:string[]) {
     .reduce((acc,v) => acc+v, 0);
 }
 
-let names = TestUtil.readFile("resources/names.txt").replace(/"/g, '').split(',');
+let names = TestUtil.readFile(`${__dirname}/../resources/names.txt`).replace(/"/g, '').split(',');
 
 export default {
   tests        : {

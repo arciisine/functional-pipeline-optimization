@@ -1,4 +1,4 @@
-import {TestUtil} from './util';
+import {TestUtil} from '../../../core';
 
 type agg = {[key:string]:number};
 type acc = {all:agg, common:agg};
@@ -46,7 +46,7 @@ function Optimized({text, limit}:sig) {
     }, {all:{}, common:{}}).common;
 }
 
-let text = TestUtil.readFile('resources/war-and-peace.txt.gz').toLowerCase().split(/[^A-Za-z]+/);
+let text = TestUtil.readFile(`${__dirname}/../resources/war-and-peace.txt.gz`).toLowerCase().split(/[^A-Za-z]+/);
 
 export default {
   tests        : {Manual, Functional, Optimized},
