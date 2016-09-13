@@ -7,8 +7,8 @@ import re
 import tempfile
 import math
 
-OUTPUT_FOLDER='report/thesis/graphs'
-TEST_COMMAND='node --stack-trace-limit=1000 dist/src/test/test.js'
+OUTPUT_FOLDER=os.getenv('OUTPUT', 'dist/graphs')
+TEST_COMMAND='node --stack-trace-limit=1000 dist/src/scenarios/runner.js'
 
 INPUT = 'n'
 ITERS = 'iter'
@@ -156,4 +156,5 @@ def generate_charts(name, *args):
       INPUT_IDX, ITER_IDX,  MEDIAN_IDX)
 
 if __name__ == '__main__':
+  os.makedirs(OUTPUT_FOLDER)
   generate_charts(*sys.argv[1:])
