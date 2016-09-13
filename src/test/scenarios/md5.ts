@@ -113,7 +113,7 @@ let Functional = (function() {
           return x; 
       }, x)
     });
-    x.forEach((v,i) => x[i] = add32(v, xorig[i]));
+    FOUR.forEach(i => x[i] = add32(x[i], xorig[i]));
   }
 
   function md51(s) {
@@ -163,7 +163,7 @@ let Functional = (function() {
 
 
 let Optimized = (function() {
-  "use optimize globals=HEX_CHR"
+  "use optimize"
 
   function md5cycle(x:number[], k:number[]) {
     let xorig = [x[0], x[1], x[2], x[3]];

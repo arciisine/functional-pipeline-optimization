@@ -16,7 +16,7 @@ export class FunctionAnalyzer {
     }
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
     if (Array.isArray(globals)) {
-      analysis.globals = globals.reduce((acc, x) => acc[x] = true && acc, {});
+      analysis.globals = globals.reduce((acc, x) => (acc[x] = true) && acc, {});
     } else {
       analysis.globals = globals || {};
     }

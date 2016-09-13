@@ -3,7 +3,7 @@ import {MAPPING as supported} from '../array/transform';
 import {VariableState} from '../array/types';
 import {FunctionAnalyzer, VariableVisitorUtil} from '../../core/analyze';
 import {AccessType, Analysis } from '../../core';
-import {OptimizeState, OPTIMIZE_ON, OPTIMIZE_OFF, ANALYSIS, CANDIDATE_KEY} from './types';
+import {OptimizeState, OPTIMIZE_CHECK, ANALYSIS, CANDIDATE_KEY} from './types';
 
 export class BodyTransformUtil {
 
@@ -24,23 +24,26 @@ export class BodyTransformUtil {
 
   static parsePragma(body:AST.BlockStatement) {
     let pragmas = BodyTransformUtil.getPragmas(body.body)
-    let pragma = pragmas.find(x => x.startsWith(OPTIMIZE_ON) || x.startsWith(OPTIMIZE_OFF))
+    let pragma = pragmas.find(x => OPTIMIZE_CHECK.test(x))
 
     if (!pragma) {
       return null;
-    } else if (pragma.startsWith(OPTIMIZE_OFF)) {
+    } else if (pragma.indexOf('disable')>=0) {
       return { active : false };
     } else {
-      let config:any = pragma
-        .split(OPTIMIZE_ON, 1).pop()
-        .split(' ')
-        .map(x => x.split('=', 1))
-        .reduce((acc, pair) => { acc[pair[0]] = pair[1]; return acc }, {active:true})
+      let flags = pragma
+        .split(OPTIMIZE_CHECK)[1]
+        .split(';')
+        .map(x => x.trim().split(/\s*=\s*/, 2))
+        .filter(x => x[0] && x[1])
+
+      let config:any = flags        
+        .reduce((acc, pair) => (acc[pair[0]] = pair[1]) && acc, {active:true})
 
       if (config.globals && typeof config.globals === 'string') {
         config.globals = config.globals.split(',');
       }
-      
+
       return config as OptimizeState;
     }
   }

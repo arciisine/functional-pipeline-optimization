@@ -3,7 +3,7 @@
 * Install NodeJS v 6.0.0 or later
 * `npm install`
 * `./build.sh`
-* `node dist/src/test/basic`
+* `python report/generate-charts.py [scenario] [inputSize range]x[iterations range]`
 
 **Research**
 
@@ -19,8 +19,6 @@
     * Write it out
 
 **Coding Tasks**
-* Handle Closed Variables
-    * Differentiate closed variables from non-local functions in Analysis (right now mingled)
 * Calculate Access Levels
     * Allow User to set minimum threshold for access level (defaults to no external dependences)
     * Apply access level verification

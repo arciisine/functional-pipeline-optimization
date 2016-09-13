@@ -18,41 +18,48 @@ export class BodyTransformHandler {
     return source;
   }
 
-  optimize:OptimizeState[]
-  state:OptimizeState;
+  optimizeScopes:OptimizeState[] = []
   thisScopes:(AST.FunctionDeclaration|AST.FunctionExpression)[] = [];
   functionScopes:AST.BaseFunction[] = [];
 
-  constructor(pragmas) {
+  optimizeScope:OptimizeState = {active:false};
 
-    this.optimize = [BodyTransformUtil.parsePragma(pragmas) || {active:false}]
-    this.state = this.optimize[0]
+  constructor(block:AST.Program) {
+    this.OptimizeScopeOpen(block);
   }
 
-  Function(x:AST.BaseFunction) {
-    let block = VariableVisitorUtil.getFunctionBlock(x);
-    let state = BodyTransformUtil.parsePragma(block);
-
-    this.optimize.push(state || this.state);
-    this.functionScopes.push(x);
-
-    if (this.state.active && (AST.isFunctionExpression(x) || AST.isFunctionDeclaration(x))) {
-      this.thisScopes.push(x);
+  OptimizeScopeOpen(node:AST.BlockStatement|AST.BaseFunction|AST.Program) {
+    let block = AST.isFunction(node) ?  VariableVisitorUtil.getFunctionBlock(node) : node; 
+    this.optimizeScope =  BodyTransformUtil.parsePragma(block) || this.optimizeScope;
+    this.optimizeScopes.push(this.optimizeScope)
+    if (AST.isFunction(node)) {
+      this.functionScopes.push(node);
+      if (this.optimizeScope.active && (AST.isFunctionExpression(node) || AST.isFunctionDeclaration(node))) {
+        this.thisScopes.push(node);
+      }
     }
 
-    return x;
+    return node;
   }
 
-  FunctionEnd(x:AST.BaseFunction, v:Visitor) {
-    this.optimize.pop();
-    this.state = this.optimize[this.optimize.length -1];      
+  OptimizeScopeClose(node:AST.BlockStatement|AST.BaseFunction) {
+    this.optimizeScopes.pop();
+    this.optimizeScope = this.optimizeScopes[this.optimizeScopes.length -1];      
     this.functionScopes.pop();
 
-    if (this.thisScopes.length && x === this.thisScopes[this.thisScopes.length-1]) {
+    if (this.thisScopes.length && node === this.thisScopes[this.thisScopes.length-1]) {
       this.thisScopes.pop();
     }
 
-    return x;
+    return node;
+  }
+
+  Function(x:AST.BaseFunction) {
+    return this.OptimizeScopeOpen(x);
+  }
+
+  FunctionEnd(x:AST.BaseFunction) {
+    return this.OptimizeScopeClose(x);
   }
 
   BlockStatementEnd(x:AST.BlockStatement) {
@@ -64,7 +71,7 @@ export class BodyTransformHandler {
 
   ThisExpressionEnd(x:AST.ThisExpression, v:Visitor) {
     let fnScope = this.functionScopes[this.functionScopes.length-1]; 
-    if (this.state.active && AST.isArrowFunctionExpression(fnScope))  {
+    if (this.optimizeScope.active && AST.isArrowFunctionExpression(fnScope))  {
       let body  = this.thisScopes[this.thisScopes.length-1].body;
       let id:AST.Identifier = null;
 
@@ -82,7 +89,7 @@ export class BodyTransformHandler {
   }
 
   CallExpression(x : AST.CallExpression, visitor:Visitor) {
-    if (!this.optimize[this.optimize.length-1]) return;
+    if (!this.optimizeScope.active) return;
     
     let callee = x.callee;
     if (AST.isMemberExpression(callee)) {
@@ -148,7 +155,7 @@ export class BodyTransformHandler {
       //Only process the inline callbacks
       let analysis = x[CANDIDATE_FUNCTIONS]
         .map(x => AST.isCallExpression(x) && AST.isFunction(x.arguments[0]) ? x.arguments[0] : x)
-        .map(x => FunctionAnalyzer.analyzeAST(x, this.state.globals))
+        .map(x => FunctionAnalyzer.analyzeAST(x, this.optimizeScope.globals))
         .filter(x => !!x)
         .reduce((total:Analysis, x) => total.merge(x), new Analysis("~"))
 

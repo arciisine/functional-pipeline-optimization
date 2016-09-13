@@ -1,7 +1,6 @@
 import {AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
 
-export const OPTIMIZE_ON = "use optimize";
-export const OPTIMIZE_OFF = "disable optimize";
+export const OPTIMIZE_CHECK = /s*(?:use|disable) optimize\s*/
 
 export const SYMBOL = "_zzx8";
 export const EXEC = m.Id(`${SYMBOL}_exec`);
