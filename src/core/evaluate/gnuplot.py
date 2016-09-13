@@ -8,7 +8,7 @@ import tempfile
 import math
 
 OUTPUT_FOLDER=os.getenv('OUTPUT', 'dist/graphs')
-TEST_COMMAND='node --stack-trace-limit=1000 dist/src/scenarios/runner.js'
+TEST_COMMAND='node --stack-trace-limit=1000 dist/src/scenarios/runner/console.js'
 
 INPUT = 'n'
 ITERS = 'iter'

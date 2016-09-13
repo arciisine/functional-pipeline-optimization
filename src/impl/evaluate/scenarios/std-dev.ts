@@ -1,4 +1,4 @@
-import {TestUtil} from '../util';
+import {TestUtil} from './util';
 
 
 function Manual(a:number[]) {

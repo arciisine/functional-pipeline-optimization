@@ -1,4 +1,4 @@
-import {TestUtil} from '../util';
+import {TestUtil} from './util';
 
 type agg = {[key:string]:number};
 type acc = {all:agg, common:agg};

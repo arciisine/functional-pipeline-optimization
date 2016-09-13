@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import * as zlib from "zlib";
-import '../impl/body/bootstrap';
 
 const DATA_SIZE = 1000;
 
@@ -52,11 +51,10 @@ export class TestUtil {
     return data
   }
 
-  static readFile(name:string, cache:boolean = true):string {
+  static readFile(base:string, name:string, cache:boolean = true):string {
     if (fileCache[name] && cache) {
       return fileCache[name];
     }
-    let base = __dirname;
     if (!name.endsWith('.js')) {
       base = base.replace('/dist', '')
     }

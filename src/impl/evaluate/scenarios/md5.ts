@@ -1,5 +1,5 @@
-import {TestUtil} from '../util';
-import {md5 as Manual} from '../../core/analyze/function/md5'
+import {TestUtil} from './util';
+import {md5 as Manual} from './../core/analyze/function/md5'
 
 const HEX_CHR = '0123456789abcdef'.split('');
 const FOUR = [0,1,2,3]

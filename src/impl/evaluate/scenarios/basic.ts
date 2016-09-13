@@ -1,4 +1,4 @@
-import {TestUtil} from '../util';
+import {TestUtil} from './util';
 
 function even(x) { return x%2 === 0; }
 
