@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "rebuild" : "npm update && rm -rf dist/ && tsc",
     "eval:console" : "node --stack-trace-limit=1000 dist/src/core/evaluate/console.js",
     "eval:gnuplot" : "python src/core/evaluate/gnuplot.py"
   },

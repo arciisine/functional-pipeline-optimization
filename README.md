@@ -2,8 +2,9 @@
 
 * Install NodeJS v 6.0.0 or later
 * `npm install`
-* `./build.sh`
-* `npm run eval:gnuplot impl.evaluate.loader [scenario] [inputSize range]x[iterations range]`
+* `npm run rebuild`
+* `npm run eval:console [path.to.loader] [scenario] [inputSize range]x[iterations range]`
+* `npm run eval:gnuplot [path.to.loader] [scenario] [inputSize range]x[iterations range]`
 
 **Research**
 
