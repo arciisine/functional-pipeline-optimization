@@ -3,7 +3,7 @@
 * Install NodeJS v 6.0.0 or later
 * `npm install`
 * `./build.sh`
-* `python report/generate-charts.py [scenario] [inputSize range]x[iterations range]`
+* `npm run eval:gnuplot impl.evaluate.loader [scenario] [inputSize range]x[iterations range]`
 
 **Research**
 
