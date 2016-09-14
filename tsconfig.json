@@ -9,11 +9,6 @@
     "rootDirs": [
       "src/"
     ],
-    "typeRoots": [
-      "node_modules/@types",
-      "node_modules/@arcsine/ecma-ast-transform/node_modules/@types"
-    ],
-    "types": ["node"],
     "sourceMap": true,
     "target": "es6"
   }
