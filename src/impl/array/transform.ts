@@ -1,4 +1,4 @@
-import { AST, Macro as m, Util } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Macro as m, Util } from '@arcsine/ecma-ast-transform/src';
 import { BaseArrayTransformable } from './base-transformable';
 import { Transformable, TransformResponse, Analysis, BaseTransformable } from '../../core';
 import { TransformState, Callback, Handler } from './types';

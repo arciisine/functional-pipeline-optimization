@@ -1,4 +1,4 @@
-import {AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import {AST, Macro as m } from '@arcsine/ecma-ast-transform/src';
 
 export const OPTIMIZE_CHECK = /s*(?:use|disable) optimize\s*/
 

@@ -1,4 +1,4 @@
-import { CompileUtil, AST } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { CompileUtil, AST } from '@arcsine/ecma-ast-transform/src';
 import { Compilable } from './compilable';
 import { Compiler, ExecOutput, ExecHandler } from './types';
 import { TransformResponse } from '../transform';

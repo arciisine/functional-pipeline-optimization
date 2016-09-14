@@ -1,4 +1,4 @@
-import { AST, Macro as m, Util as ASTUtil} from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Macro as m, Util as ASTUtil} from '@arcsine/ecma-ast-transform/src';
 import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../core';
 import { TransformState, ExtraState } from './types';
 import { AccessType, Analysis } from '../../core'; 

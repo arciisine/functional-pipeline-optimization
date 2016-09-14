@@ -1,4 +1,4 @@
-import {AST, ParseUtil, CompileUtil, Macro as m, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import {AST, ParseUtil, CompileUtil, Macro as m, Visitor } from '@arcsine/ecma-ast-transform/src';
 import {MAPPING as supported} from '../array/transform';
 import {FunctionAnalyzer, AccessType, Analysis, VariableVisitorUtil} from '../../core';
 import {BodyTransformUtil} from './util';

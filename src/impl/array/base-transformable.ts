@@ -1,4 +1,4 @@
-import { AST, Macro as m, ParseUtil, Visitor } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import { AST, Macro as m, ParseUtil, Visitor } from '@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse, BaseTransformable} from '../../core';
 import { Analysis, FunctionAnalyzer } from '../../core/analyze';
 import { RewriteContext, VariableStack, RewriteUtil }  from '../../core/analyze/variable';

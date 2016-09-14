@@ -1,4 +1,4 @@
-import {AST, Macro as m } from '../../../node_modules/@arcsine/ecma-ast-transform/src';
+import {AST, Macro as m } from '@arcsine/ecma-ast-transform/src';
 import {MAPPING as supported} from '../array/transform';
 import {VariableState} from '../array/types';
 import {FunctionAnalyzer, VariableVisitorUtil} from '../../core/analyze';
