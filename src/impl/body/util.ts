@@ -22,14 +22,16 @@ export class BodyTransformUtil {
   }
 
 
-  static parsePragma(body:AST.BlockStatement) {
+  static parsePragma(body:AST.BlockStatement):OptimizeState|null {
     let pragmas = BodyTransformUtil.getPragmas(body.body)
     let pragma = pragmas.find(x => OPTIMIZE_CHECK.test(x))
 
+    let ret:OptimizeState = undefined;
+
     if (!pragma) {
-      return null;
+      ret = null;
     } else if (pragma.indexOf('disable')>=0) {
-      return { active : false };
+      ret = { active : false };
     } else {
       let flags = pragma
         .split(OPTIMIZE_CHECK)[1]
@@ -44,8 +46,9 @@ export class BodyTransformUtil {
         config.globals = config.globals.split(',');
       }
 
-      return config as OptimizeState;
+      ret = config as OptimizeState;
     }
+    return ret;
   }
 
   static isChainStart(callee:AST.MemberExpression):boolean {

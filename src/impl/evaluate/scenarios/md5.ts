@@ -106,7 +106,8 @@ let Functional = (function() {
   function md5cycle(x:number[], k:number[]) {
     let xorig = [x[0], x[1], x[2], x[3]];
     OPS.forEach((pair, z) => {
-      var [ops, fn] = pair;
+      var ops = pair[0];
+      var fn = pair[1];
       ops.reduce((x, op, i) => { 
           let j = ((3-i%4)+1)%4;
           x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
@@ -168,11 +169,12 @@ let Optimized = (function() {
   function md5cycle(x:number[], k:number[]) {
     let xorig = [x[0], x[1], x[2], x[3]];
     OPS.forEach((pair, z) => {
-      var [ops, fn] = pair;
-      ops.reduce((x, op, i) => { 
-          let j = ((3-i%4)+1)%4;
-          x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
-          return x; 
+      var ops = pair[0];
+      var fn = pair[1];
+      ops.reduce((x, op, i) => {
+        let j = ((3-i%4)+1)%4;
+        x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
+        return x; 
       }, x)
     });
     FOUR.forEach(i => (x[i] = add32(x[i], xorig[i])));

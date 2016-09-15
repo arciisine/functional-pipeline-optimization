@@ -32,6 +32,7 @@ export class BodyTransformHandler {
     let block = AST.isFunction(node) ?  VariableVisitorUtil.getFunctionBlock(node) : node; 
     this.optimizeScope =  BodyTransformUtil.parsePragma(block) || this.optimizeScope;
     this.optimizeScopes.push(this.optimizeScope)
+
     if (AST.isFunction(node)) {
       this.functionScopes.push(node);
       if (this.optimizeScope.active && (AST.isFunctionExpression(node) || AST.isFunctionDeclaration(node))) {
@@ -44,8 +45,9 @@ export class BodyTransformHandler {
 
   OptimizeScopeClose(node:AST.BlockStatement|AST.BaseFunction) {
     this.optimizeScopes.pop();
-    this.optimizeScope = this.optimizeScopes[this.optimizeScopes.length -1];      
     this.functionScopes.pop();
+
+    this.optimizeScope = this.optimizeScopes[this.optimizeScopes.length -1];      
 
     if (this.thisScopes.length && node === this.thisScopes[this.thisScopes.length-1]) {
       this.thisScopes.pop();

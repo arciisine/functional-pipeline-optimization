@@ -28,6 +28,9 @@
 * Look for more performance enhancements
     * Look for way of inlining nested chains (must assume array)
     * If all operations are inline, compile immediately (must assume array) 
+    * Allow for external optimizers (google-closure, etc.)
+* Bugs
+    * Handle reassignment of index value.  If reassigning to index value, allocate another variable for that operation    
 
 **Refactoring**
 
