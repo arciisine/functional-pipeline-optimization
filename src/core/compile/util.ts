@@ -31,9 +31,9 @@ export class CompilerUtil {
 
     let state = compiler.createState(extraState);
     let ast = compiler.compile(compilable, state);
-    let res = CompileUtil.compile(ast as any, {}) as ExecHandler<I,O>;
-    
-    console.error(res.toString());
+    let res = CompileUtil.compile(ast as any, {}, true) as ExecHandler<I,O>;
+
+    console.error("COMPILED", res.toString());
 
     if (key) {
       CompilerUtil.computed[key] = res;

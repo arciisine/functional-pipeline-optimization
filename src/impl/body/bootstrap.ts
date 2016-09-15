@@ -9,6 +9,7 @@ export class Helper {
   static exec<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
     let res = CompilerUtil.computed[key];    
     if (!!res && data.length > 1) {
+      console.log("CLOSED", closed)
       let ret = res(data, context, closed)
       post && post(ret.assigned);
       return ret.value; 
@@ -25,19 +26,20 @@ export class Helper {
   }
 
   static interrogate<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
-    if (!Array.isArray(data)) {
-      CompilerUtil.computed[key] = null;
-    } else {
+    if (Array.isArray(data)) {
       let ret:ExecOutput<T[]> = null;
       let builder = new ArrayBuilder<any, T>(data);
       for (let i = 0; i < operations.length; i++) {
         builder.chain(MAPPING[operations[i][0]], context[i]);
       }
-      builder.compile(key, {operations})
+      builder.compile(key, {operations});
+    } else {
+      CompilerUtil.computed[key] = null; 
     }
+
     //Recurse on invalid states
     return Helper.exec(data, key, operations, context, closed, post);
-  }
+  }    
 } 
 
 Util.global[`${SYMBOL}_exec`] = Helper.exec

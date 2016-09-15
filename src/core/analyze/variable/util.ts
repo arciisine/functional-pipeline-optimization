@@ -60,7 +60,7 @@ export class VariableVisitorUtil {
         out.push(x.id);
       },            
       Function : (x:AST.BaseFunction) => { 
-        return Visitor.PREVENT_DESCENT //Only look at current function
+        return x !== node ? Visitor.PREVENT_DESCENT : x //Only look at current function
       },
       VariableDeclaration : (x:AST.VariableDeclaration) => {
         if (x.kind === 'var') {
