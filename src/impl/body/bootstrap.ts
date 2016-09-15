@@ -9,7 +9,6 @@ export class Helper {
   static exec<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
     let res = CompilerUtil.computed[key];    
     if (!!res && data.length > 1) {
-      console.log("CLOSED", closed)
       let ret = res(data, context, closed)
       post && post(ret.assigned);
       return ret.value; 

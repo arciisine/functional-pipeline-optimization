@@ -20,6 +20,9 @@ export const GLOBAL_SCHEMA = {
       'encodeURI', 'encodeURIComponent' 
     ],
   },*/
+  console : {
+    methods : ['log', 'error']
+  },
   String : {
     methods : ['fromCharCode','fromCodePoint', 'raw'],
     prototype : [

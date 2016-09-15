@@ -11,9 +11,11 @@ export enum AccessType {
 }
 
 export class Analysis {
-  globals:{[key:string]:any};
-  closed:{[key:string]:number} = {};
-  all:number = 0;
+  private position:number = 0;
+  private globals:{[key:string]:any};
+  private closed:{[key:string]:number} = {};
+  private all:number = 0;
+  private order:{[key:string]:number} = {};
 
   hasThisReference:boolean
   hasComputedMemberAccess:boolean;
@@ -26,12 +28,46 @@ export class Analysis {
     return Object.keys(this.closed).length > 0;
   }
 
+  isClosed(k:string) {
+    return !!this.closed[k]
+  }
+
+  unregisterClosed(k:string) {
+    delete this.closed[k];
+  }
+
+  registerClosed(k:string, level:AccessType) {
+    if (!this.closed[k]) this.order[k] = this.position++;
+    this.closed[k] = (this.closed[k] || 0) | level
+  }
+
+  setGlobals(items:{[key:string]:any}) {
+    this.globals = items;
+  }
+
+  getGlobals():{[key:string]:any} {
+    return this.globals;
+  }
+
+  isGlobal(k:string) {
+    return !!this.globals[k]
+  }
+
+  unregisterGlobal(k:string) {
+    delete this.globals[k];
+  }
+
+  registerGlobal(k:string) {
+    if (!this.globals[k]) this.order[k] = this.position++;
+    this.globals[k] = true
+  }
+
   merge(obj:Analysis):this {
     if (!obj) return this;
 
     this.all = this.all | obj.all;
     for (var k in obj.closed) {
-      this.closed[k] = (this.closed[k] || 0) | obj.closed[k];
+      this.registerClosed(k, obj.closed[k]);
     }
     
     this.key = `${this.key}|${obj.key}`;
@@ -55,8 +91,8 @@ export class Analysis {
 
     //Define call site    
     return { 
-      closed:Object.keys(closed).sort(), 
-      assigned:Object.keys(assigned).sort()
+      closed:Object.keys(closed).sort((a,b) => this.order[b] - this.order[a]), 
+      assigned:Object.keys(assigned).sort((a,b) => this.order[b] - this.order[a])
      };
   }
 }

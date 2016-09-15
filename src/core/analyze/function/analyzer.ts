@@ -16,16 +16,16 @@ export class FunctionAnalyzer {
     }
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
     if (Array.isArray(globals)) {
-      analysis.globals = globals.reduce((acc, x) => (acc[x] = true) && acc, {});
+      analysis.setGlobals(globals.reduce((acc, x) => (acc[x] = true) && acc, {}))
     } else {
-      analysis.globals = globals || {};
+      analysis.setGlobals(globals || {});
     }
 
     let stack = new VariableStack();
 
     let checkClosed = (name:AST.Identifier, access:AccessType) => {
-      if (!stack.contains(name) && !analysis.globals[name.name]) {        
-        analysis.closed[name.name] = (analysis.closed[name.name] || 0) | access;
+      if (!stack.contains(name) && !analysis.isGlobal(name.name)) {        
+        analysis.registerClosed(name.name, access);
       }
     }
 
@@ -44,11 +44,15 @@ export class FunctionAnalyzer {
 
         //Check supplied globals
         if (!resolved) {
-          resolved = chain.reduce((o, p) => o ? o[p.name] : null, analysis.globals);
+          resolved = chain.reduce((o, p) => o ? o[p.name] : null, analysis.getGlobals());
         }        
 
         if (resolved) {
-          analysis.globals[chain[0].name] = true;
+          let name = chain[0].name
+          analysis.registerGlobal(name);
+          if (analysis.isClosed(name)) {
+            delete analysis.unregisterClosed(name);
+          } 
         }
       },
       Access : (name:AST.Identifier, node:AST.Node) => {
