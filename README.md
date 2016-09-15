@@ -30,7 +30,9 @@
     * If all operations are inline, compile immediately (must assume array) 
     * Allow for external optimizers (google-closure, etc.)
 * Bugs
-    * Handle reassignment of index value.  If reassigning to index value, allocate another variable for that operation    
+    * Handle reassignment of transformation parameters.  
+      * If reassigning to any param, allocate another variable for that operation
+      * Rewrite any param that is reassigned    
 
 **Refactoring**
 
