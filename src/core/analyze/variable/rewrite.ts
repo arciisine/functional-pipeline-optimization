@@ -29,8 +29,10 @@ export class RewriteUtil {
           .join('')
       });
     };
+    //Handles globals that may overlap
     RewriteUtil.rewriteVariables(new VariableStack<RewriteContext>(), fn, params);
     RewriteUtil.rewriteVariables(new VariableStack<RewriteContext>(), fn, params, getId);
+    
     return fn;
   }
 
@@ -72,17 +74,15 @@ export class RewriteUtil {
         active = active || mainFunction;
       },
       FunctionEnd : node => {
-        mainFunction = node === fn
-        active = active && !mainFunction; 
+        active = active && node !== fn;
+        mainFunction = mainFunction && active;         
       },
       Declare:(name:AST.Identifier, parent:AST.Node) => {
         if (!active) return;
 
-        if (!mainFunction) {
-          //Rewrite variables in nested functions if they are closed
-          if (stack.contains(name)) {
-            stack.get(name).rewriteName = name.name;
-          }
+        //Force name to be original if not in mainFunction
+        if (!mainFunction && stack.contains(name)) {
+          stack.get(name).rewriteName = name.name;
         } else {
           //Rename variables in top level fn
           let id = getId(name.name);

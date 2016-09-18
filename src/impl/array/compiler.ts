@@ -19,7 +19,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
       elementId     : m.Id(),
       returnValueId : m.Id(),
       returnFnId    : m.Id(),
-      continueLabel : m.Id(),
+      continueLabel : m.Id('label', false),
       iteratorId    : m.Id(),
       arrayId       : m.Id(),
     	functionId    : m.Id(),

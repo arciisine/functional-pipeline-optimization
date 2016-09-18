@@ -33,7 +33,9 @@
     * Handle reassignment of transformation parameters.  
       * If reassigning to any param, allocate another variable for that operation
       * Rewrite any param that is reassigned 
-    * Rewrite needs to account for existing variables or must always use a uniq prefix
+    * Rewrite needs to account for existing variables
+       * Currently doing two passes (one with unique prefix, and one without)
+       * Would like this to be a single pass
 
 **Refactoring**
 

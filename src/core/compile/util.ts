@@ -8,16 +8,13 @@ const CompileConfig:EscodegenOptions = {
   indent : false,
   format : {
     indent: {
-      style: '',
+      style: ' ',
       base: 0
     },
     renumber: true,
     hexadecimal: true,
     quotes: 'auto',
     escapeless: true,
-    compact: true,
-    parentheses: false,
-    semicolons: false,
     safeConcatenation: true
   }
 };
@@ -50,7 +47,7 @@ export class CompilerUtil {
 
     let state = compiler.createState(extraState);
     let ast = compiler.compile(compilable, state);
-    let res = CompileUtil.compile(ast as any, {}, CompileConfig, [x => x.replace(/continue/g, '; continue')]) as ExecHandler<I,O>;
+    let res = CompileUtil.compile(ast as any, {}, CompileConfig) as ExecHandler<I,O>;
 
     console.error("COMPILED", res.toString());
 
