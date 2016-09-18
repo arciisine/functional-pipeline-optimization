@@ -101,13 +101,12 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     Object.keys(temp)
       .forEach(k => {
         let conf = temp[k];
-        console.log("Making temp", conf);                
-        if (!state[k]) {
-          state[k] = m.Id(k, true);
-          out.vars.push(state[k], null);
+        if (!state.tempIds[k]) {
+          state.tempIds[k] = m.Id('temp'+k, true);
+          out.vars.push(state.tempIds[k], null);
         }
-        out.body.unshift(m.Assign(state[k], conf.id));
-        params[conf.i] = state[k];
+        out.body.unshift(m.Assign(state.tempIds[k], conf.id));
+        params[conf.i] = state.tempIds[k];
       });
   }
 
