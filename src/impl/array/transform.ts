@@ -107,7 +107,7 @@ export class MapTransform<T, U> extends
   BaseArrayTransformable<T, T[], Callback.Transform<T, U>, Handler.Standard<T, T, U>> 
 {
   constructor(inputs:any[]) {
-    super(inputs, BaseArrayTransformable.DEFAULT_MAPPING, {0:true});
+    super(inputs, BaseArrayTransformable.DEFAULT_MAPPING, {0:false});
   }
 
   init(state:TransformState) {
@@ -189,7 +189,7 @@ export class ReduceTransform<T, U>  extends
       initValue : 1,
       context : 2
     }, 
-    { 0 : true});
+    { 0 : false});
   }
 
   init(state:TransformState):AST.Pattern {

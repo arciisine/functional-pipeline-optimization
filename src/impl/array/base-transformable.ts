@@ -31,7 +31,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   constructor(
     inputs:any[], 
     inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING, 
-    private constParams:{[key:number]:boolean} = {}
+    private reassignableParams:{[key:number]:boolean} = {0:true}
   ) {
     super(inputs, inputMapping);
   }
@@ -46,10 +46,6 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   getParams(state:TransformState):AST.Identifier[] {
     return [state.elementId];
-  }
-
-  isParamReassignable(index:number) {
-    return !this.constParams[index];
   }
 
   /**
