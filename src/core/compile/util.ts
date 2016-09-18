@@ -1,7 +1,26 @@
 import { CompileUtil, AST } from '@arcsine/ecma-ast-transform/src';
+import { EscodegenOptions } from '@arcsine/ecma-ast-transform/src/escodegen';
 import { Compilable } from './compilable';
 import { Compiler, ExecOutput, ExecHandler } from './types';
 import { TransformResponse } from '../transform';
+
+const CompileConfig:EscodegenOptions = {
+  indent : false,
+  format : {
+    indent: {
+      style: '',
+      base: 0
+    },
+    renumber: true,
+    hexadecimal: true,
+    quotes: 'auto',
+    escapeless: true,
+    compact: true,
+    parentheses: false,
+    semicolons: false,
+    safeConcatenation: true
+  }
+};
 
 export class CompilerUtil {
   static computed:{[key:string]:ExecHandler<any, any>} = {};
@@ -31,7 +50,7 @@ export class CompilerUtil {
 
     let state = compiler.createState(extraState);
     let ast = compiler.compile(compilable, state);
-    let res = CompileUtil.compile(ast as any, {}, true) as ExecHandler<I,O>;
+    let res = CompileUtil.compile(ast as any, {}, CompileConfig, [x => x.replace(/continue/g, '; continue')]) as ExecHandler<I,O>;
 
     console.error("COMPILED", res.toString());
 

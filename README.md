@@ -32,7 +32,8 @@
 * Bugs
     * Handle reassignment of transformation parameters.  
       * If reassigning to any param, allocate another variable for that operation
-      * Rewrite any param that is reassigned    
+      * Rewrite any param that is reassigned 
+    * Rewrite needs to account for existing variables or must always use a uniq prefix
 
 **Refactoring**
 

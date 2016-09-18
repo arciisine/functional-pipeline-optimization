@@ -87,10 +87,6 @@ export class ArrayCompiler implements Compiler<TransformState> {
       state.buildReturn(state.returnValueId)
     ]);
 
-    let i = 0;
-    let stack = new VariableStack<RewriteContext>();
-    let getId = (orig:string) => AST.Identifier({name:`$${i++}`});
-    RewriteUtil.rewriteVariables(stack, out, params, getId);
-    return out;
+    return RewriteUtil.rewriteSimple(out, params);
   }
 }
