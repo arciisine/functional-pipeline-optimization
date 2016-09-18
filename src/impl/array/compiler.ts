@@ -8,23 +8,25 @@ export class ArrayCompiler implements Compiler<TransformState> {
   createState(extraState:ExtraState):TransformState {
     let assignedReturn = m.Array();
     let state = {
-      contextId: m.Id(),
-      elementId : m.Id(),
+      analysis      : new Analysis("~"),
+      operations    : extraState.operations,      
+      contextId     : m.Id(),
+      elementId     : m.Id(),
       returnValueId : m.Id(),
-      returnFnId  : m.Id(),
+      returnFnId    : m.Id(),
       continueLabel : m.Id(),
-      iteratorId : m.Id(),
-      arrayId : m.Id(),
-    	functionId : m.Id(),
+      iteratorId    : m.Id(),
+      arrayId       : m.Id(),
+    	functionId    : m.Id(),
+      tempElementId : m.Id(),
+      tempIndexId   : m.Id(),
       assignedReturn,
-      buildReturn : (id:AST.Node) => {
+      buildReturn   : (id:AST.Node) => {
         return m.Return(m.ObjectExpr({
           value : id, 
           assigned : assignedReturn
         }));
-      },
-      analysis : new Analysis("~"),
-      operations : extraState.operations
+      }
     }
     return state;
   }

@@ -102,6 +102,9 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
     if (x.kind !== 'var') {
       VariableVisitorUtil.readDeclarationIds(x.declarations)
         .forEach(id => this.handler.Declare(id, x));
+    } else {
+      VariableVisitorUtil.readDeclarationIds(x.declarations)
+        .forEach(id => this.handler.Write(id, x));
     }
   }
 

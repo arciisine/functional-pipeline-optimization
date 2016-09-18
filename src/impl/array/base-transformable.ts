@@ -31,7 +31,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   constructor(
     inputs:any[], 
     inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING, 
-    private reassignableParams:{[key:number]:boolean} = {0:true}
+    private reassignableParams:{[key:number]:boolean} = {}
   ) {
     super(inputs, inputMapping);
   }
@@ -94,10 +94,6 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     out.body.push(...fn.body.body);
   }
 
-  hasIndex(fn:AST.FunctionExpression, params:AST.Identifier[]):boolean {
-    return fn.params.length === params.length + 1; //If using index;
-  }
-
   transform(state:TransformState):TransformResponse  {
     let fn:AST.FunctionExpression = null;
     let input = this.getInput('callback');
@@ -120,7 +116,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
         fn = node as AST.FunctionExpression;
         analysis = FunctionAnalyzer.analyzeAST(fn);
         isInlinable = isInlinable || !analysis.hasClosed
-        hasIndex = this.hasIndex(fn, params);
+        hasIndex = fn.params.length === params.length + 1; //If using index;
 
         //Assumes native functions will not access the array, can be wrong
         let hasArray = fn.params.length === params.length + 2;   
