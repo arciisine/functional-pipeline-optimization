@@ -9,7 +9,7 @@
 **Research**
 
 * Determine comprehensive baseline
-* Collect metrics
+* Collect metrics 
     * Platforms (node/v8, firefox/spidermonkey, safari, chrome, Edge/chakra, IE 11)
     * Perhaps build a benchmark site that can record
         * browser

@@ -106,6 +106,10 @@ export class FilterTransform<T> extends
 export class MapTransform<T, U> extends 
   BaseArrayTransformable<T, T[], Callback.Transform<T, U>, Handler.Standard<T, T, U>> 
 {
+  constructor(inputs:any[]) {
+    super(inputs, BaseArrayTransformable.DEFAULT_MAPPING, {0:true});
+  }
+
   init(state:TransformState) {
     return m.Array();
   }
@@ -184,8 +188,9 @@ export class ReduceTransform<T, U>  extends
       callback : 0,
       initValue : 1,
       context : 2
-    });
-  }  
+    }, 
+    { 0 : true});
+  }
 
   init(state:TransformState):AST.Pattern {
     return this.getContextValue(state, 'initValue');

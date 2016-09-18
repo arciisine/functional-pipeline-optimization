@@ -8,7 +8,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 {
   private static cache = {};
   private static id = 0;
-  private static DEFAULT_MAPPING = {
+  public static DEFAULT_MAPPING = {
     callback : 0,
     context : 1
   };
@@ -28,8 +28,12 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   public posId = m.Id();
   private analysis:Analysis = null
 
-  constructor(inputs:any[], inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING) {
-    super(inputs, inputMapping)
+  constructor(
+    inputs:any[], 
+    inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING, 
+    private constParams:{[key:number]:boolean} = {}
+  ) {
+    super(inputs, inputMapping);
   }
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
@@ -42,6 +46,10 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   getParams(state:TransformState):AST.Identifier[] {
     return [state.elementId];
+  }
+
+  isParamReassignable(index:number) {
+    return !this.constParams[index];
   }
 
   /**
@@ -137,7 +145,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     //If can be inlined
     if (isInlinable) {
       this.buildInlineResult(state, res, params, fn);
-      state.analysis.merge(analysis)
+      state.analysis.merge(analysis);
     } else {
       this.buildFunctionCallResult(state, res, params); 
     }
