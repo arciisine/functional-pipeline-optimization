@@ -30,9 +30,6 @@
     * If all operations are inline, compile immediately (must assume array) 
     * Allow for external optimizers (google-closure, etc.)
 * Bugs
-    * Handle reassignment of transformation parameters.  
-      * If reassigning to any param, allocate another variable for that operation
-      * Rewrite any param that is reassigned 
     * Rewrite needs to account for existing variables
        * Currently doing two passes (one with unique prefix, and one without)
        * Would like this to be a single pass
