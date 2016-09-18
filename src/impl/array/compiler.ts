@@ -15,20 +15,19 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let state = {
       analysis      : new Analysis("~"),
       operations    : extraState.operations,      
-      contextId     : m.Id(),
-      elementId     : m.Id(),
-      returnValueId : m.Id(),
-      returnFnId    : m.Id(),
+      contextId     : m.Id('ctx', true),
+      elementId     : m.Id('el', true),
+      returnValueId : m.Id('retval', true),
+      returnFnId    : m.Id('retfn', true),
       continueLabel : m.Id('label', true),
-      iteratorId    : m.Id(),
-      arrayId       : m.Id(),
-    	functionId    : m.Id(),
-      tempElementId : m.Id(),
-      tempIndexId   : m.Id(),
+      iteratorId    : m.Id('itr', true),
+      arrayId       : m.Id('arr', true),
+    	functionId    : m.Id('fn', true),
+      tempIds       : {},
       assignedReturn,
       buildReturn   : (id:AST.Node) => {
         return m.Return(m.ObjectExpr({
-          value : id, 
+          value : id,
           assigned : assignedReturn
         }));
       }

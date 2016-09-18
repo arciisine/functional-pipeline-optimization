@@ -37,9 +37,6 @@ export class RewriteUtil {
   }
 
   static rewriteVariables(stack:VariableStack<RewriteContext>, fn:AST.BaseFunction, params:AST.Identifier[], getId:(orig?:string)=>AST.Identifier = null):TransformResponse {
-    //Handle wether or not we can reference the element, or if we
-    //  we need to assign to leverage pattern usage
-    let paramMap = {};
     let assign = {};
 
     let body = [];
@@ -60,7 +57,6 @@ export class RewriteUtil {
         let n = p.name;
         let data = stack.register(p);
         p.name = data.rewriteName = params[i].name;
-        paramMap[n] = p.name;        
       }
     }
 
@@ -89,11 +85,6 @@ export class RewriteUtil {
           stack.register(name);
           stack.get(name).rewriteName = id.name;
           name.name = id.name;
-        }
-      },
-      Write:(name:AST.Identifier) => {
-        if (paramMap[name.name]) {
-          console.log("Rewriting parameter prop", name.name, paramMap[name.name]);
         }
       },
       Access:(name:AST.Identifier, parent:AST.Node) => {

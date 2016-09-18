@@ -8,7 +8,7 @@ const CompileConfig:EscodegenOptions = {
   indent : false,
   format : {
     indent: {
-      style: ' ',
+      style: '  ',
       base: 0
     },
     renumber: true,

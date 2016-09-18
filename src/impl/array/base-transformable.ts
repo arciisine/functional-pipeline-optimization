@@ -1,8 +1,14 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '@arcsine/ecma-ast-transform/src';
 import { Transformable, TransformResponse, BaseTransformable} from '../../core';
 import { Analysis, FunctionAnalyzer } from '../../core/analyze';
-import { RewriteContext, VariableStack, RewriteUtil }  from '../../core/analyze/variable';
+import { RewriteContext, VariableStack, RewriteUtil, VariableNodeHandler }  from '../../core/analyze/variable';
 import { TransformState, VariableState } from './types';
+
+interface ConstantParam {
+  i: number;
+  id: AST.Identifier;
+  origId: AST.Identifier;
+}
 
 export abstract class BaseArrayTransformable<T, U, V extends Function, W extends Function> extends BaseTransformable<T[], U>
 {
@@ -25,7 +31,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   public manual:W;
   public position = -1;
-  public posId = m.Id();
+  public posId = m.Id('idx', true);
   private analysis:Analysis = null
 
   constructor(
@@ -67,11 +73,51 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     );
   }
 
+  rewriteConstantParams(state:TransformState, out:TransformResponse, params:AST.Identifier[], fn:AST.FunctionExpression) {
+    //Check for rewriting constant params
+    let temp = {};
+    let constantParams:{[key:string]: ConstantParam} = params
+      .map((id, i) => ({ i, id, origId : fn.params[i] }))
+      .filter(x => !this.reassignableParams[x.i])
+      .reduce((acc, x) => (acc[(x.origId as AST.Identifier).name] = x) && acc, {});
+
+    Visitor.exec(new VariableNodeHandler({
+      Function : node => Visitor.PREVENT_DESCENT,
+      Write : id => {
+        if (constantParams[id.name]) {
+          let conf = constantParams[id.name];
+          let finalId = conf.id;
+          
+          if (finalId === this.posId) {
+            temp['indexId'] =  conf;
+          } else if (finalId === state.elementId) {
+            temp['elementId'] = conf;
+          }
+        } 
+      }
+    }), fn);
+
+    //Project temp to replace the original params
+    Object.keys(temp)
+      .forEach(k => {
+        let conf = temp[k];
+        console.log("Making temp", conf);                
+        if (!state[k]) {
+          state[k] = m.Id(k, true);
+          out.vars.push(state[k], null);
+        }
+        out.body.unshift(m.Assign(state[k], conf.id));
+        params[conf.i] = state[k];
+      });
+  }
+
   /**
    * Inline the function
    */
   buildInlineResult(state:TransformState, out:TransformResponse, params:AST.Identifier[], fn:AST.FunctionExpression):void {
     let stack = new VariableStack<RewriteContext>();
+
+    this.rewriteConstantParams(state, out, params, fn);
 
     //Handle context variable
     if (this.getInput('context') !== undefined) {
@@ -129,9 +175,12 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
       }
     }
 
+    //To handle if we have to rewrite the index due to modification
+    const posId = this.posId;
+
     if (hasIndex) { //If using index
-      res.vars.push(this.posId, m.Literal(0))
-      params.push(this.posId)
+      res.vars.push(posId, m.Literal(0))
+      params.push(posId)
     }
     
     //If can be inlined
@@ -143,7 +192,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     }
 
     if (hasIndex) {
-      res.body.push(m.Expr(m.Increment(this.posId)))
+      res.body.push(m.Expr(m.Increment(posId)))
     }
 
     return res;

@@ -13,7 +13,7 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
   ) {
     ['Function', 'FunctionEnd', 'Block', 'BlockEnd', 
       'ComputedAccess', 'Declare', 'ThisAccess', 'Write', 'Invoke', 
-      'PropertyAccess'
+      'PropertyAccess', 'Access'
     ].forEach(k => handler[k] = handler[k] || noop)
 
     let ogbs = handler.Block;

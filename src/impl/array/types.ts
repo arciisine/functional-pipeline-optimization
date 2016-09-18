@@ -20,8 +20,7 @@ export interface TransformState extends ExtraState {
   continueLabel:AST.Identifier,
   iteratorId:AST.Identifier,
   arrayId:AST.Identifier,
-  tempElementId:AST.Identifier,
-  tempIndexId:AST.Identifier,
+  tempIds:{[key:string]: AST.Identifier},
   functionId:AST.Identifier,
   assignedReturn:AST.ArrayExpression,
   buildReturn:(val:AST.Node)=>AST.ReturnStatement
