@@ -1,7 +1,12 @@
 import { AST, Macro as m, Util as ASTUtil} from '@arcsine/ecma-ast-transform/src';
-import { Compiler, Compilable, CompilerUtil, TransformResponse } from '../../core';
+import { 
+  AccessType, Analysis , 
+  Compiler, Compilable, CompilerUtil, 
+  TransformResponse, RewriteUtil,
+  RewriteContext,
+  VariableStack
+} from '../../core';
 import { TransformState, ExtraState } from './types';
-import { AccessType, Analysis } from '../../core'; 
 
 export class ArrayCompiler implements Compiler<TransformState> {
 
@@ -66,8 +71,8 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let {closedIds, assignedIds, allIds} = this.processIds(compilable, state);
 
     state.assignedReturn.elements = assignedIds
-
-    return m.Func(m.Id(), [state.arrayId, state.contextId, closedId], [
+    let params = [state.arrayId, state.contextId, closedId];
+    let out = m.Func(m.Id(), params, [
       allIds.length ? m.Vars('var', ...allIds.map((x,i) => [x, m.GetProperty(closedId, m.Literal(i))])) : null,
       m.Vars('var', ...vars, lengthId,  m.GetProperty(state.arrayId, "length")),
       m.Labeled(state.continueLabel,
@@ -81,5 +86,11 @@ export class ArrayCompiler implements Compiler<TransformState> {
       ...(after||[]),
       state.buildReturn(state.returnValueId)
     ]);
+
+    let i = 0;
+    let stack = new VariableStack<RewriteContext>();
+    let getId = (orig:string) => AST.Identifier({name:`$${i++}`});
+    RewriteUtil.rewriteVariables(stack, out, params, getId);
+    return out;
   }
 }

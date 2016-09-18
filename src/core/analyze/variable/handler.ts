@@ -99,13 +99,12 @@ export class VariableNodeHandler<T> implements AST.NodeHandler<Visitor> {
   }
 
   VariableDeclaration(x:AST.VariableDeclaration) {
-    if (x.kind !== 'var') {
-      VariableVisitorUtil.readDeclarationIds(x.declarations)
-        .forEach(id => this.handler.Declare(id, x));
-    } else {
-      VariableVisitorUtil.readDeclarationIds(x.declarations)
-        .forEach(id => this.handler.Write(id, x));
-    }
+    VariableVisitorUtil.readDeclarationIds(x.declarations)
+      .forEach(id => 
+        x.kind === 'var' ? 
+          this.handler.Write(id,x) : //var, post-hoist, is just an assign
+          this.handler.Declare(id, x)
+      );
   }
 
   ClassDeclaration(x:AST.ClassDeclaration) {        
