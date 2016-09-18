@@ -19,7 +19,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
       elementId     : m.Id(),
       returnValueId : m.Id(),
       returnFnId    : m.Id(),
-      continueLabel : m.Id('label', false),
+      continueLabel : m.Id('label', true),
       iteratorId    : m.Id(),
       arrayId       : m.Id(),
     	functionId    : m.Id(),
@@ -60,7 +60,7 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let assignedIds = ids.assigned.map((x) => m.Id(x));
     let allIds =  [...assignedIds, ...closedIds]
 
-    return {closedIds, assignedIds, allIds}
+    return {closedIds, assignedIds, allIds};
   }
 
   compile<I, O>(compilable:Compilable<I,O>, state:TransformState):AST.Node {
@@ -70,7 +70,8 @@ export class ArrayCompiler implements Compiler<TransformState> {
     let {body,vars,after} = this.compileBody(compilable, state);
     let {closedIds, assignedIds, allIds} = this.processIds(compilable, state);
 
-    state.assignedReturn.elements = assignedIds
+    state.assignedReturn.elements = assignedIds;
+
     let params = [state.arrayId, state.contextId, closedId];
     let out = m.Func(m.Id(), params, [
       allIds.length ? m.Vars('var', ...allIds.map((x,i) => [x, m.GetProperty(closedId, m.Literal(i))])) : null,

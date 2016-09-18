@@ -174,7 +174,7 @@ let Optimized = (function() {
       ops.reduce((x, op, i) => {
         let j = ((3-i%4)+1)%4;
         x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
-        return x; 
+        return i>=0 && x; 
       }, x)
     });
     FOUR.forEach(i => (x[i] = add32(x[i], xorig[i])));
