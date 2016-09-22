@@ -8,11 +8,11 @@ export class Helper {
 
   static exec<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
     let res = CompilerUtil.computed[key];    
-    if (res !== null && data.length > 1) {
+    if (res && data.length > 1) {
       let ret = res(data, context, closed)
       post && ret.assigned && post(ret.assigned);
       return ret.value; 
-    } else if (res !== undefined) {
+    } else if (res === null) {
       let len = operations.length;
       for (let i = 0; i < len; i++) {
         let ctx = context[i];
@@ -24,7 +24,7 @@ export class Helper {
     }
   }
 
-  static interrogate<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
+  static interrogate<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {    
     if (Array.isArray(data)) {
       let builder = new ArrayBuilder<any, T>(data);
       for (let i = 0; i < operations.length; i++) {

@@ -42,7 +42,7 @@ export class CompilerUtil {
   static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key?:string, extraState?:any):ExecHandler<I,O> {
     let computed:ExecHandler<I,O>|null = key ? CompilerUtil.computed[key] : null;
     
-    if (key && computed !== null) {
+    if (key && computed) {
       return computed;
     }    
 
