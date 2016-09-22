@@ -75,10 +75,10 @@ export class BodyTransformHandler {
     let fnScope = this.functionScopes[this.functionScopes.length-1]; 
     if (this.optimizeScope.active && AST.isArrowFunctionExpression(fnScope))  {
       let body  = this.thisScopes[this.thisScopes.length-1].body;
-      let id:AST.Identifier = null;
+      let id:AST.Identifier|null = null;
 
       if (body['_this']) {
-        id = body['_this'];
+        id = body['_this'] as AST.Identifier;
       } else {
         id = m.Id()
         body['_this'] = id;
@@ -113,7 +113,7 @@ export class BodyTransformHandler {
       
     let endNode = x[CANDIDATE_FUNCTIONS] ? 
       x : 
-      visitor.findParent(x => !!x.node[CANDIDATE_FUNCTIONS]).node as AST.CallExpression;
+      visitor.findParent(x => !!x.node[CANDIDATE_FUNCTIONS])!.node as AST.CallExpression;
 
     //Check for start of chain
     let callee = x.callee;
@@ -127,8 +127,8 @@ export class BodyTransformHandler {
     } else {
       x[CANDIDATE_FUNCTIONS].push(x); //All in order now
 
-      let ops = [];
-      let inputs = [];
+      let ops:AST.ArrayExpression[] = [];
+      let inputs:AST.Expression[] = [];
 
       x[CANDIDATE_FUNCTIONS].forEach((x:AST.CallExpression) => {
         let name = (
@@ -147,10 +147,13 @@ export class BodyTransformHandler {
       });      
 
       if (ops.length === 1) {
-        let name = ops[0].elements[0].value
-        //Don't optimize single chains of slice/join 
-        if (name === 'slice' || name === 'join') {
-          return;
+        let element = (ops[0].elements ||[])[0];        
+        if (AST.isLiteral(element)) {
+          let name = element.value
+          //Don't optimize single chains of slice/join 
+          if (name === 'slice' || name === 'join') {
+            return;
+          }
         }
       }
   
@@ -171,7 +174,7 @@ export class BodyTransformHandler {
         root.body.push(m.Vars('const', opsId, m.Array(...ops)))
       }
 
-      let extra = [];
+      let extra:AST.Expression[] = [];
       if (params.closed) {
         extra.push(params.closed);
         if (params.assign) {

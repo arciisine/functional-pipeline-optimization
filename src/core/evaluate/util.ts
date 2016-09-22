@@ -145,7 +145,7 @@ export class TestUtil {
     let keys = Object.keys(tests);
     let d = data(input[0])
     let orig = tests[keys[0]](d);
-    let invalid = null;
+    let invalid:any|null = null;
     keys.slice(1).reduce((a,b) => {
       let cur = tests[b](d);
       let eq = TestUtil.areEqual(cur, orig);;
@@ -158,7 +158,7 @@ export class TestUtil {
   }
 
   static runTests<T>({tests, data}:TestScenario<T>, testInputs:TestInput[]):TestResultMap[] {
-    let out = [];
+    let out:TestResultMap[] = [];
     let keys = Object.keys(tests);
     let invalid = TestUtil.validateTests({tests, data, input:testInputs[0]});
     if (invalid) {
@@ -186,7 +186,7 @@ export class TestUtil {
     if (op.indexOf('..') > 0) {
       let [start,stop,step] = op.split('..').map(x => +x);
       step = step || 1;
-      let out = [];        
+      let out:string[] = [];        
       for (let i = start; i <= stop; i+= step) {
         out.push(''+i);
       }
@@ -199,17 +199,17 @@ export class TestUtil {
   static testInputs(data:string[]):TestInput[] {
     return data.map(x => {
       let [a,b] = x.split('x').map(TestUtil.expandIterations);
-      let asl = a.split(',').map(x => +x);
-      let bsl = b.split(',').map(x => +x);
+      let asl:number[] = a.split(',').map(x => +x);
+      let bsl:number[] = b.split(',').map(x => +x);
 
-      let out = [];
+      let out:TestInput[] = [];
       for (let asi of asl) {
         for (let bsi of bsl) {
           out.push([asi, bsi])
         }
       }
       return out;
-    }).reduce((flat, arr) => flat.push(...arr) && flat, []);
+    }).reduce((flat, arr) => { flat.push(...arr); return flat }, []);
   }
 
   static buildTable(data:TestResultMap[]):string {

@@ -1,9 +1,9 @@
 import {AST} from '@arcsine/ecma-ast-transform/src';
 
 export interface TransformResponse {
-  vars?:AST.Node[],
-  body?:AST.Node[],
-  after?:AST.Node[]
+  vars:(AST.Node|null|undefined)[],
+  body:AST.Node[],
+  after:AST.Node[]
 }
 
 export interface Transformable<I, O>  {

@@ -9,6 +9,10 @@
 **Research**
 
 * Determine comprehensive baseline
+    * md5
+    * text analysis
+    * std dev
+    * more ... ?
 * Collect metrics 
     * Platforms (node/v8, firefox/spidermonkey, safari, chrome, Edge/chakra, IE 11)
     * Perhaps build a benchmark site that can record

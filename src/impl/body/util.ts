@@ -9,14 +9,14 @@ export class BodyTransformUtil {
 
   static getPragmas(nodes:AST.Node[]):string[] {
     let i = 0;
-    let out = [];
+    let out:string[] = [];
     while (i < nodes.length) {
       let child = nodes[i++];
       if (!(AST.isExpressionStatement(child) && 
           AST.isLiteral(child.expression) && 
           typeof child.expression.value === 'string')) break;
 
-      out.push(child.expression.value as string);
+      out.push(child.expression.value);
     }
     return out;
   }
@@ -26,7 +26,7 @@ export class BodyTransformUtil {
     let pragmas = BodyTransformUtil.getPragmas(body.body)
     let pragma = pragmas.find(x => OPTIMIZE_CHECK.test(x))
 
-    let ret:OptimizeState = undefined;
+    let ret:OptimizeState|null = null;
 
     if (!pragma) {
       ret = null;
@@ -40,7 +40,7 @@ export class BodyTransformUtil {
         .filter(x => x[0] && x[1])
 
       let config:any = flags        
-        .reduce((acc, pair) => (acc[pair[0]] = pair[1]) && acc, {active:true})
+        .reduce((acc, pair) => { (acc[pair[0]] = pair[1]); return acc }, {active:true})
 
       if (config.globals && typeof config.globals === 'string') {
         config.globals = config.globals.split(',');
@@ -79,12 +79,12 @@ export class BodyTransformUtil {
     let allIds =  m.Array(...[...assignedIds, ...closedIds])
 
     let execParams:{closed?:AST.Expression, assign?:AST.BaseFunction|AST.Literal} = {
-      closed : null,
-      assign : null,
+      closed : undefined,
+      assign : undefined,
     };
 
     //Handle if we have to reassign closed variables
-    if (allIds.elements.length > 0) {
+    if (allIds.elements && allIds.elements.length > 0) {
       execParams.closed = allIds;
       if (assignedIds.length > 0) {
         let id = m.Id()
@@ -141,7 +141,7 @@ export class BodyTransformUtil {
           id : null
         })
       }
-      fn.id = m.Id(fn.id && fn.id.name+'_', true)
+      fn.id = m.Id(fn.id ? fn.id.name+'_' : undefined, true)
       x[CANDIDATE_KEY] = fn.id.name;
       x.arguments[0] = fn
     } 

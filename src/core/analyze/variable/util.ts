@@ -5,7 +5,7 @@ import {VariableVisitHandler, VariableHandler} from './types';
 
 export class VariableVisitorUtil {
 
-  static getPrimaryId(target:AST.Node):AST.Identifier { 
+  static getPrimaryId(target:AST.Node):AST.Identifier|null { 
     if (AST.isIdentifier(target)) {
       return target;
     } else {
@@ -23,11 +23,14 @@ export class VariableVisitorUtil {
     return VariableVisitorUtil.readPatternIds(decls.map(d => d.id));
   }
 
-  static readPatternIds(node:AST.Pattern|AST.Pattern[], alias:boolean = false):AST.Identifier[] {
+  static readPatternIds(node?:AST.Pattern|(AST.Pattern|null)[]|null, alias:boolean = false):AST.Identifier[] {
     if (Array.isArray(node)) {
-      return node
+      let validNodes:AST.Pattern[] = node.filter(n => n !== null) as AST.Pattern[];
+
+      return validNodes
         .map(n => VariableVisitorUtil.readPatternIds(n, alias))
         .reduce((acc, ids) => acc.concat(ids), []);
+        
     } else {
       if (AST.isObjectPattern(node)) {
         return VariableVisitorUtil.readPatternIds(node.properties, alias);
@@ -47,6 +50,8 @@ export class VariableVisitorUtil {
         return [node]
       } else if (AST.isSpreadElement(node) && AST.isIdentifier(node.argument)) {
         return [node.argument];
+      } else {
+        return [];
       }
     }
   }
@@ -57,7 +62,7 @@ export class VariableVisitorUtil {
     //Hoist vars, remove nested functions
     new Visitor({
       FunctionDeclaration : (x:AST.FunctionDeclaration) => {
-        out.push(x.id);
+        if (x.id) out.push(x.id);
       },            
       Function : (x:AST.BaseFunction) => { 
         return x !== node ? Visitor.PREVENT_DESCENT : x //Only look at current function
@@ -75,13 +80,15 @@ export class VariableVisitorUtil {
   static getFunctionBlock(x:AST.BaseFunction):AST.BlockStatement {
     if (AST.isFunctionDeclaration(x) || AST.isFunctionExpression(x)) {
       return x.body;
-    } else if (AST.isArrowFunctionExpression(x)) {
-      if (AST.isBlockStatement(x.body)) {
-        return x.body;
+    } else {
+      let afe = x as AST.ArrowFunctionExpression;
+      
+      if (AST.isBlockStatement(afe.body)) {
+        return afe.body;
       } else {
-        let body = m.Block(m.Return(x.body));
-        x.expression = false;        
-        x.body = body;
+        let body = m.Block(m.Return(afe.body));
+        afe.expression = false;        
+        afe.body = body;
         return body;
       }
     }

@@ -16,10 +16,10 @@ export class VariableStack<T> {
     return res; 
   }
 
-  get(name:string|AST.Identifier):T {
+  get(name:string|AST.Identifier):T|null {
     let key = typeof name === 'string' ? name : name.name;    
     let s = this.variables[key];
-    return s && s.length ? s[s.length-1] : undefined;
+    return s && s.length ? s[s.length-1] : null;
   }
 
   contains(name:string|AST.Identifier) {

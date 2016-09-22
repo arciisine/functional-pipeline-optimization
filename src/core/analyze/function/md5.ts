@@ -132,7 +132,7 @@ function md51(s) {
  * 8-bit unsigned value arrays.
  */
 function md5blk(s) { /* I figured global was faster.   */
-  var md5blks = [], i; /* Andy King said do it this way. */
+  var md5blks:number[] = [], i; /* Andy King said do it this way. */
   for (i = 0; i < 64; i += 4) {
     md5blks[i >> 2] = s.charCodeAt(i)
       + (s.charCodeAt(i + 1) << 8)

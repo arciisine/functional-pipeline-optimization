@@ -36,14 +36,11 @@ export class RewriteUtil {
     return fn;
   }
 
-  static rewriteVariables(stack:VariableStack<RewriteContext>, fn:AST.BaseFunction, params:AST.Identifier[], getId:(orig?:string)=>AST.Identifier = null):TransformResponse {
+  static rewriteVariables(stack:VariableStack<RewriteContext>, fn:AST.BaseFunction, params:AST.Identifier[], getId?:(orig?:string)=>AST.Identifier):TransformResponse {
     let assign = {};
 
-    let body = [];
-
-    if (getId === null) {
-       getId = orig => m.Id(orig+'_', true);
-    }
+    let body:AST.Expression[] = [];
+    let localGetId = getId ? getId : orig => m.Id(orig+'_', true);
     
     for (let i = 0; i < fn.params.length;i++) {
       let p = fn.params[i];
@@ -51,7 +48,7 @@ export class RewriteUtil {
         body.unshift(m.Vars(p, params[i]))
         VariableVisitorUtil.readPatternIds(p).forEach(id => {
           let data = stack.register(id);
-          id.name = data.rewriteName = getId(id.name).name
+          id.name = data.rewriteName = localGetId(id.name).name
         })
       } else if (AST.isIdentifier(p)) {
         let n = p.name;
@@ -78,18 +75,18 @@ export class RewriteUtil {
 
         //Force name to be original if not in mainFunction
         if (!mainFunction && stack.contains(name)) {
-          stack.get(name).rewriteName = name.name;
+          stack.get(name)!.rewriteName = name.name;
         } else {
           //Rename variables in top level fn
-          let id = getId(name.name);
+          let id = localGetId(name.name);
           stack.register(name);
-          stack.get(name).rewriteName = id.name;
+          stack.get(name)!.rewriteName = id.name;
           name.name = id.name;
         }
       },
       Access:(name:AST.Identifier, parent:AST.Node) => {
         if (stack.contains(name)) {
-          name.name = stack.get(name).rewriteName; //Rewrite
+          name.name = stack.get(name)!.rewriteName; //Rewrite
         }
       }
     }, stack);
@@ -98,7 +95,8 @@ export class RewriteUtil {
 
     return {
       body,
-      vars : []
+      vars : [],
+      after : []
     } 
   }
 }

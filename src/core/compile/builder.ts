@@ -19,12 +19,13 @@ export class Builder<I, O> {
     return this as any as Builder<I, V>;
   }
 
-  compile(key:string = null, extraState?:any):ExecHandler<I,O> {
+  compile(key?:string, extraState?:any):ExecHandler<I,O> {
     try {
       return CompilerUtil.compile(this.compiler, this.compilable, key, extraState);
     } catch (e) {
-      if (e.invalid) {
+      if (e.invalid && key) {
         CompilerUtil.computed[key] = null;
+        throw new Error("Function is not compilable");        
       } else {
         console.log(e);
         throw e;
@@ -36,7 +37,7 @@ export class Builder<I, O> {
     return { value : CompilerUtil.manual(this.compilable, this.data) }
   }
 
-  exec(closed:any[] = [], key:string = null):ExecOutput<O> {
+  exec(closed:any[] = [], key?:string):ExecOutput<O> {
     //Ready directly from cache to minimize multiple fn calls
     let fn = this.compile(key);
     return fn(this.data, this.context, closed)

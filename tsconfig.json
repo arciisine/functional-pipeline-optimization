@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strictNullChecks" : true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "preserveConstEnums": true,

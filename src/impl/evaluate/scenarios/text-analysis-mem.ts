@@ -2,10 +2,10 @@ import {TestUtil} from '../../../core';
 
 type agg = {[key:string]:number};
 type acc = {all:agg, common:agg};
-type sig = {text:string[], limit:number};
+type sig = {text:string, limit:number};
 
 function Manual({text, limit}:sig) {
-  let words = text
+  let words = text.toLowerCase().split(/[^A-Za-z]+/)
   let check:acc = {all:{}, common:{}};
   for (let i = 0; i < words.length; i++) {
     let word = words[i];
@@ -22,6 +22,7 @@ function Manual({text, limit}:sig) {
 
 function Functional({text, limit}:sig) {
   return text
+    .toLowerCase().split(/[^A-Za-z]+/)
     .filter(word => word.length >= limit)
     .reduce((check:acc,  word) => {
       let count = check.common[word] || (check.all[word] = (check.all[word] || 0)+1);
@@ -36,6 +37,7 @@ function Optimized({text, limit}:sig) {
   "use optimize";
 
   return text
+    .toLowerCase().split(/[^A-Za-z]+/)
     .filter(word => word.length >= limit)
     .reduce((check:acc, word) => {
       let count = check.common[word] || (check.all[word] = (check.all[word] || 0)+1);
@@ -46,9 +48,9 @@ function Optimized({text, limit}:sig) {
     }, {all:{}, common:{}}).common;
 }
 
-let text = TestUtil.readFile(`${__dirname}/../resources/war-and-peace.txt.gz`).toLowerCase();
+let text = TestUtil.readFile(`${__dirname}/../resources/war-and-peace.txt.gz`);
 
 export default {
   tests        : {Manual, Functional, Optimized},
-  data         : (n) => ({text: text.substring(0, n).split(/[^A-Za-z]+/), limit: 4})
+  data         : (n) => ({text: text.substring(0, n), limit: 4})
 }

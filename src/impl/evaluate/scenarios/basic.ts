@@ -152,11 +152,12 @@ export function sumOptimize(data:number[]) {
   return [count]
 }
 
-let names = null;
+const EMPTY = {};
+let names:{[key:string]:{age:number, name:string}} = EMPTY;
 
 export function obj(data:number[]) {
   'use optimize';
-  if (names === null) {
+  if (names === EMPTY) {
     names = data.reduce((acc, x) => (acc[x] = {age:x, name:`Bob${x}`}) && acc, {})
   }
   let test = data

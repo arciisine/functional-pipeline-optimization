@@ -9,7 +9,7 @@ function Inline(input) {
 }
 
 function Raw(text, limit) {
-    return [].filter(word => {
+    return ([] as string[]).filter(word => {
         return word.length >= limit;
     }).reduce((check, word) => {
         let count = check.all[word] = (check.all[word] || 0) + 1;

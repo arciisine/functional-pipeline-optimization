@@ -32,7 +32,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   public manual:W;
   public position = -1;
   public posId = m.Id('idx', true);
-  private analysis:Analysis = null
+  private analysis:Analysis|null = null
 
   constructor(
     inputs:any[], 
@@ -140,15 +140,15 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   }
 
   transform(state:TransformState):TransformResponse  {
-    let fn:AST.FunctionExpression = null;
+    let fn:AST.FunctionExpression|null = null;
     let input = this.getInput('callback');
     let params = this.getParams(state);    
-    let res = {vars:[], body:[]};
+    let res:TransformResponse = {vars:[], body:[], after:[]};
     let variableState = state.operations[this.position][1];
     let hasSource = !ParseUtil.isNative(input) && variableState !== VariableState.dynamic
     let isInlinable = variableState === VariableState.inline;
     let hasIndex = true    
-    let analysis = null;
+    let analysis:Analysis|null = null;
 
     if (hasSource) { 
       let node = ParseUtil.parse(input) as AST.Node;
@@ -183,9 +183,11 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     }
     
     //If can be inlined
-    if (isInlinable) {
+    if (isInlinable && fn) {
       this.buildInlineResult(state, res, params, fn);
-      state.analysis.merge(analysis);
+      if (analysis) {
+        state.analysis.merge(analysis);
+      }
     } else {
       this.buildFunctionCallResult(state, res, params); 
     }

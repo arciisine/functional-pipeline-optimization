@@ -1,6 +1,6 @@
 import { ParseUtil, AST, Visitor, Macro as m} from '../../../../node_modules/@arcsine/ecma-ast-transform/src';
 import { Analysis, AccessType } from './types';
-import {VariableStack, VariableNodeHandler} from '../variable';
+import {VariableStack, VariableNodeHandler } from '../variable';
 import {Util, GLOBALS} from '../../util';
 
 
@@ -11,9 +11,6 @@ export class FunctionAnalyzer {
   private static id:number = 0;
 
   static analyzeAST(ast:AST.BaseFunction, globals?:string[]|{[key:string]:any}):Analysis {
-    if (!AST.isFunction(ast)) {
-      return null;
-    }
     let analysis = new Analysis(`${FunctionAnalyzer.id++}`);
     if (Array.isArray(globals)) {
       analysis.setGlobals(globals.reduce((acc, x) => (acc[x] = true) && acc, {}))
@@ -33,9 +30,9 @@ export class FunctionAnalyzer {
       ComputedAccess : (name:AST.Identifier) => {
         analysis.hasComputedMemberAccess = true;
       },
-      PropertyAccess : (chain:AST.Identifier[], node:AST.Node) =>{
+      PropertyAccess : (chain:AST.Identifier[], node:AST.MemberExpression) =>{
         
-        let resolved = null
+        let resolved:any = null
 
         //Check vm globals
         if (!resolved) {
@@ -81,7 +78,8 @@ export class FunctionAnalyzer {
 
   static analyze(fn:Function, globals?:any):Analysis {
     let key = Function.getKey(fn);
-    let analysis = FunctionAnalyzer.analyzed[key];
+    
+    let analysis:Analysis = FunctionAnalyzer.analyzed[key];
     if (analysis) {
       return analysis;
     }
@@ -94,6 +92,7 @@ export class FunctionAnalyzer {
     if (key) {
       FunctionAnalyzer.analyzed[key] = analysis;
     }
+
     return analysis;    
   }
 }

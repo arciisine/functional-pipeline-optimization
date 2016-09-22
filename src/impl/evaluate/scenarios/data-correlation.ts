@@ -1,7 +1,7 @@
 import {TestUtil} from '../../../core';
 
 function Manual(a:[number[], {[key:string]:any}]) {
-  let out = [];
+  let out:any[] = [];
   for (let i = 0; i < a[0].length; i++) {
     out.push(a[1][a[0][i]]);
   }

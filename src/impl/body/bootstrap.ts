@@ -8,9 +8,9 @@ export class Helper {
 
   static exec<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
     let res = CompilerUtil.computed[key];    
-    if (!!res && data.length > 1) {
+    if (res !== null && data.length > 1) {
       let ret = res(data, context, closed)
-      post && post(ret.assigned);
+      post && ret.assigned && post(ret.assigned);
       return ret.value; 
     } else if (res !== undefined) {
       let len = operations.length;
@@ -26,7 +26,6 @@ export class Helper {
 
   static interrogate<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
     if (Array.isArray(data)) {
-      let ret:ExecOutput<T[]> = null;
       let builder = new ArrayBuilder<any, T>(data);
       for (let i = 0; i < operations.length; i++) {
         builder.chain(MAPPING[operations[i][0]], context[i]);

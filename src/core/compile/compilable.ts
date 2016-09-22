@@ -1,7 +1,9 @@
 import { Transformable, TransformableConstructor } from '../transform';
 
+const EMPTY_ARRAY = []
+
 export class Compilable<I,O> {
-  public chain:Transformable<any, any>[] = null;
+  public chain:Transformable<any, any>[] = EMPTY_ARRAY;
   
   constructor(public pending:[TransformableConstructor<any, any>, any[]][] = []) {}
 
@@ -11,7 +13,7 @@ export class Compilable<I,O> {
   }
   
   finalize() {
-    if (this.chain !== null) {
+    if (this.chain !== EMPTY_ARRAY) {
       throw new Error("Finalized!");
     } else {
       this.chain = this.pending.map(([cons, inputs], i) => {
