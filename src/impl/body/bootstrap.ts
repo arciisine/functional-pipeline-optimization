@@ -7,12 +7,12 @@ import {SYMBOL} from './types';
 export class Helper {
 
   static exec<T>(data:T[], key:string, operations:[string, VariableState][], context:any[][], closed:any[], post:(all:any[])=>T):T[] {
-    let res = CompilerUtil.computed[key];    
+    let res = CompilerUtil.computed[key];
     if (res && data.length > 1) {
       let ret = res(data, context, closed)
       post && ret.assigned && post(ret.assigned);
       return ret.value; 
-    } else if (res === null) {
+    } else if (res === null || data.length === 1) {
       let len = operations.length;
       for (let i = 0; i < len; i++) {
         let ctx = context[i];

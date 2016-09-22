@@ -22,8 +22,8 @@ export class VariableStack<T> {
     return s && s.length ? s[s.length-1] : null;
   }
 
-  contains(name:string|AST.Identifier) {
-    return this.get(name) !== undefined;
+  contains(name:string|AST.Identifier):boolean {
+    return !!this.get(name);
   }
 
   push() {
