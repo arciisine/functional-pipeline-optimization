@@ -65,10 +65,10 @@ export class JoinTransform<T> extends BaseTransformable<T[], string>  {
         sepId,  this.getContextValue(state, 'separator')
       ],
       body : [
-        m.Assign(
+        m.Expr(m.Assign(
           res, 
           m.BinaryExpr(res, '+', 
-            m.BinaryExpr(state.elementId, '+', sepId)))
+            m.BinaryExpr(state.elementId, '+', sepId))))
       ],
       after : [
         m.Expr(m.Assign(res, 
@@ -101,9 +101,9 @@ export class FilterTransform<T> extends
 
   onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
     if (!node.argument) {
-      return m.Expr(m.Continue(state.continueLabel));
+      return this.getContinue(state);
     } else {
-      return m.IfThen(m.Negate(node.argument), [m.Continue(state.continueLabel)]);
+      return m.IfThen(m.Negate(node.argument), [this.getContinue(state)]);
     }
   }
 }
@@ -124,11 +124,9 @@ export class MapTransform<T, U> extends
   }
 
   onReturn(state:TransformState, node:AST.ReturnStatement) {
-    if (!node.argument) {
-      return m.Expr(m.Assign(state.elementId, m.Literal(undefined)));
-    } else {
-      return m.Expr(m.Assign(state.elementId, node.argument));
-    }
+    return m.Expr(m.Assign(state.elementId, !node.argument ? 
+      m.Literal(undefined) :
+      node.argument));
   }
 }
 
@@ -141,9 +139,9 @@ export class ForEachTransform<T> extends
 
   onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
     if (!node.argument) {
-      return m.Expr(m.Continue(state.continueLabel));
+      return this.getContinue(state);
     } else {
-      return m.Block(node.argument, m.Continue(state.continueLabel));
+      return m.Block(node.argument, this.getContinue(state));
     }
   }
 }
@@ -153,7 +151,7 @@ export class FindTransform<T> extends
 {
   onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
     if (!node.argument) {
-      return m.Expr(m.Continue(state.continueLabel));
+      return this.getContinue(state);
     } else {
       return m.IfThen(node.argument, [state.buildReturn(state.elementId)]);
     }
@@ -169,7 +167,7 @@ export class FindIndexTransform<T> extends
 
   onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
     if (!node.argument) {
-      return m.Expr(m.Continue(state.continueLabel));
+      return this.getContinue(state);
     } else {
       return m.IfThen(node.argument, [state.buildReturn(this.posId)]);
     }
@@ -185,7 +183,7 @@ export class SomeTransform<T> extends
 
   onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
     if (!node.argument) {
-       return m.Expr(m.Continue(state.continueLabel));
+       return this.getContinue(state);
     } else {
       return m.IfThen(node.argument, [state.buildReturn(m.Literal(true))]);
     }
@@ -214,9 +212,9 @@ export class ReduceTransform<T, U>  extends
 {
   constructor(inputs:[Callback.Accumulate<T, U>, U, any]) {
     super(inputs, {
-      callback : 0,
+      callback  : 0,
       initValue : 1,
-      context : 2
+      context   : 2
     }, 
     { 0 : true});
   }

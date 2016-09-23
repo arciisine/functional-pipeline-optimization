@@ -44,6 +44,10 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
   abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
 
+  getContinue(state:TransformState):AST.ContinueStatement {
+    return m.Continue(state.continueLabel);
+  }
+
   getInput(key:'context'):any
   getInput(key:'callback'):V
   getInput(key:string) {

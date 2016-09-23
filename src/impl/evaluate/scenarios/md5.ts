@@ -114,7 +114,9 @@ let Functional = (function() {
           return x; 
       }, x)
     });
-    FOUR.forEach(i => x[i] = add32(x[i], xorig[i]));
+    FOUR.forEach(i => { 
+      x[i] = add32(x[i], xorig[i]);
+    });
   }
 
   function md51(s) {
@@ -177,7 +179,9 @@ let Optimized = (function() {
         return x; 
       }, x)
     });
-    FOUR.forEach(i => (x[i] = add32(x[i], xorig[i])));
+    FOUR.forEach(i => {
+      x[i] = add32(x[i], xorig[i]);
+    });
   }
 
   function md51(s) {
