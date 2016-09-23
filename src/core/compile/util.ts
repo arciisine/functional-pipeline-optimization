@@ -3,6 +3,7 @@ import { EscodegenOptions } from '@arcsine/ecma-ast-transform/src/escodegen';
 import { Compilable } from './compilable';
 import { Compiler, ExecOutput, ExecHandler } from './types';
 import { TransformResponse } from '../transform';
+import { Optimizer } from './optimizer';
 
 const CompileConfig:EscodegenOptions = {
   indent : false,
@@ -44,12 +45,15 @@ export class CompilerUtil {
     
     if (key && computed) {
       return computed;
-    }    
+    }
 
     compilable.finalize();
     const optimizer = OptimizeUtil.closure();
     let state = compiler.createState(extraState);
     let ast = compiler.compile(compilable, state);
+
+    //Optimize
+    ast = Optimizer.optimize(ast);
 
     let src = CompileUtil.compileFunction(ast as any, {}, CompileConfig);
     //src = optimizer(src);    
