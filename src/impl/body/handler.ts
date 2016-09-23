@@ -130,6 +130,7 @@ export class BodyTransformHandler {
       let ops:AST.ArrayExpression[] = [];
       let inputs:AST.Expression[] = [];
 
+      //Track each operation in the chain
       x[CANDIDATE_FUNCTIONS].forEach((x:AST.CallExpression) => {
         let name = (
           AST.isMemberExpression(x.callee) && 
@@ -159,9 +160,21 @@ export class BodyTransformHandler {
   
       //Only process the inline callbacks
       let analysis = x[CANDIDATE_FUNCTIONS]
-        .map(x => AST.isCallExpression(x) && AST.isFunction(x.arguments[0]) ? x.arguments[0] : x)
-        .map(x => FunctionAnalyzer.analyzeAST(x, this.optimizeScope.globals))
+        .map(x => {
+          if (AST.isFunction(x)) {
+            return x;
+          } else if (AST.isCallExpression(x)) {
+            if (AST.isFunction(x.arguments[0])) {
+              return x.arguments[0];
+            }
+          }
+          return  null;
+        })
         .filter(x => !!x)
+        .map((x,i) => {
+          let a = FunctionAnalyzer.analyzeAST(x, this.optimizeScope.globals);
+          return a;
+        })
         .reduce((total:Analysis, x) => total.merge(x), new Analysis("~"))
 
       let params = BodyTransformUtil.getExecArguments(x, analysis);
@@ -183,11 +196,11 @@ export class BodyTransformHandler {
       }
 
       return m.Call(EXEC,  
-          (x[CANDIDATE_START] as AST.MemberExpression).object,
-          m.Literal(m.Id('__key', true).name),
-          opsId,
-          m.Array(...inputs),
-          ...extra
+        (x[CANDIDATE_START] as AST.MemberExpression).object,
+        m.Literal(m.Id('__key', true).name),
+        opsId,
+        m.Array(...inputs),
+        ...extra
       );
     }
   }

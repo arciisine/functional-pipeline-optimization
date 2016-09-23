@@ -71,15 +71,17 @@ export class JoinTransform<T> extends BaseTransformable<T[], string>  {
             m.BinaryExpr(state.elementId, '+', sepId))))
       ],
       after : [
-        m.Expr(m.Assign(res, 
-          m.Call(
-            m.GetProperty(res, 'substring'), 
-            m.Literal(0), 
-            m.BinaryExpr(
-              m.GetProperty(res, 'length'), 
-              '-', 
-              m.GetProperty(sepId, 'length')))))
-        ]
+        m.IfThen(sepId, [
+          m.Expr(m.Assign(res, 
+            m.Call(
+              m.GetProperty(res, 'substring'), 
+              m.Literal(0), 
+              m.BinaryExpr(
+                m.GetProperty(res, 'length'), 
+                '-', 
+                m.GetProperty(sepId, 'length')))))
+        ])
+      ]
     }
   }
 

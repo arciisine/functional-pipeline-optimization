@@ -91,8 +91,8 @@ export class Analysis {
 
     //Define call site    
     return { 
-      closed:Object.keys(closed).sort((a,b) => this.order[b] - this.order[a]), 
-      assigned:Object.keys(assigned).sort((a,b) => this.order[b] - this.order[a])
+      closed:Object.keys(closed).sort((a,b) => this.order[a] - this.order[b]), 
+      assigned:Object.keys(assigned).sort((a,b) => this.order[a] - this.order[b])
      };
   }
 }

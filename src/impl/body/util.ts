@@ -76,7 +76,7 @@ export class BodyTransformUtil {
     //Define call site
     let closedIds =  ids.closed.map((x) => m.Id(x));
     let assignedIds = ids.assigned.map((x) => m.Id(x));
-    let allIds =  m.Array(...[...assignedIds, ...closedIds])
+    let allIds =  m.Array(...[...closedIds, ...assignedIds])
 
     let execParams:{closed?:AST.Expression, assign?:AST.BaseFunction|AST.Literal} = {
       closed : undefined,
