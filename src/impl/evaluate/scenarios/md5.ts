@@ -108,13 +108,13 @@ let Functional = (function() {
     OPS.forEach((pair, z) => {
       var ops = pair[0];
       var fn = pair[1];
-      ops.reduce((x, op, i) => { 
-          let j = ((3-i%4)+1)%4;
-          x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
-          return x; 
+      ops.reduce((x, op, i) => {
+        let j = ((3-i%4)+1)%4;
+        x[j] = fn(x[j], x[(j+1)%4], x[(j+2)%4], x[(j+3)%4], k[op[0]], op[1], op[2]);
+        return x; 
       }, x)
     });
-    FOUR.forEach(i => { 
+    FOUR.forEach(i => {
       x[i] = add32(x[i], xorig[i]);
     });
   }
@@ -129,7 +129,7 @@ let Functional = (function() {
       md5cycle(state, md5blk(s.substring(i - 64, i)));
     }
     s = s.substring(i - 64);
-    
+
     for (i = 0; i < s.length; i++) {
       tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
     }
