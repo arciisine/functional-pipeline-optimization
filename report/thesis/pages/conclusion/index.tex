@@ -1,2 +1,5 @@
 \chapter{Conclusion}
 
+As can be seen from the scenario data, the algorithm performs extremely well even while dealing with the very flexible nature of JavaScript.  . With respect to the functional version, the optimized form out performs in every scenario minus input sizes of $\leq 1$.  That is not to say the general performance is terrible at input sizes of $\leq 1$ but that it cannot perform as fast.  Assuming that the functional chain is free of write dependences, this optimization should improve the performance of nearly all usages.  
+
+As the JavaScript language continues to mature and adopt new features, this algorithm will need to be maintained and the general complexity will likely increase.  It is always possible to down compile javascript from a higher language level to a lower, and that provides flexibility for this optimization to persist without change.
