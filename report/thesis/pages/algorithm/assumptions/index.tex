@@ -1,7 +1,7 @@
 \section{Assumptions}
 
-This dynamic nature of JavaScript lends to a wonderful flexibility but makes static analysis near impossible without making strong assumptions.  In the case of this optimization, the goal is to mimic a programmer's behavior.  If the generated code would produce the same errors a programmer would, given odd circumstances or configurations, we assume the process to be correct.  The code may be broken, but its broken in a way that is consistent with the programmer's mental model.  The goal is not to achieve perfection, but to automate the currently manual process.  
+This dynamic nature of JavaScript lends to a wonderful flexibility but makes static analysis near impossible without making strong assumptions.  In the case of this optimization, the goal is to mimic a programmer's behavior.  If the generated code would produce the same errors a programmer would, given odd circumstances or configurations, we assume the process to be correct.  The code may be broken, but it's broken in a way that is consistent with the programmer's mental model.  The goal is not to achieve perfection, but to automate the currently manual process.  
 
-\input{pages/algorithm/assumptions/scope-and-global.tex}
-\input{pages/algorithm/assumptions/parameter-types.tex}
-\input{pages/algorithm/assumptions/write-dependences.tex}
+\input{algorithm/assumptions/scope-and-global.tex}
+\input{algorithm/assumptions/parameter-types.tex}
+\input{algorithm/assumptions/write-dependences.tex}

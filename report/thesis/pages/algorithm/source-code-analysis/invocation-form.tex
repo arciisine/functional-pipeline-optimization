@@ -9,7 +9,7 @@ Given the goal of minimizing the final form's computation, the chain is reorgani
 
 When invoking an optimized code path, the only data that is needed is the $target$, $context$, $closed$ and $closure assignment$.  These variables are utilized by the optimized code path, in the expressed form. 
 
-The final form also needs to accomodate when the $target$ is not an array, and needs to be invoked in a manner equivalent to the original form.  
+The final form also needs to accomodate when the $target$ is not an array, and needs to be invoked in a manner equivalent to the original form.  \\
 
 \begin{minipage}{\linewidth}
 \lstinputlisting[frame=single, language=JavaScript]{code/manual-invocation.js}
@@ -17,7 +17,7 @@ The final form also needs to accomodate when the $target$ is not an array, and n
 
 All that occurs is each chain operation is invoked as a member of chain target (with the appropriate input), and that is stored as the new chain target.  This is functionally equivalent, and generally as performant as the original form. %Needs proof/verification
 
-\input{pages/algorithm/source-code-analysis/closure-analysis.tex}
-\input{pages/algorithm/source-code-analysis/parameters.tex}
+\input{algorithm/source-code-analysis/closure-analysis.tex}
+\input{algorithm/source-code-analysis/parameters.tex}
 
 Hopefully this highlights odd partitioning the problem, and shows the intricacy of the interplay between source code analysis and the runtime optimization.  

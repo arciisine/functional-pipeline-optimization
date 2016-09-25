@@ -1,4 +1,4 @@
-\subsection{Write Dependencesl}
+\subsection{Write Dependences}
 
 The optimization's entire structure is centered around altering the order of execution, specifically to avoid any intermediate storage of results.  Given that the order of operation has changed, any writes or modifications of closed variables has now introduced a functional change.  Again, this is an identical problem a programmer would face if they were to manually convert the candidate optimization into a procedural form by hand.  Additionally, since property accesses can actually result in writing values, and methods can be rewritten at runtime, determing writes is fairly complicated. 
 

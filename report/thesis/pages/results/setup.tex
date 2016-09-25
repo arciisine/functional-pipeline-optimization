@@ -1,6 +1,6 @@
 \section{Setup}
 
-Majority of all the testing has been run with NodeJS, and specifically v8 (~5.3).  NodeJS provies a high performance timer that provides nano second resolution.  Given the speed on many of the algorithms, the metrics (average, min, max) all register in the sub-millisecond region.  
+The majority of testing used NodeJS, and specifically v8 (~5.3).  NodeJS provides a high performance timer that provides nano second resolution.  Given the speed on many of the algorithms, the metrics (average, min, max) all register in the sub-millisecond region.  
 
 Different engines will invariably perform differently on the benchmarks.  The goal of the optimization is still to perform what a programmer would do by hand, and so in that vein, the underlying engine is generally unimportant.  There may be some additional performance from how the optimized code is generated, and because we are generating that at runtime, it is possible to optimize for the specific environment that the code is being run in.  
 
