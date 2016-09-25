@@ -2,6 +2,10 @@
 
 JavaScript, as a research topic, has matured greatly in recent years.  More and more research is being done on JavaScript the language, and the underlying functionality versus applications of JavaScript to specific problem domains.
 
-One of the closest works is a paper that focuses on converting the functional traversals in JavaScript , to functional composition.  In many ways, it embodies the same concept as our work, but achieves the results through very different means.  It also requires 
+One of the closest works is a paper that focuses on converting the functional traversals in JavaScript \cite{jscomb}, to functional composition.  In many ways, it embodies the same concept as our work, but achieves the results through very different means.  It requires the use of a special set of operators, requiring the programmer to write code that is fixed to a non-standard paradigm. It also still requires calling all the operators as functions instead of inlining the functions into procedural code.
 
-%http://www.randomhacks.net/2007/02/10/map-fusion-and-haskell-performance/
+There has also been work focusing on other looking at server workload characteristics \cite{TODO} which will help to identify the general benefits of these optimizations as the ratio of computation to idling gives an upper bound to the possible performance increases.
+
+Other relevant work, that is subsumed by our paper, is focusing on detecting function purity in JavaScript \cite{TODO}.  The paper's main focus is on determining whether or not a function has side effects and does so with formal language analysis.  The code that we used, is not as formally rigid, but is sufficient in looking for writes before reads, and accessing variables in different scopes.  
+
+In general the research has increased greatly, but apart from work focused on traversal optimization via functional composition \cite{jscomb}, most work is tangential at best.

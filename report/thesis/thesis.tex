@@ -17,6 +17,10 @@
 \usepackage{url}
 \usepackage{tikz}
 \usepackage{pgf}
+\usepackage[backend=biber,sortcites]{biblatex}
+
+
+\addbibresource{references.bib}
 
 \usetikzlibrary{arrows,positioning,calc}
 \usetikzlibrary{graphs,arrows.meta}
@@ -86,5 +90,5 @@
 
 \begin{document}
 \input{pages/index.tex}
-%\bibliography{}
+\printbibliography
 \end{document}
