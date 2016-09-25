@@ -39,7 +39,7 @@ function generate-all-scenarios() {
       generate-scenario $SCENARIO_TEX $NAME $SIZE
     done
     echo '\input{'$SCENARIO_PATH/$NAME.tex'}' >> $INDEX_TEX
-    echo '\newline' >> $INDEX_TEX  
+    echo '\newpage' >> $INDEX_TEX  
     echo '\input{'$SCENARIO_PATH/$NAME.graphs.tex'}' >> $INDEX_TEX
     echo '\newpage' >> $INDEX_TEX
   done

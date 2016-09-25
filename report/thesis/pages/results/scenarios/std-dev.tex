@@ -1,2 +1,6 @@
 \subsection{Standard Deviation}
 A simple algorithm to compute the standard deviation of an array of numbers. It is computationally heavy.
+
+For the most part, the optimized form out performs the manual and standard functional form.  What you can see though, specifically in the test with a small input size of $2$ (Iterations vs Time (ns) with an Input Size of 2), is that there is a cost to the overhead of the optimized code.  It is not very much, but the underlying JavaScript engine is able to execute the operations on a $2$ element array more quickly than the generated $for-loop$.  
+
+As with all optimizations of this nature, there will be edge cases that the optimization does not perform as fast.  This again comes down to the trade-off analysis of determining if the increased performance is worth the cost of code maintenance, in addition to looking at the other cases where the optimized form does out perform.
