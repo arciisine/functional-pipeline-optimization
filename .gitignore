@@ -2,6 +2,8 @@ dist/**
 node_modules/**
 report/**/*.aux
 report/**/*.pdf
+!report/**/graphs/*.pdf
+report/**/*.graphs.tex
 report/**/*.log
 report/**/*.lof
 report/**/*.lot
