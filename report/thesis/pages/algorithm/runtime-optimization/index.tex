@@ -1,7 +1,7 @@
 \section{Runtime Optimization}
 The runtime optimization focuses on compiling the common paradigm of the array transformation operators, and how those operations define the functionality of their inputs.
 
-At runtime the code will pass through two seperate phases:
+At runtime the code will pass through two separate phases:
 
 \begin{enumerate}
   \item Transformation and Validation
@@ -10,7 +10,7 @@ At runtime the code will pass through two seperate phases:
 
 Transformation and validation happens on a per operator basis.  This allows for simple transformations as well as a short circuit on any invalid operator.
 
-Once the entire computation chain has been transformed, the results are merged together into a final compilation process that results in the optimized code as an executable function. 
+Once the entire computation chain has been transformed, the results are merged together into a final compilation process that results in the optimized code as an new function. 
 
 \begin{minipage}{\linewidth}
 \lstinputlisting[frame=single, language=JavaScript]{code/simple-functional.js}

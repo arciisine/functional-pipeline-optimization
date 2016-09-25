@@ -1,20 +1,16 @@
-function longerThan(x) {
-  return w => w.length > x
-}
+let toLowerCase = x => x.toLowerCase();
 
-function toLowerCase(x) {
-  return x.toLowerCase();
-}
+let longerThan = (x) => 
+  w => w.length > x;
 
-function count(limit) {
-  return (check, word) => {
+let count = (limit) => 
+  (check, word) => {
     let count = check.all[word] = (check.all[word] || 0)+1;
     if (count > limit) {
       check.common[word] = count;
     }
     return check;
   }
-}
 
 function findCommonWords(text, limit) {
   return text

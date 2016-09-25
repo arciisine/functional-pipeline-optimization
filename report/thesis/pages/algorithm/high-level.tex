@@ -1,7 +1,7 @@
 \section{High Level}
 In general, the algorithm attempts to mimic the assumptions and behavior of programmers when converting functional sequence operations ($map$, $reduce$, $filter$, etc.) into $for-loop$ semantics.
 
-When dealing with the common cases and patterns, the algorithm is simple.  The real complexity arises in ensuring all places where this could be used do not violate correctness.  There the issue of write-dependence between visiting each element of the sequence.  In the functional form, each traversal must finish completely before the next traversal can start.  In a procedural form, each traversal operator is applied in succession on each sequence element.  
+When dealing with the common cases and patterns, the algorithm is simple.  The real complexity arises in ensuring all places where this could be used do not violate correctness. There are many cases that are accounted for, but write-dependence is the only major case that is not.
 
 The algorithm will run in two phases:
   \begin{enumerate}
@@ -9,6 +9,6 @@ The algorithm will run in two phases:
     \item Runtime optimization
   \end{enumerate}
 
-The first phase (Source code analysis) will identify potential sites for optimization and will modify the candidate location accordingly.  The source code analysis only works on a single file at a time, to minimize the general complexity and performance of the algorithm. In addition the single file perspective helps to keep the algorithm's assumptions as simplistic as possible, and defer as much as possible to the runtime.
+The first phase (Source code analysis) will identify potential sites for optimization and will modify the candidate location accordingly.  The source code analysis only works on a single file at a time, to minimize the general complexity of the algorithm. In addition the single file perspective helps to keep the algorithm's assumptions as simple as possible, and defer decisions to runtime as often as possible.
 
-The source code analysis will feed into the runtime optimization.  At runtime the code will interrogate the candidate optimization, and if everything is in order, will execute a runtime optimization of the code.  This involves compiling an alternate code path at runtime, and then executing the alternate code path.  This also involves potentially reading the source of some functions at runtime to utilize the source code to help build the final optimization.
+The source code analysis will generate a new output file that will then trigger the runtime optimization.  At runtime the code will interrogate the candidate optimization, and if everything is in order, will execute a runtime optimization of the code. There are certain scenarios that disqualify optimization but these will not be known until runtime.  The end result involves compiling an alternate code path at runtime, and then executing the newly created function.  

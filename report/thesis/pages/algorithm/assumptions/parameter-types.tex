@@ -1,19 +1,19 @@
 \subsection{Parameter Types}
-When dealing with any inputs that we wish to optimize, all the parameters will generally fall into three main categories.
+When dealing with any inputs that we wish to optimize, all the parameters will generally fall into one of three main categories.
 
 \begin{enumerate}
   \item \textbf{Literals}
-    This can be numeric, string, function literals, but the important fact is that they are defined in the scope of the chain.  Additionaly, function literals have the added benefit of being able to read/write closed variables.
+    This can be numeric, string, function literals, but the important fact is that they are defined in the scope of the chain.  Additionally, function literals have the added benefit of being able to read/write closed variables.
 
   \item \textbf{Static reference}
-    This will generally be constants, static methods, etc that defined outside of your source file (or specifically the scope of the candidate optimization).  These will be assumed to be mostly static, though that may not always be true.  There is a risk of wrong assumptions, but this is the same risk a programmer would face when manually converting the functional form to the procedural form.  
+    This will generally be constants, static methods, etc that defined outside of your source file (or specifically the scope of the candidate optimization).  These will be assumed to be mostly static, though that may not always be true.  There is a risk of assuming incorrectly, but this is the same risk a programmer would face when manually converting the functional form to the procedural form.  
     
     At runtime, function references will be interrogated to see if they are able to be inlined or if they fall into the simplistic case.  Any function reference that has closed variables cannot be inlined, as we do not have access to the closure to allow reading and writing.  This can only be tested at runtime, and so this is by far the most complex parameter type.  
     
-    Note: If we were developing this inside of a JavaScript engine itself, it may be possible to optimiz this as well, since the closures may be known at that point.
+    Note: If we were developing the implementation inside of the JavaScript engine itself, it may be possible to optimize Static references as well, since the closures may be known at that point.
 
   \item \textbf{Dynamic reference}
-    This will be function parameters in scope of the candidate optimization. These are assumed to be dynamic by design and will not be trusted with any level of certainty.  This does not disqualify a candidate optimization, but it does mean that we will never be able to inline the code.
+    This will be function parameters in scope of the candidate optimization. These are assumed to be dynamic by design and will not be trusted with any level of certainty.  This does not disqualify a candidate optimization, but it does mean that we will not be able to inline the code without the potential cost of recompiling the code on every invocation.
 \end{enumerate}
 
-Given the behavior of programmers to create utilities classes for common, small operations, the static reference case is extremely important to optimize.  It would be very easy to treat it as if it were a dynamic reference, but we would lose a fair amount of our performance gains by incurring unneccesary function invocations.  Again, this will follow the paradigm a programmer would take if trying to hand optimize any code.  If I were using a predicate by the name of $isEven$, I would be inclined to replace that with a check of $x \mod 2 = 0$. 
+Given the behavior of programmers to create utilities classes for common, small operations, the static reference case is extremely important to optimize.  It would be very easy to treat it as if it were a dynamic reference, but we would lose a fair amount of our performance gains by incurring unnecessary function invocations.  Again, this will follow the paradigm a programmer would take if trying to hand optimize any code.  If I were using a predicate by the name of $isEven$, I would be inclined to replace that with a check of $x \mod 2 = 0$. 
