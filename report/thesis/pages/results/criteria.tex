@@ -1,20 +1,17 @@
 \section{Criteria}
 
-With these tests, there are three main variables that will be analyzed.
+With our testing, there are three main variables that will be analyzed.
 
 \begin{enumerate}
-  \item \textbf{Scenario} - These are the different algorithms used to test the optimizations performance. They range from I/O heavy, computationally heavy, and a mix of both.  The goal is to provide three forms for each scenario:
+  \item \textbf{Scenario} - These are the different algorithms used to test the optimizations performance. They range from I/O heavy, computationally heavy, and a mix of both.  Each scenario must provide three forms to be tested:
     \begin{enumerate}
       \item \textbf{Functional} - This is the ideal form for writing and testing the function, but is generally not as efficient as manually converting it to a for loop.
-      \item \textbf{Manual} - This is the manual transformation to a for-loop, should be the theoretical upper bound of efficiency, but may not always hold true given the nature of JavaScript
+      \item \textbf{Manual} - This is the manual transformation to a $for-loop$, should be the theoretical upper bound of efficiency, but may not always hold true given the nature of JavaScript
       \item \textbf{Optimized} - This is the functional form transformed via the optimization process.  
     \end{enumerate}
   The goal here is to provide three views of each scenario, to see what an average user can expect when using this optimization.
-  \item \textbf{Input Size} - This is the input size the final compiled function will process.  This represents whether or not we will be dealing with large streams of data ($> 10$), or very small sets of data ($< 10$) or no data at all (=0).  Each of these scenarios can happen for any given program, but small data sets are more common in UI work (mouse input, keyboard input, retrieving data from a remote endpoint).  Large data sets are more likely to occur on the backend when processing information. This is not hard and fast, but more a factor of how client/server architectures work. 
-  \item \textbf{Iteration Count} - This is the number of times the compiled function is called.  This represents the frequency of invocation, which can be seen as infrequent ($< 10$) or very frequent ($> 10$).  The underlying VM will optimize the code as it detects hotspots, and so the overall cost of execution will modify as processing occurrs.  
+  \item \textbf{Input Size} - This is the input size the final compiled function will process.  This represents whether or not we will be dealing with large streams of data ($> 10$), or very small sets of data ($< 10$) or no data at all ($=0$).  Each of these scenarios can happen for any given program, but small data sets are more common in UI work (mouse input, keyboard input, retrieving data from a remote endpoint).  Large data sets are more likely to occur in a server environment when processing information. This is not hard and fast, but more a factor of how client/server architectures work. 
+  \item \textbf{Iteration Count} - This is the number of times the compiled function is called.  This represents the frequency of invocation, which can be seen as infrequent ($< 10$) or very frequent ($> 10$).  The underlying VM will optimize the code as it detects hot spots, and so the overall cost of execution will modify as processing occurs.  
 \end{enumerate}
 
-The end result will be measured as \textbf{Processing Time}. This is the number of nanoseconds it takes to process one unit of input.  Given a scenario, input size and iteration count, we will see how the different algorithms perform.   The times will be determined using not the wall clock values, but high resolution timers provided by the v8 engine.  This is fairly accurate but is still affected by garbage-collection, and so there are outliers that do show up.  Additionally, to handle some of these outliers we focus on the median, as well as the weighted of average of the central 80\% of the data (dropping the top and bottom 10\%).
-
-
-
+The end result will be measured as \textbf{Processing Time}. This is the number of nanoseconds it takes to process one unit of input.  Given a scenario, input size and iteration count, we will see how the different algorithms perform.   The times will be determined using not the wall clock values, but a high resolution timer provided by the v8 engine.  This is fairly accurate but is still affected by garbage-collection, and so there are outliers that do show up. To handle some of these outliers we focus on the median, as well as the weighted of average of the central 80\% of the data (dropping the top and bottom 10\%).

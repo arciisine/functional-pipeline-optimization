@@ -6,7 +6,7 @@ SCENARIO_ROOT="$ROOT/$SCENARIO_PATH"
 GRAPH_ROOT="$SCENARIO_ROOT/$GRAPHS"
 TEMP_ROOT="dist/$GRAPHS"
 
-SIZES="1..100000..5000x10 10x1..100000..5000 1..100000..5000x100 100x1..100000..5000"
+SIZES="1..100000..5000x2 2x1..100000..5000  1..100000..5000x10 10x1..100000..5000 100x1..100000..5000 1..100000..5000x100"
 SCENARIOS="md5 sort-score-sum std-dev text-analysis"
 
 function generate-scenario() {
@@ -21,9 +21,7 @@ function generate-scenario() {
     cp $TEMP_ROOT/$TEMP_KEY.pdf $GRAPH_ROOT/$GRAPH_KEY.pdf
   fi
 
-  echo "\begin{figure}[htbp]" >> $TEX
-  echo "\includegraphics{$SCENARIO_PATH/$GRAPHS/$GRAPH_KEY.pdf}" >> $TEX
-  echo "\end{figure}" >> $TEX 
+  echo "\includegraphics[scale=.65]{$SCENARIO_PATH/$GRAPHS/$GRAPH_KEY.pdf}" >> $TEX
 }
 
 function generate-all-scenarios() {
@@ -40,7 +38,8 @@ function generate-all-scenarios() {
       echo "GENERATING: $NAME $SIZE"
       generate-scenario $SCENARIO_TEX $NAME $SIZE
     done
-    echo '\input{'$SCENARIO_PATH/$NAME.tex'}' >> $INDEX_TEX  
+    echo '\input{'$SCENARIO_PATH/$NAME.tex'}' >> $INDEX_TEX
+    echo '\newline' >> $INDEX_TEX  
     echo '\input{'$SCENARIO_PATH/$NAME.graphs.tex'}' >> $INDEX_TEX
     echo '\newpage' >> $INDEX_TEX
   done
