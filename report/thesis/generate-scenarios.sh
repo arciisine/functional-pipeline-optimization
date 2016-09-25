@@ -34,6 +34,7 @@ function generate-all-scenarios() {
   
   for NAME in $SCENARIOS; do
     SCENARIO_TEX=$SCENARIO_ROOT/$NAME.graphs.tex
+    echo -n "\noindent " > $SCENARIO_TEX
     for SIZE in $SIZES; do
       echo "GENERATING: $NAME $SIZE"
       generate-scenario $SCENARIO_TEX $NAME $SIZE
