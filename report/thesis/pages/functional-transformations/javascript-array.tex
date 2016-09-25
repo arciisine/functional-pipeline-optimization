@@ -3,13 +3,13 @@
 An implementation of this concept of functional sequences can be found in how JavaScript models arrays.  The array class implements a super-set of the following functionality:
 
 \begin{enumerate}
-  \item $forEach(operation)$.  $operation$ represents a generic function whose return value is ignored.  This method will invoke $operation$ on every element of the array.
+  \item $forEach(operation)$.  $operation$ represents a generic function whose return value is ignored.  This method will invoke $operation$ on every element of the array \cite{TODO}.
 
-  \item $map(transform)$.  $transform$ represents a mapping of the array contents.  This method will create a new array of identical size to the input, but with every element mapped through the $transform$ function.
+  \item $map(transform)$.  $transform$ represents a mapping of the array contents.  This method will create a new array of identical size to the input, but with every element mapped through the $transform$ function \cite{TODO}.
 
-  \item $filter(predicate)$.  $predicate$ represents a mapping of the array elements to a boolean value.  This method will return a new array in which every element that has a $predicate$ invocation that returns $true$ will be in the output.
+  \item $filter(predicate)$.  $predicate$ represents a mapping of the array elements to a boolean value.  This method will return a new array in which every element that has a $predicate$ invocation that returns $true$ will be in the output \cite{TODO}.
 
-  \item $reduce(accumulate, initial)$.  $accumulate$ represents a function that receives both $accumulator$ and an array element. Every time $accumulate$ is is invoked with $accumulator$ and an array element, the output of the function is stored as a new value for $accumulate$.  This new value will be used on the next iteration or will be returned if it is the final iteration.
+  \item $reduce(accumulate, initial)$.  $accumulate$ represents a function that receives both $accumulator$ and an array element. Every time $accumulate$ is is invoked with $accumulator$ and an array element, the output of the function is stored as a new value for $accumulate$.  This new value will be used on the next iteration or will be returned if it is the final iteration \cite{TODO}.
 
 \end{enumerate}
 
