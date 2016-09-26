@@ -13,9 +13,9 @@ A simple algorithm can be defined as:
 
 Given the above listing, what you can see is that there is a set of filters, transformations, aggregations that need to be applied in order to produce the desired output.  This results in a sequence of operations that the data will be manipulated through and ultimately produce the correct results.
 
-This sequence creates the flow of operations that every text block, and word will have to go through.  This form has a few benefits, specifically that each step is simple, clear and easy to verify.  Additionally, because of the modularity of the functions, each step is easy to modify.  Any modification will produce a new program with a high certainty of correctness given the isolation of changes \cite{TODO}.
+This sequence creates the flow of operations that every text block, and word will have to go through.  This form has a few benefits, specifically that each step is simple, clear and easy to verify.  Additionally, because of the modularity and isolation of the functions, any modification will have minimal impact to other areas of the code.
 
-Functional isolation and purity ultimately lend themselves to code that is easier to write, easier to maintain, and easier to verify \cite{TODO}.
+Functional isolation and purity ultimately lend themselves to code that is of higher quality \cite{langstudy14}, and by implication easier to maintain, and easier to verify.
 
 \input{pages/functional-transformations/javascript-array.tex}
 \input{pages/functional-transformations/others.tex}
