@@ -12,6 +12,7 @@ report/**/*.graphs.tex
 report/**/*.log
 report/**/*.lof
 report/**/*.lot
+report/**/*.out
 report/**/*.toc
 report/**/*.nlo
 report/**/*.ps

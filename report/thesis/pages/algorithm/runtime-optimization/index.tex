@@ -1,19 +1,19 @@
-\section{Runtime Optimization}
+\section{Runtime Optimization}\label{RuntimeOptimization}
 The runtime optimization focuses on compiling the common paradigm of the array transformation operators, and how those operations define the functionality of their inputs.
 
 At runtime the code will pass through two separate phases:
 
 \begin{enumerate}
-  \item Transformation and Validation
-  \item Compilation
+  \item Transformation and Validation ($\S$\ref{Transformation})
+  \item Compilation ($\S$\ref{Compilation})
 \end{enumerate}
 
 Transformation and validation happens on a per operator basis.  This allows for simple transformations as well as a short circuit on any invalid operator.
 
-Once the entire computation chain has been transformed, the results are merged together into a final compilation process that results in the optimized code as an new function. 
+Once the entire computation chain has been transformed, the results are merged together into a final compilation process that results in the optimized code as a new function. 
 
 \begin{minipage}{\linewidth}
-\lstinputlisting[frame=single, language=JavaScript]{code/simple-functional.js}
+\lstinputlisting[frame=single, caption={Simple Functional Implementation}, label={lst:simplefunctional}, language=JavaScript]{code/simple-functional.js}
 \end{minipage}
 
 \input{pages/algorithm/runtime-optimization/transformation.tex}

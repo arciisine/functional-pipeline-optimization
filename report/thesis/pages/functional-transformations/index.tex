@@ -1,21 +1,14 @@
 \chapter{Functional Transformations}
 
-A simple algorithm can be defined as:
+\begin{minipage}{\linewidth}
+\lstinputlisting[frame=single, caption={Pseudo-code for algorithm}, label={lst:pseudo}, language=JavaScript]{code/sample-pseudo.js}
+\end{minipage} 
 
-\begin{enumerate}
-  \item Receive text as a string
-  \item Split text into a list of words
-  \item Filter out all words that are 3 characters or less
-  \item Transform all remaining items to lower case
-  \item Maintain counter for each word 
-  \item When counter passes threshold, emit value
-\end{enumerate}
+Given the algorithm defined in listing \ref{lst:pseudo}, there are a set of filters, transformations, aggregations that need to be applied in order to produce the desired output.  This results in a sequence of operations that the data will be manipulated through and ultimately produce the correct results.
 
-Given the above listing, what you can see is that there is a set of filters, transformations, aggregations that need to be applied in order to produce the desired output.  This results in a sequence of operations that the data will be manipulated through and ultimately produce the correct results.
+This sequence creates the flow of operations that every word will have to go through.  This form has a few benefits, specifically that each step is simple, clear and easy to verify.  Additionally, because of the modularity and isolation of the functions, any modification will have minimal impact to other areas of the code.
 
-This sequence creates the flow of operations that every text block, and word will have to go through.  This form has a few benefits, specifically that each step is simple, clear and easy to verify.  Additionally, because of the modularity and isolation of the functions, any modification will have minimal impact to other areas of the code.
-
-Functional isolation and purity ultimately lend themselves to code that is of higher quality \cite{langstudy14}, and by implication easier to maintain, and easier to verify.
+Functional isolation and purity ultimately lend themselves to code that is of higher quality \cite{langstudy14}, and by implication easier to maintain, and verify.
 
 \input{pages/functional-transformations/javascript-array.tex}
 %\input{pages/functional-transformations/others.tex}
