@@ -25,7 +25,7 @@ function generate-scenario() {
 
   TITLE=`cat $GRAPH_ROOT/$TEMP_KEY.gplot | grep TITLE | awk -F '#TITLE: ' '{print $2 }'`
 
-  echo '\begin{figure}[!ht]' >> $TEX
+  echo '\noindent\begin{figure}[H]' >> $TEX
   echo "\caption{$TITLE}" >> $TEX
   echo "\includegraphics[scale=1.15]{$SCENARIO_PATH/$GRAPHS/$GRAPH_KEY.pdf}" >> $TEX
   echo "\end{figure}" >> $TEX
@@ -41,7 +41,6 @@ function generate-all-scenarios() {
   
   for NAME in $SCENARIOS; do
     SCENARIO_TEX=$SCENARIO_ROOT/$NAME.graphs.tex
-    echo -n "\noindent " > $SCENARIO_TEX
     for SIZE in $SIZES; do
       echo "GENERATING: $NAME $SIZE"
       generate-scenario $SCENARIO_TEX $NAME $SIZE
@@ -49,7 +48,7 @@ function generate-all-scenarios() {
     echo '\input{'$SCENARIO_PATH/$NAME.tex'}' >> $INDEX_TEX
     echo '\newpage' >> $INDEX_TEX  
     echo '\input{'$SCENARIO_PATH/$NAME.graphs.tex'}' >> $INDEX_TEX
-    echo '\newpage' >> $INDEX_TEX
+    echo '\clearpage' >> $INDEX_TEX
   done
 }
 
