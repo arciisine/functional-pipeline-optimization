@@ -4,7 +4,7 @@ This is a functional implementation of a simple problem from the algorithm puzzl
 In every test, you can see that the optimized form out performs the manual and the nominal functional form.  This is a little surprising given the fact that the generated code is nearly identical (in function and form) to the manual transformation.  Part of what you are seeing here is that the nature of compiling the code at runtime affords some interesting performance boosts for a language like JavaScript. Some of the reasons for increased performance are:
 \begin{enumerate}
   \item \textbf{No enclosing scopes} All variables are passed in directly to the function because the compiled code no longer has access to any closed variables.
-  \item \textbf{Parameter variables}  Within v8, function parameters vs. local parameters seem to have a faster access time.  Google's own closure compiler also utilizes this knowledge and optimizes as many variables as possible to be directly accessed via the function parameters. 
+  \item \textbf{Parameter variables}  Within v8, function parameters versus local parameters seem to have a faster access time.  Google's own closure compiler also utilizes this knowledge and optimizes as many variables as possible to be directly accessed via the function parameters. 
   \item \textbf{"use strict"}.  When compiling the code at runtime, we are able to make stronger assumptions about the code we are generating, and enforce strict mode.     
 \end{enumerate}
 
