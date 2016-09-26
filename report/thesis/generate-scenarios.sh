@@ -28,6 +28,7 @@ function generate-scenario() {
   echo '\noindent\begin{figure}[H]' >> $TEX
   echo "\caption{$TITLE}" >> $TEX
   echo "\includegraphics[scale=1.15]{$SCENARIO_PATH/$GRAPHS/$GRAPH_KEY.pdf}" >> $TEX
+  echo '\label{fig:'${NAME}:${SIZE}'}' >> $TEX
   echo "\end{figure}" >> $TEX
 }
 

@@ -1,8 +1,8 @@
 \subsection{md5}
 The md5 algorithm is a hashing algorithm that generates a 32-bit signature for any input of bytes. This algorithm is computationally heavy.
 
-What you can see from the results below, is that the optimization was unable to out perform the manual form.  As with most computationally heavy utility function, manual optimization is more likely to out perform and be worth the cost of manual optimization.  
+What you can see from the results in figure \ref{fig:md5:1..100000..5000x100}, is that the optimization was unable to out perform the manual form.  As with most computationally heavy utility functions, manual optimization is more likely to out perform and be worth the cost of manual optimization.  
 
-What you can also see, is that from the functional form to the optimized functional from, there is a pretty dramatic increase in performance.  We are generally looking at a 10x speedup between the optimized and non-optimized algorithm, and about a 3x speedup between the optimized and manual implementations.  
+What is also clear, is that from the functional form to the optimized functional form, there is a dramatic increase in performance.  What we see is about a 10x speedup between the optimized and non-optimized algorithm, and about a 3x speedup between the optimized and manual implementations.  
 
-As this is generally a cost-benefits trade-off between code quality and performance, the optimized functional form may still be valid in many cases.
+As with many optimizations, the utility comes down to a cost-benefits trade-off between code quality and performance, the optimized functional form may still be valid in many cases.
