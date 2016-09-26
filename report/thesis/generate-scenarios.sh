@@ -16,12 +16,19 @@ function generate-scenario() {
   TEMP_KEY="${NAME}_${SIZE}"
   GRAPH_KEY=`echo $TEMP_KEY | sed -e 's|\.\.|__|g'`
 
-  if [[ ! -e "$GRAPH_ROOT/$GRAPH_KEY.pdf" ]]; then
+  if [[ ! -e "$GRAPH_ROOT/$GRAPH_KEY.pdf" || -n "$FORCE" ]]; then
     npm -s run eval:gnuplot impl.evaluate.loader $NAME $SIZE
-    cp $TEMP_ROOT/$TEMP_KEY.pdf $GRAPH_ROOT/$GRAPH_KEY.pdf
   fi
 
-  echo "\includegraphics[scale=.65]{$SCENARIO_PATH/$GRAPHS/$GRAPH_KEY.pdf}" >> $TEX
+  cp $TEMP_ROOT/$TEMP_KEY.{dat,gplot} $GRAPH_ROOT/
+  cp $TEMP_ROOT/$TEMP_KEY.pdf $GRAPH_ROOT/$GRAPH_KEY.pdf
+
+  TITLE=`cat $GRAPH_ROOT/$TEMP_KEY.gplot | grep TITLE | awk -F '#TITLE: ' '{print $2 }'`
+
+  echo '\begin{figure}[!ht]' >> $TEX
+  echo "\caption{$TITLE}" >> $TEX
+  echo "\includegraphics[scale=1.15]{$SCENARIO_PATH/$GRAPHS/$GRAPH_KEY.pdf}" >> $TEX
+  echo "\end{figure}" >> $TEX
 }
 
 function generate-all-scenarios() {

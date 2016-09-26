@@ -23,7 +23,8 @@ set term postscript eps enhanced color dashed lw 1 'Helvetica' 14
 set output '|ps2pdf -dEPSCrop - %(OUTPUT_FOLDER)s/%(name)s.pdf'
 plot"""
 
-GNUPLOT_2D_LINES="""set title "{/*1.2 %(test)s}\\n{/*0.8 %(xl)s vs %(yl)s with %(with_stmt)s }"
+GNUPLOT_2D_LINES="""#TITLE: %(test)s: %(xl)s vs %(yl)s with %(with_stmt)s
+#set title "{/*1.2 %(test)s}\\n{/*0.8 %(xl)s vs %(yl)s with %(with_stmt)s }"
 set xlabel '%(xl)s'
 set ylabel '%(yl)s'
 set autoscale x
@@ -33,7 +34,8 @@ set yrange [%(ymin)s:%(ymax)s]
 
 GNUPLOT_2D_DATA="'%s' using %%(xi)s:%%(yi)s with lines title '%s'"
 
-GNUPLOT_3D_POINTS="""set title "{/*1.2 %(test)s}\\n{/*0.8  %(xl)s vs %(yl)s vs %(zl)s }"
+GNUPLOT_3D_POINTS="""#TITLE: %(test)s:  %(xl)s vs %(yl)s vs %(zl)s
+#set title "{/*1.2 %(test)s}\\n{/*0.8  %(xl)s vs %(yl)s vs %(zl)s }"
 set xlabel '%(xl)s'
 set ylabel '%(yl)s'
 set autoscale 
@@ -121,19 +123,29 @@ def gnuplot_3d(name, rows, headers, xl, yl, zl, xi, yi, zi):
     test = '%s %s' %(og_test, k)
     plot(name, GNUPLOT_3D_POINTS + GNUPLOT_COMMON + (GNUPLOT_3D_DATA.replace('%', '%%').replace('%%s', '%s')%f), locals())
 
-def generate_charts(*args):
+def generate_data(datafile, args):
   data = run('%s %s'%(TEST_COMMAND, ' '.join(args)), log=False)
+
+  with open(datafile, 'w') as f:
+    f.write(data)
+
+def generate_charts(*args):
+
+  name = '_'.join(args[1:]).replace(',','+')
+  datafile = '%s/%s.dat'%(OUTPUT_FOLDER,name)
+
+  if os.getenv('REGEN', False) or not os.path.isfile(datafile):
+    generate_data(datafile, args)
+  else:
+    print 'Skipping generation, data exists'
+  
+  data = open(datafile, 'r').read().decode('utf8')
   (rows, headers) = parseCsvData(data)
 
   input_sizes = map(lambda a: int(a[INPUT]), rows)
   input_constant = reduce(lambda same, a: same and a == input_sizes[0], input_sizes, True)
   iterations = map(lambda a: int(a[ITERS]), rows)
   iter_constant = reduce(lambda same, a: same and a == iterations[0], iterations, True)
-
-  name = '_'.join(args[1:]).replace(',','+')
-
-  with open('%s/%s.dat'%(OUTPUT_FOLDER,name), 'w') as f:
-    f.write(data)
 
   #iterations is x axis 
   if input_constant:
