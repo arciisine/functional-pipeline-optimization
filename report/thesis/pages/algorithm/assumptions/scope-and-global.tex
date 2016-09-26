@@ -2,6 +2,6 @@
 
 Closed variables play a unique role in JavaScript as the scoping rules are very flexible.  Global variables, for instance, are essentially closed variables, originating at the highest scope.  Additionally any scope between the current operation and the global scope, can shadow a variable declaration.  These means that any static analysis may prove to be incorrect at runtime.  
 
-In JavaScript it is a common pattern of adding additional functionality to core types by appending to their class structure or even replacing it wholesale.  Given that this can easily introduce unforseen bugs, the ECMAScript committee strongly recommends against this. \cite{prototypeext2016}
+In JavaScript it is a common pattern of adding additional functionality to core types by appending to their class structure or even replacing it wholesale.  Given that this can easily introduce unforseen bugs, the ECMAScript committee strongly recommends against this. \cite{prototypeext16}
 
-In addition to shadowing, as with many other languages, property accesses $a.b$ may actually be backed by a function invocation \cite{getter2016}.  When retrieving $b$ from the object $a$ a function may be invoked that could modify closed variables or alter global state.  
+In addition to shadowing, as with many other languages, property accesses $a.b$ may actually be backed by a function invocation \cite{getter16}.  When retrieving $b$ from the object $a$ a function may be invoked that could modify closed variables or alter global state.  
