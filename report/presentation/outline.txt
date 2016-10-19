@@ -1,0 +1,89 @@
+The Concept of A Functional Pipeline
+  - Benefits
+    - Clearly delineated stages
+    - Easy to test/verify
+    - Composable Flows
+  - Drawbacks
+    - Memory Allocation
+    - Function Invocation
+    - Order of Operations (cannot access any values until the final pass)
+  - Importance
+
+How We Compensate
+  - Manual Translation
+  - Streams
+    - Reactive Extensions 
+    - Generators
+
+Proposed Solution  
+  - Map
+  - Filter
+  - Reduce
+  - For Each
+  - Slice
+  - Write Dependences
+
+JavaScript
+  - Functional
+  - Dynamic
+  - Eval
+  - Type System
+  - ES 2015 and Beyond
+
+Solution Overview
+  - Identify
+  - Transform
+  - Runtime Compilation
+  - Aim not for perfection but what a programmer would have done manually 
+
+Identify Potential Targets
+  - Array methods
+  - Limitations
+    - Closed Variables
+      - Writing
+      - Reading
+    - Dynamic Parameters
+    - Knowledge of Array Bounds
+  - Challenges
+    - Monkey Patching
+    - Variable redefinition
+    - Getters can modify
+    - Object getters/setters
+    - Proxies
+    
+Transform Potential Targets
+  - Prepare for potential optimization
+  - Data Points Collected
+  - Performance Impact of Transformation Form
+    - Object allocations
+    - Cost of interrogation
+  
+Runtime Evaluation
+  - Check Type at Runtime
+    - Risks  
+  - Fallback to implied functionality if not valid
+
+Runtime Compilation  
+  - Analyze Functions
+  - Attempt to compile into for loop 
+    - If unable, fail and fallback to standard usage
+  - Handling of dynamic Parameters
+    - Manually invoke function
+    - Still benefit from not allocating memory
+
+Results
+  - Test Bed
+    - Measurements
+  - General Results
+    - Overall Performance
+  - Limitations
+    - Array Size
+    - Overhead
+    - I/O Bound
+  - Unexpected Results
+    - Engine Optimizations
+      - Closure removal
+      - Method Parameters
+
+Future Work
+  - 
