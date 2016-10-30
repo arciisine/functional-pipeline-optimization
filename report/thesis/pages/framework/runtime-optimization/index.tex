@@ -1,5 +1,5 @@
 \section{Runtime Optimization}\label{RuntimeOptimization}
-The runtime optimization focuses on compiling the common paradigm of the functional pipeline stages, and how those operations define the functionality of their inputs.
+The runtime optimization focuses on compiling the common paradigm of the functional pipeline operators, and how the relationship between the operator and its inputs.
 
 At runtime the code will pass through two separate phases:
 
@@ -8,7 +8,7 @@ At runtime the code will pass through two separate phases:
   \item Compilation (\secref{Compilation})
 \end{enumerate}
 
-Transformation and validation happens on a per functional pipeline stage basis.  This allows for simple transformations as well as a short circuit on any invalid functional pipeline stage.
+Transformation and validation happens on a per functional pipeline operator basis.  This allows for simple transformations as well as a short circuit on any invalid functional pipeline operator.
 
 Once the entire functional pipeline has been transformed, the results are merged together into a final compilation process that results in the optimized code as a new function. 
 
