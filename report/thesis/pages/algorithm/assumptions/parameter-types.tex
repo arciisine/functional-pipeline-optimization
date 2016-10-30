@@ -1,9 +1,9 @@
 \subsection{Parameter Types}
-When dealing with any operator inputs that we wish to optimize, all the parameters will generally fall into one of three main categories:
+When dealing with any functional pipeline stage inputs that we wish to optimize, all the inputs will generally fall into one of three main categories:
 
 \begin{enumerate}
   \item \textbf{Literals}
-    This can be numeric, string, function literals, but the important fact is that they are defined in the scope of the chain.  Additionally, function literals have the added benefit of being able to read/write closed variables.
+    This can be numeric, string, function literals, but the important fact is that they are defined in the scope of the functional pipeline.  Additionally, function literals have the added benefit of being able to read/write closed variables.
 
   \item \textbf{Static reference}
     This will generally be constants, static methods, etc that are defined outside of your source file (or specifically the scope of the candidate optimization).  These inputs will be assumed to be static with reality that this assumption maybe wrong.  The risk of assuming incorrectly is real, but this is the same risk a programmer would face when manually converting the functional form to the procedural form.  

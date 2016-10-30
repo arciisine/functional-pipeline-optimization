@@ -1,11 +1,11 @@
 \subsection{Invocation Form}
-The next step is to process the candidate optimization into the final invocation form.  This massages the call chain into a final form that allows for maximal performance at runtime by minimizing any runtime overhead.  The overhead for execution of the optimized form, assuming chain target is an array, will have significant performance impact smaller arrays, and needs to be mitigated as much as possible.  For the transformation to be generally useful it needs to perform well on arrays of size $0$ as well as arrays of size $100000$.  
+The next step is to process the candidate optimization into the final invocation form.  This massages the functional pipeline into a final form that allows for maximal performance at runtime by minimizing any runtime overhead.  The overhead for execution of the optimized form, assuming functional pipeline target is an array, will have significant performance impact smaller arrays, and needs to be mitigated as much as possible.  For the transformation to be generally useful it needs to perform well on arrays of size $0$ as well as arrays of size $100000$.  
 
 \begin{minipage}{\linewidth}
 \lstinputlisting[frame=single, caption={Simple Functional, Final Form}, label={lst:simplefunctionalfinal}, language=js]{code/simple-functional-final.js}
 \end{minipage}
 
-Given the goal of minimizing the final form's computation, the chain is restructured into predetermined arrays that can be handed piecemeal to the runtime optimizer without the need for any memory allocations, string concatenations or function invocations.
+Given the goal of minimizing the final form's computation, the functional pipeline is restructured into predetermined arrays that can be handed piecemeal to the runtime optimizer without the need for any memory allocations, string concatenations or function invocations.
 
 When invoking an optimized code path, the only data that is needed is the \inlinecode{target}, \inlinecode{context}, \inlinecode{closed} and \inlinecode{closure assignment}.  These variables are utilized by the optimized code path in the expressed form. 
 
@@ -15,7 +15,7 @@ The final form also needs to accommodate when the \inlinecode{target} is not an 
 \lstinputlisting[frame=single, caption={Manual invocation}, label={lst:manualinvocation}, language=js]{code/manual-invocation.js}
 \end{minipage}
 
-In the code listing \ref{lst:manualinvocation}, each chain operation is invoked as a member of the chain target (with the appropriate input), and that is stored as the new chain target.  This is functionally equivalent, and should perform comparably to the original form. 
+In the code listing \ref{lst:manualinvocation}, each pipeline stage is invoked as a member of the pipeline target (with the appropriate input), and that is stored as the new pipeline target for the next pipeline stage.  This is functionally equivalent, and should perform comparably to the original form. 
 
 \input{pages/algorithm/source-code-analysis/closure-analysis.tex}
 \input{pages/algorithm/source-code-analysis/parameters.tex}
