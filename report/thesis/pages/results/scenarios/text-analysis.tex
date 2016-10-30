@@ -1,6 +1,10 @@
 \subsection{Text Analysis}
-This algorithm is doing frequency analysis on a large body of text.  The cost of loading the text and splitting into separate words is negated, and the primary operations of this algorithm are basic comparison and object assignment. 
+This algorithm is doing frequency analysis on a large body of text.  The cost of loading the text and splitting into separate words is not counted.  The primary operations of this algorithm are basic comparison and object assignment. 
 
-The results of this scenario highlight the performance characteristics between input size and iterations.  It is easy to see how the input size affects the general efficiency of the system vs the number of times something is run, and the general overhead of executing the code.
+Out of all scenarios, this one shows the most mixed results, but is also more representative of normal business logic, specifically the act of reading and writing to objects, and text processing.
 
-The input size as it passes between $10$ and $100$, leads to the optimized code outperforming the manual form. 
+Looking at figures \ref{fig:text-analysis:1..100000..5000x2} and \ref{fig:text-analysis:2x1..100000..5000} that deal with small input size (2) or a small number of iterations (2), there is no clear winner (as opposed to the other scenarios).  There are points (especially with lower input size or iteration count) in which the manual form is outperformed by functional form, and the optimized form is randomly outperformed by both the manual and functional form throughout.  This test highlights the cost of memory reading/writing and the variability it brings.
+
+Once we get past the smaller input size/iteration count, a pattern establishes itself.  Figures \ref{fig:text-analysis:1..100000..5000x10}, \ref{fig:text-analysis:100x1..100000..5000}, and \ref{fig:text-analysis:1..100000..5000x100} show the optimized form generally outperforming the manual and functional forms.  This lines up with other scenarios but not in all cases. 
+
+Figure \ref{fig:text-analysis:100x1..100000..5000} shows the manual form consistently outperforming the optimized form. This uniquely highlights that there will be usage patterns that will benefit from the optimized form, but additional performance can be gotten from manual optimization. 
