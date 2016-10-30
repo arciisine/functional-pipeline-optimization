@@ -10,7 +10,7 @@ When dealing with any operator inputs that we wish to optimize, all the paramete
     
     At runtime, function references will be interrogated to see if they are able to be inlined or if they fall into the simplistic case.  Any function reference that has closed variables cannot be inlined, as we do not have access to the closure to allow reading and writing.  This can only be tested at runtime, and so this is by far the most complex parameter type.  
     
-    Note: If we were developing the implementation inside of the JavaScript engine itself, it may be possible to optimize static references as well, since the closures may be known at that point.
+    Note: If we were developing the implementation inside of the \javascript engine itself, it may be possible to optimize static references as well, since the closures may be known at that point.
 
   \item \textbf{Dynamic reference}
     This will be function parameters in scope of the candidate optimization. These are assumed to be dynamic by design and will not be trusted with any level of certainty.  This does not disqualify a candidate optimization, but it does mean that we will not be able to inline the code without the potential cost of recompiling the code on every invocation.

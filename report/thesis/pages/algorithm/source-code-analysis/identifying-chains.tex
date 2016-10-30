@@ -1,9 +1,9 @@
 \subsection{Identifying Chains}
 
-As noted before, method chaining is a common paradigm in JavaScript for composing functional traversals over a sequence of elements.  The final composed entity is identified as a call chain, and that is what we are looking for when optimizing.  Essentially, we are looking for a specific call expression, that has an array as the call target. \\
+As noted before, method chaining is a common paradigm in \javascript for composing functional traversals over a sequence of elements.  The final composed entity is identified as a call chain, and that is what we are looking for when optimizing.  Essentially, we are looking for a specific call expression, that has an array as the call target. \\
 
 \begin{minipage}{\linewidth}
-\lstinputlisting[frame=single, label={lst:simplefunctional}, caption={Simple Functional Example}, language=JavaScript]{code/simple-functional.js}
+\lstinputlisting[frame=single, label={lst:simplefunctional}, caption={Simple Functional Example}, language=js]{code/simple-functional.js}
 \end{minipage}
 
 In listing \ref{lst:simplefunctional}, the \inlinecode{map} call expression on line 4 is the the beginning of our chain, and the chain terminates on line 11 with a \inlinecode{map} call expression.  It is easy to recognize this visually, but the source code analysis can only be so certain.  In general, it finds a potential call expression, which is defined as a call expression in which the chained operator is a well known identifier (e.g. \inlinecode{map}, \inlinecode{filter}, \inlinecode{reduce}, etc.). Once the base of the call chain is determined, the code will follow the chain until there are no further call expressions or an incompatible call expression is found (e.g. \inlinecode{sort}, \inlinecode{reverse}, etc.)

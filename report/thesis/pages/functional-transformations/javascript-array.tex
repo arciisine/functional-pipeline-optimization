@@ -1,6 +1,6 @@
-\section{Case Study: JavaScript Array}
+\section{Case Study: \javascript Array}
 
-An implementation of this concept of functional sequences can be found in how JavaScript models arrays.  The array class implements a super-set of the following functionality:
+An implementation of this concept of functional sequences can be found in how \javascript models arrays.  The array class implements a super-set of the following functionality:
 
 \begin{enumerate}
   \item \inlinecode{forEach(operation)}.  \inlinecode{operation} represents a generic function whose return value is ignored.  This method will invoke \inlinecode{operation} on every element of the array \cite{arrayforeach16}.
@@ -16,11 +16,11 @@ An implementation of this concept of functional sequences can be found in how Ja
 Since \inlinecode{map} and \inlinecode{filter} both return arrays, this gives way to method chaining. Method chaining is a design pattern in which an operation on an object returns itself or an instance of the same type as the object. Visually, this produces a strong representation, as seen in listing \ref{lst:functional}, of the pseudo code.
 
 \begin{minipage}{\linewidth}
-\lstinputlisting[frame=single, caption={Functional implementation of findCommonWords}, label={lst:functional}, language=JavaScript]{code/sample-functional.js}
+\lstinputlisting[frame=single, caption={Functional implementation of findCommonWords}, label={lst:functional}, language=js]{code/sample-functional.js}
 \end{minipage} 
 
 \begin{minipage}{\linewidth}
-\lstinputlisting[frame=single, caption={Functional implementation of findCommonWords with declared operators}, label={lst:functional-declared}, language=JavaScript]{code/sample-functional-declared.js}
+\lstinputlisting[frame=single, caption={Functional implementation of findCommonWords with declared operators}, label={lst:functional-declared}, language=js]{code/sample-functional-declared.js}
 \end{minipage}
 
 An even clearer version of this code could be derived by declaring all the operators.  As shown in listing  \ref{lst:functional-declared}, this final form even allows for predicates/transformations to be used between multiple functional sequences.  This leads to higher quality of code by decreasing the testing surface, and preventing code duplication. 
