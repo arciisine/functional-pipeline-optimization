@@ -24,6 +24,7 @@ function generate-scenario() {
   cp $TEMP_ROOT/$TEMP_KEY.pdf $GRAPH_ROOT/$GRAPH_KEY.pdf
 
   TITLE=`cat $GRAPH_ROOT/$TEMP_KEY.gplot | grep TITLE | awk -F '#TITLE: ' '{print $2 }'`
+  TITLE=`echo $TITLE | sed -e 's/md5/\\mdfive/g'`
 
   echo '\noindent\begin{figure}[H]' >> $TEX
   echo "\caption{$TITLE}" >> $TEX

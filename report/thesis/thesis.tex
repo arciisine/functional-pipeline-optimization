@@ -18,6 +18,7 @@
 \usepackage{tikz}
 \usepackage{pgf}
 \usepackage{float}
+\usepackage{xspace}
 \usepackage[backend=biber,sortcites]{biblatex}
 
 \addbibresource{references.bib}
@@ -34,9 +35,9 @@
 
 \newcommand{\inlinecode}[1]{\mbox{\colorbox{lightlightgray}{\texttt{#1}}}}
 \newcommand{\secref}[1]{$\S$\ref{#1}}
-\newcommand{\javascript}{JavaScript}
-\newcommand{\veight}{V8}
-\newcommand{\md5}{MD5}
+\newcommand{\javascript}{JavaScript\xspace}
+\newcommand{\veight}{V8\xspace}
+\newcommand{\mdfive}{MD5\xspace}
 
 \lstdefinelanguage{js}{
   keywords={typeof, new, let, const, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
@@ -54,7 +55,7 @@
 }
 
 \lstset{
-   language=JavaScript,
+   language=js,
    backgroundcolor=\color{lightgray},
    extendedchars=true,
    basicstyle=\footnotesize\ttfamily,
