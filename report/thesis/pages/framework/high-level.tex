@@ -1,5 +1,5 @@
 \section{High Level}
-The analysis framework attempts to mimic the assumptions and behavior of programmers when converting functional pipeline operators (\inlinecode{map}, \inlinecode{reduce}, \inlinecode{filter}, etc.) into \inlinecode{for} loop semantics. 
+The analysis framework attempts to mimic the assumptions and behavior of programmers when converting \pipelineoperators (\inlinecode{map}, \inlinecode{reduce}, \inlinecode{filter}, etc.) into \inlinecode{for} loop semantics. 
 
 When we deal with the common cases and patterns, the algorithm is simple.  The true complexity arises in ensuring all places where this could be used do not violate correctness. There are many cases that are accounted for, but write-dependence is the only major caveat as discussed later.
 

@@ -3,7 +3,8 @@
 The \javascript analysis framework works in the following phases.  
 \begin{enumerate}
   \item \textbf{Identify} The first phase identifies and transforms potential optimization sites at a source code level.  This process happens by parsing   the \javascript and analyzing the resultant abstract syntax tree.  We look for patterns that identify potential \pipelines.  Since \javascript is dynamic we cannot guarantee that the functional pipeline is actually running on a list.
-  \item \textbf{Prepare} Once we identify a potential \pipeline
+  \item \textbf{Prepare} Once we identify a potential \pipeline, we rewrite the potential \pipeline into a form that allows for runtime analysis.  This gives us the ability to efficiently interrogate the data at runtime, to verify that we do have an actual \pipeline.
+  \item \textbf{Evaluate} At runtime, we will verify that the input is indeed a list, and also verify that the \pipelineoperators
 \end{enumerate}
    
   \item 
