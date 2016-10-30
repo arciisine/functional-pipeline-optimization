@@ -1,12 +1,12 @@
 function simple(specialFilter) {
   this.limit = 4;
   let count = 0;
-  [1,2,3] //chain target
-    .map(x => x * 2)  //chain start
+  [1, 2, 3] //pipeline target
+    .map(x => x * 2)  //pipeline start
     .filter(x => x > this.limit)
-    .map((x,i) => {
+    .map((x, i) => {
       count++;
-      return Math.pow(x, i+1)
+      return Math.pow(x, i + 1)
     })
-    .filter(specialFilter) //chain end
+    .filter(specialFilter) //pipeline end
 }

@@ -1,1 +1,14 @@
 \section{Results}
+To validate the findings, we've established four scenarios to test the performance impact of the implementation of our analysis framework. The scenarios we test are:
+\begin{enumerate}
+  \item \textbf{\mdfive} - An implementation of the \mdfive\cite{mdfive92} algorithm in \javascript.
+  \item \textbf{Sort Score Sum} - A simple algorithm that is an implementation of a Project Euler question \cite{euler05}.
+  \item \textbf{Std Dev} - An implementation of the standard deviation calculation.
+  \item \textbf{Text Analysis} - An algorithm that performs word frequency on a large body of text   
+\end{enumerate}
+
+We test each scenario by running through three different versions of each scenario: functional form, manual form, and optimized form.  The functional form and optimized form have identical source code, except for a flag in the optimized form to enable the optimization code.  The manual form is a hand coded transformation of the algorithm to provide a theoretical upper bound for performance.
+
+In general the results are extremely promising (figures \ref{fig:md5:1..100000..5000x100}, \ref{fig:sort-score-sum:100x1..100000..5000}, \ref{fig:std-dev:1..100000..5000x100}, \ref{fig:text-analysis:1..100000..5000x100}). The pattern we seen is that the optimized form actually out performs the manual form when the number of iterations is higher, and that is consistently out performs the functional form in nearly all cases.
+
+This gives way to providing a simple optimization that can be enable for free and provides a fairly dramatic performance improvement without losing any of the benefits of the clarity of the functional form. 

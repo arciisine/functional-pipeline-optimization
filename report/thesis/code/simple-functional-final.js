@@ -5,18 +5,18 @@ function simple(specialFilter) {
   var __thisId = this;
 
   EXEC(
-    [1,2,3]/* target*/,
+    [1, 2, 3]/* target*/,
     '__key_RANDOM_UUID', /* callsite id */,
     __operators__UUID,
-    [ /* Chain inputs */
-      [function __uuid1(x) { return  x * 2 }],
+    [ /* Pipeline inputs */
+      [function __uuid1(x) { return x * 2 }],
       [function __uuid2(x) { return x > __thisId.limit }]
-      [function __uuid3(x,i) {
+      [function __uuid3(x, i) {
         count += 1
-        return Math.pow(x, i+1)
+        return Math.pow(x, i + 1)
       }],
       [specialFilter]
-    ], 
+    ],
     [__thisId, count], /* List of all closed variables */
     (__randomId) => { count = __randomId } /* Closure reassignment*/
   )
