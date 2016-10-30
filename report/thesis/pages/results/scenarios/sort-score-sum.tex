@@ -1,4 +1,4 @@
-\subsection{Sort Score Sum}
+\subsection{Sort Score Sum}\label{Sort Score Sum}
 This is a functional implementation of a simple problem from the algorithm puzzle website Project Euler.  The nature of the problem is a combination of I/O operations and simple computation resulting in a single number to represent the data set. \cite{euler05}
 
 In every test (figure \ref{fig:sort-score-sum:1..100000..5000x2}, \ref{fig:sort-score-sum:2x1..100000..5000}, \ref{fig:sort-score-sum:1..100000..5000x10}, \ref{fig:sort-score-sum:10x1..100000..5000}, \ref{fig:sort-score-sum:100x1..100000..5000}, \ref{fig:sort-score-sum:1..100000..5000x100}), the optimized form out performs the manual and the nominal functional form (on average).  This is a little surprising given the fact that the generated code is nearly identical (in function and form) to the manual transformation.  Part of what is happening,  is that the nature of compiling the code at runtime affords some interesting performance boosts for a language like \javascript. Some of the reasons for increased performance are:
