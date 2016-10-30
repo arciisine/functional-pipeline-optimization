@@ -15,7 +15,7 @@ How We Compensate
     - Reactive Extensions 
     - Generators
 
-Proposed Solution  
+Manual Transformations  
   - Map
   - Filter
   - Reduce

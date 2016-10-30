@@ -6,7 +6,7 @@ With our testing, there are three main variables that will be analyzed.
   \item \textbf{Scenario} - These are the different algorithms used to test the optimizations performance. They range from I/O heavy, computationally heavy, and a mix of both.  Each scenario must provide three forms to be tested:
     \begin{enumerate}
       \item \textbf{Functional} - This is the ideal form for writing and testing the function, but is generally not as efficient as manually converting it to a for loop.
-      \item \textbf{Manual} - This is the manual transformation to a $for-loop$, should be the theoretical upper bound of efficiency, but may not always hold true given the nature of JavaScript
+      \item \textbf{Manual} - This is the manual transformation to a \inlinecode{for} loop, should be the theoretical upper bound of efficiency, but may not always hold true given the nature of JavaScript
       \item \textbf{Optimized} - This is the functional form transformed via the optimization process.  
     \end{enumerate}
   The goal here is to provide three views of each scenario, to see what an average user can expect when using this optimization.

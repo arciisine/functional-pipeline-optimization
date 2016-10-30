@@ -4,4 +4,4 @@ Closed variables play a unique role in JavaScript as the scoping rules are very 
 
 In JavaScript it is a common pattern of adding supplemental functionality to core types by appending to their class structure or even replacing it wholesale.  Given that this can easily introduce unforseen bugs, the ECMAScript committee strongly recommends against this. \cite{prototypeext16}
 
-In addition to shadowing, as with many other languages, property accesses $a.b$ may actually be backed by a function invocation \cite{getter16}.  When retrieving $b$ from the object $a$ a function may be invoked that could modify closed variables or alter global state.  
+In addition to shadowing, as with many other languages, property accesses \inlinecode{a.b} may actually be backed by a function invocation \cite{getter16}.  When retrieving \inlinecode{b} from the object \inlinecode{a} a function may be invoked that could modify closed variables or alter global state.  

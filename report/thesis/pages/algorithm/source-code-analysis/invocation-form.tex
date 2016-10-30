@@ -7,9 +7,9 @@ The next step is to process the candidate optimization into the final invocation
 
 Given the goal of minimizing the final form's computation, the chain is restructured into predetermined arrays that can be handed piecemeal to the runtime optimizer without the need for any memory allocations, string concatenations or function invocations.
 
-When invoking an optimized code path, the only data that is needed is the $target$, $context$, $closed$ and $closure assignment$.  These variables are utilized by the optimized code path in the expressed form. 
+When invoking an optimized code path, the only data that is needed is the \inlinecode{target}, \inlinecode{context}, \inlinecode{closed} and \inlinecode{closure assignment}.  These variables are utilized by the optimized code path in the expressed form. 
 
-The final form also needs to accommodate when the $target$ is not an array, and needs to be invoked in a manner equivalent to the original form.  \\
+The final form also needs to accommodate when the \inlinecode{target} is not an array, and needs to be invoked in a manner equivalent to the original form.  \\
 
 \begin{minipage}{\linewidth}
 \lstinputlisting[frame=single, caption={Manual invocation}, label={lst:manualinvocation}, language=JavaScript]{code/manual-invocation.js}

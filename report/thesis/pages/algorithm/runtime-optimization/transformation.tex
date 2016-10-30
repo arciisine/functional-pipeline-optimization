@@ -1,11 +1,11 @@
 \subsection{Transformation}\label{Transformation}
 
-The transformation process only deals with a single operator at a time.  Given something as simple as $filter(x => x > 2)$, this could be translated into $if (x <= 2) continue$ assuming the code is running a $for-loop$.
+The transformation process only deals with a single operator at a time.  Given something as simple as \inlinecode{filter(x => x > 2)}, this could be translated into \inlinecode{if (x <= 2) continue} assuming the code is running a \inlinecode{for} loop.
 
 The goal of the transformation process is do five things:
 \begin{enumerate}
   \item \textbf{Verify reference (non-literal) functions are valid}
-    The main verification is determining whether or not the function is not expecting access to the intermediate arrays that we are optimizing away.  $map$, $reduce$, $filter$, $forEach$, $some$, $find$, etc.  all have an optional last argument that provides read only access to the intermediate array.  Since we are skipping creating the intermediate array intentionally, any use of this special form requires that we invalidate the entire chain. Theoretically we could generate partial chains around the offending element, but that would require moving even more of the source code analysis process into the compilation process.  Building an intermediate array is not acceptable as we are modifying the order of operations.  The intermediate array is meant to represent the entire array at the point in time before the current traversal started.  
+    The main verification is determining whether or not the function is not expecting access to the intermediate arrays that we are optimizing away.  \inlinecode{map}, \inlinecode{reduce}, \inlinecode{filter}, \inlinecode{forEach}, \inlinecode{some}, \inlinecode{find}, etc.  all have an optional last argument that provides read only access to the intermediate array.  Since we are skipping creating the intermediate array intentionally, any use of this special form requires that we invalidate the entire chain. Theoretically we could generate partial chains around the offending element, but that would require moving even more of the source code analysis process into the compilation process.  Building an intermediate array is not acceptable as we are modifying the order of operations.  The intermediate array is meant to represent the entire array at the point in time before the current traversal started.  
 
     This points to a larger issue, in which any reference is made to the intermediate array (or it's size), generally disqualifies a chain from optimization.
   
@@ -14,7 +14,7 @@ The goal of the transformation process is do five things:
   \item \textbf{Determine if a function has need of a positional counter}
     From this point, we inspect the function parameters and look to see if it has a parameter for the index.  If it does not, we skip initializing and incrementing the position for the specific transformation.  If we cannot read the function (e.g. it is a native function) or if it does reference the position parameter, then we will initialize and increment counter.
   \item \textbf{Generate the partial AST}
-    Once all the above is done we generate one of two ASTs. Given a filter predicate of $isEven$ we can generate an inline call $if (!(x \mod 2 == 0)) continue$ or we will generate an invocation call $if (!isEven.call(context, x)) continue$.  Both are superior to creating and freeing intermediate arrays, but the inline call still offers maximal performance.
+    Once all the above is done we generate one of two ASTs. Given a filter predicate of \inlinecode{isEven} we can generate an inline call \inlinecode{if (!(x \% 2 == 0)) continue} or we will generate an invocation call \inlinecode{if (!isEven.call(context, x)) continue}.  Both are superior to creating and freeing intermediate arrays, but the inline call still offers maximal performance.
   \item \textbf{Rewrite Local Variables and Parameters}
-    Once the AST is provided, we rewrite all function parameters and references to $this$ to allow for multiple operations to reside within the same $for-loop$.  This means that any variables of the same name, from separate operators, would collide and produce incorrect code.  
+    Once the AST is provided, we rewrite all function parameters and references to \inlinecode{this} to allow for multiple operations to reside within the same \inlinecode{for} loop.  This means that any variables of the same name, from separate operators, would collide and produce incorrect code.  
 \end{enumerate}
