@@ -10,9 +10,6 @@
 
 * Determine comprehensive baseline
     * CSV generator ?
-* Write Thesis
-    * Research related material
-    * Add references
 
 **Coding Tasks**
 
