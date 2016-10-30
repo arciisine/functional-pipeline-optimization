@@ -1,11 +1,14 @@
 \subsection{Sort Score Sum}
 This is a functional implementation of a simple problem from the algorithm puzzle website Project Euler.  The nature of the problem is a combination of I/O operations and simple computation resulting in a single number to represent the data set. \cite{euler05}
 
-In every test (figure \ref{fig:sort-score-sum:1..100000..5000x2}, \ref{fig:sort-score-sum:2x1..100000..5000}, \ref{fig:sort-score-sum:1..100000..5000x10}, \ref{fig:sort-score-sum:10x1..100000..5000}, \ref{fig:sort-score-sum:100x1..100000..5000}, \ref{fig:sort-score-sum:1..100000..5000x100}), the optimized form out performs the manual and the nominal functional form.  This is a little surprising given the fact that the generated code is nearly identical (in function and form) to the manual transformation.  Part of what is happening,  is that the nature of compiling the code at runtime affords some interesting performance boosts for a language like \javascript. Some of the reasons for increased performance are:
+In every test (figure \ref{fig:sort-score-sum:1..100000..5000x2}, \ref{fig:sort-score-sum:2x1..100000..5000}, \ref{fig:sort-score-sum:1..100000..5000x10}, \ref{fig:sort-score-sum:10x1..100000..5000}, \ref{fig:sort-score-sum:100x1..100000..5000}, \ref{fig:sort-score-sum:1..100000..5000x100}), the optimized form out performs the manual and the nominal functional form (on average).  This is a little surprising given the fact that the generated code is nearly identical (in function and form) to the manual transformation.  Part of what is happening,  is that the nature of compiling the code at runtime affords some interesting performance boosts for a language like \javascript. Some of the reasons for increased performance are:
 \begin{enumerate}
   \item \textbf{No enclosing scopes} All variables are passed in directly to the function because the compiled code no longer has access to any closed variables.
   \item \textbf{Parameter variables}  Within \veight, function parameters versus local parameters seem to have a faster access time.  Google's own closure compiler also utilizes this knowledge and optimizes as many variables as possible to be directly accessed via the function parameters. 
   \item \textbf{"use strict"}.  When compiling the code at runtime, we are able to make stronger assumptions about the code we are generating, and enforce strict mode.     
 \end{enumerate}
 
+Looking at figures \ref{fig:sort-score-sum:1..100000..5000x2}, \ref{fig:sort-score-sum:10x1..100000..5000}, \ref{fig:sort-score-sum:1..100000..5000x100} you can also see that the input size is $1$ or the number of iterations is $1$, that the performance cannot be guaranteed to outperform the manual transformation.  This points back to the runtime startup cost of running the compiled code is higher than just running the manual form directly. 
+
 These rules may not apply to other languages if this was to be ported from \javascript to target a different language.
+
