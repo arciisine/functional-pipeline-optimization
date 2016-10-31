@@ -41,6 +41,6 @@ Since \inlinecode{map} and \inlinecode{filter} both return arrays, this gives wa
 \end{minipage} 
 
 \subsection{Performance Compensation}
-A common optimization that is encouraged, throughout many programming languages, is to manually convert the functional traversal into a more traditional \inlinecode{for} loop \cite{iterperf09} \cite{iterperf10} \cite{iterperf11}.  This involves manually projecting the functional operator composition (and the companion functions) into standard procedural code.  While increasing performance and decreasing memory usage, the overall cost is tied to code maintainability and quality \cite{langstudy14}.  
+A common optimization that is encouraged, throughout many programming languages, is to manually convert the functional traversal into a more traditional \inlinecode{for} loop \cite{iterperf09} \cite{iterperf10} \cite{iterperf11}.  This involves manually projecting the \pipelineoperators (and the companion functions) into standard procedural code.  While increasing performance and decreasing memory usage, the overall cost is tied to code maintainability and quality \cite{langstudy14}.  
 
 The main trade-off of manual operation is pitting the programmer's desire for clean, testable code against the processor's need for tight loops and having as much of the code to be executed in a single function.  
