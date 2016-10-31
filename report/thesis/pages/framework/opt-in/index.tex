@@ -1,0 +1,2 @@
+\section{Opt-in Optimizations}
+All of the optimizations that occur are opt-in only.  This is managed by the use of a \javascript pragma directive, e.g.: ``use optimize'' or ``disable optimize''.  This allows for optimization to be enabled or disabled at any scope (module, function, etc) and to subsequently disable optimizations in nested scope.  The idea being here, that an programmer could add ``use optimize'' at the beginning of an area of code that could benefit from performance gains.  This allows for fine grained control of the usage, and to opt-in only by request.
