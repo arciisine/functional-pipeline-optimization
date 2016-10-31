@@ -34,7 +34,7 @@ An implementation of this concept of \pipelines can be found in how \javascript 
 
 \end{enumerate}
 
-Since \inlinecode{map} and \inlinecode{filter} both return arrays, this gives way to method chaining. Method chaining is a design pattern in which an operation on an object returns itself or an instance of the same type as the object. Visually, this produces a strong representation, as seen in listing \ref{lst:functional}, of the pseudo code.
+Since \inlinecode{map} and \inlinecode{filter} both return arrays, this gives way to method chaining. Method chaining is a design pattern in which an operation on an object returns itself or an instance of the same type as the object. This is the clearest way to create a \pipeline in \javascript. An example of this form can be found in listing \ref{lst:functional}.
 
 \begin{minipage}{\linewidth}
 \lstinputlisting[frame=single, caption={Functional implementation of findCommonWords}, label={lst:functional}, language=js]{code/sample-functional.js}
