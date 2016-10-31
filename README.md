@@ -1,3 +1,6 @@
+Functional Pipeline Optimization
+===========================
+
 **Running**
 
 * Install NodeJS v 6.0.0 or later
