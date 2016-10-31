@@ -33,6 +33,11 @@
 \definecolor{purple}{rgb}{0.65, 0.12, 0.82}
 \definecolor{lightlightgray}{rgb}{.95,.95,.95}
 
+\toks0\expandafter{\biburlsetup}
+\edef\biburlsetup{\the\toks0 \Urlmuskip =0mu\relax}
+\setcounter{biburllcpenalty}{7000}
+\setcounter{biburlucpenalty}{8000}
+
 \newcommand{\inlinecode}[1]{\mbox{\colorbox{lightlightgray}{\texttt{#1}}}}
 \newcommand{\secref}[1]{$\S$\ref{#1}}
 \newcommand{\javascript}{JavaScript\xspace}
@@ -103,5 +108,9 @@
 
 \begin{document}
 \input{pages/index.tex}
-\printbibliography
+\begingroup
+  \raggedright
+  \sloppy
+  \printbibliography
+\endgroup
 \end{document}
