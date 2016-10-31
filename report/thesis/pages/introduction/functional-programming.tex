@@ -2,7 +2,7 @@
 Functional programming, and by implication functional isolation and purity lend themselves to code that is of higher quality \cite{langstudy14}, and by implication easier to maintain, and verify. Unfortunately the functional isolation generally results in poorer resource utilization by the computer. The increased resource cost versus code quality is usually an acceptable cost.
 
 \subsection{Functional Pipelines}
-It is a common practice, in functional programming, to handle processing of (looping) sequences by function invocation/recursion \cite{recurse16}.  Composing processing operators produces a \pipeline in which a list is transformed.  
+It is a common practice, in functional programming, to handle processing of (looping) sequences by function invocation/recursion \cite{recurse16}.  Composing processing operators produces a \pipeline in which a list is transformed.  This abstraction comes with the cost of invoking a function per each element of the list and that is multiplied by number of operators in the pipeline. In addition to the cost of function invocation, there is also significant memory usage for any operator that returns a lists that are not the final values. The intermediate lists are temporary and are used for passing inputs between operators (e.g. \inlinecode{map(filter(x, ...)...)}).
 
 \begin{minipage}{\linewidth}
 \lstinputlisting[frame=single, caption={Pseudo-code for algorithm}, label={lst:pseudo}, language=js]{code/sample-pseudo.js}
@@ -12,12 +12,12 @@ Given the algorithm defined in listing \ref{lst:pseudo}, there are a set of filt
 
 \begin{enumerate} 
   \item The operator's agreed upon meaning.  
-  \item The operator's use of its inputsinputs
+  \item The operator's use of its inputs.
 \end{enumerate}
 
 For example, \inlinecode{map} defines an operator that requires its inputs are a list, and a function that can transform every element of the list.  Once \inlinecode{map} is invoked with its inputs, it produces a new list with every element replaced with the transformation applied. All the operators have clear inputs and outputs per the \javascript specification. 
 
-This abstraction comes with the cost of invoking a function per each element of the list and that is multiplied by number of operators in the pipeline. In addition to the cost of function invocation, there is also significant memory usage for \inlinecode{filter} and \inlinecode{map} operators as they produce an intermediate list (in addition to the original) to be used as input between operators (e.g. \inlinecode{map(filter(x, ...)...)}).  
+  
 
 \subsection{Functional Pipeline Operators: \javascript}
 
