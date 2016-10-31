@@ -1,6 +1,6 @@
-\section{Analysis Framework}
+\section{Algorithm}
 
-The \javascript analysis framework works in the following phases.  
+The \javascript \algorithm works in the following phases.  
 \begin{enumerate}
   \item \textbf{Source Code Analysis} - The first phase identifies and transforms potential optimization sites at a source code level. This process happens by parsing   the \javascript and analyzing the resultant abstract syntax tree.  We look for patterns that identify potential \pipelines.  Since \javascript is dynamic we cannot guarantee that the functional pipeline is actually running on a list.
   Once we identify a potential \pipeline, we rewrite the potential \pipeline into a form that allows for runtime analysis.  This gives us the ability to efficiently interrogate the data at runtime, to verify that we do have an actual \pipeline.  We also analyze the \pipelineoperator inputs to determine if they are defined within the file, if they are passed in as parameters or if they imported as this distinction has an impact on how the operator is transformed at runtime.  We also identify which inline functions read/write closed variables (as these are the only closures we can support since we have access to the enclosing scope).
