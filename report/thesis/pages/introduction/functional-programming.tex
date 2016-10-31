@@ -1,10 +1,37 @@
 \section{Functional Programming and Pipelines}
-Functional programming is a paradigm that increases code maintainability and testability, but generally results in poorer resource utilization by the computer.  The increased resource cost versus code quality is usually an acceptable cost. However, code that is executed many times over, would benefit from optimization as the cost of the introduced abstractions are amplified. Specifically \pipelines (map, reduce, filter, etc.) are extremely sensitive to this overhead as the functional overhead is paid for each element in the list. In this paper we provide a framework for we provide a \javascript analysis framework that transforms \pipelines (e.g. \inlinecode{arr.map(x => x * 2).filter(x => x > 2)}) into \inlinecode{for} loops by combining source-level analysis and runtime evaluation to construct and compile optimized code at runtime.  This framework allows us to dynamically translate common \pipelines into a form that is optimized for computer execution, without modifying the original source code. This hybrid ultimately provides the best of both worlds, allowing the human to write and manage code in a manner that is familiar and more understandable, and for the final output to be in a form that executes with higher efficiency.
+Functional programming, and by implication functional isolation and purity lend themselves to code that is of higher quality \cite{langstudy14}, and by implication easier to maintain, and verify. Unfortunately the functional isolation generally results in poorer resource utilization by the computer. The increased resource cost versus code quality is usually an acceptable cost. However, code that is executed many times over, would benefit from optimization as the cost of the introduced abstractions are amplified. Specifically \pipelines (identified by use of \inlinecode{map}, \inlinecode{reduce}, \inlinecode{filter}, etc.) are extremely sensitive to this overhead as the functional overhead is paid for each element in the list.
 
 \subsection{Functional Pipelines}
-It is a common practice, in functional programming, to handle traversing (looping) sequences by function invocation/recursion \cite{recurse16}.  Of the operators we are dealing with (\inlinecode{map}, \inlinecode{filter}, \inlinecode{reduce}), all can be written in terms of \inlinecode{reduce}, which is definable by recursion. Sequence traversal is treated as a single operator (\inlinecode{map}, \inlinecode{filter}, \inlinecode{reduce}) with a function that operates on a single sequence element. These functions have clear inputs and outputs per the \javascript specification.  Via functional composition (or method chaining), multiple operators are composed together to represent more complex traversals.  This abstraction comes with the cost of invoking a function per each element of the sequence and that is multiplied by number of operators that have been composed. In addition to the cost of function invocation, there is also significant memory usage for \inlinecode{filter} and \inlinecode{map} operations as each traversal will need to create an intermediate sequence (in addition to the original) to be used as input between operators (e.g. \inlinecode{map(filter(x, ...)...)}).  
+It is a common practice, in functional programming, to handle processing of (looping) sequences by function invocation/recursion \cite{recurse16}.  Composing processing operators produces a \pipeline in which a list is transformed.  
 
-\subsection{Functional Pipeline Operators}
+\begin{minipage}{\linewidth}
+\lstinputlisting[frame=single, caption={Pseudo-code for algorithm}, label={lst:pseudo}, language=js]{code/sample-pseudo.js}
+\end{minipage} 
+
+Given the algorithm defined in listing \ref{lst:pseudo}, there are a set of filters, transformations, aggregations that need to be applied in order to produce the desired output.  Each \pipelineoperator (\inlinecode{map}, \inlinecode{reduce}, (\inlinecode{filter}, etc.) is comprised by two components.  The operator's agreed upon meaning, and how the operator uses its inputs. For example, \inlinecode{map} defines a requirement that the inputs are a list, and a function that can transform every element of the list.  Once \inlinecode{map} is applied, it produces a new list with every element replaced with the transformation applied. All the operators have clear inputs and outputs per the \javascript specification.  Via functional composition (or method chaining), multiple operators are composed together to represent \pipelines.  
+
+This abstraction comes with the cost of invoking a function per each element of the list and that is multiplied by number of operators in the pipeline. In addition to the cost of function invocation, there is also significant memory usage for \inlinecode{filter} and \inlinecode{map} operators as they produce an intermediate list (in addition to the original) to be used as input between operators (e.g. \inlinecode{map(filter(x, ...)...)}).  
+
+\subsection{Functional Pipeline Operators: \javascript}
+
+An implementation of this concept of \pipelines can be found in how \javascript models arrays.  The array class implements a super-set of the following functionality:
+
+\begin{enumerate}
+  \item \inlinecode{forEach(operation)}.  \inlinecode{operation} represents a generic function whose return value is ignored.  This method will invoke \inlinecode{operation} on every element of the array \cite{arrayforeach16}.
+
+  \item \inlinecode{map(transform)}.  \inlinecode{transform} represents a mapping of the array contents.  This method will create a new array of identical size to the input, but with every element mapped through the \inlinecode{transform} function \cite{arraymap16}.
+
+  \item \inlinecode{filter(predicate)}.  \inlinecode{predicate} represents a mapping of the array elements to a boolean value.  This method will return a new array in which every element that has a \inlinecode{predicate} invocation that returns \inlinecode{true} will be in the output \cite{arrayfilter16}.
+
+  \item \inlinecode{reduce(accumulate, initial)}.  \inlinecode{accumulate} represents a function that receives both \inlinecode{accumulator} and an array element. Every time \inlinecode{accumulate} is invoked with \inlinecode{accumulator} and an array element, the output of the function is stored as a new value for \inlinecode{accumulate}.  This new value will be used on the next iteration or will be returned if it is the final iteration \cite{arrayreduce16}.
+
+\end{enumerate}
+
+Since \inlinecode{map} and \inlinecode{filter} both return arrays, this gives way to method chaining. Method chaining is a design pattern in which an operation on an object returns itself or an instance of the same type as the object. Visually, this produces a strong representation, as seen in listing \ref{lst:functional}, of the pseudo code.
+
+\begin{minipage}{\linewidth}
+\lstinputlisting[frame=single, caption={Functional implementation of findCommonWords}, label={lst:functional}, language=js]{code/sample-functional.js}
+\end{minipage} 
 
 \subsection{Performance Compensation}
 A common optimization that is encouraged, throughout many programming languages, is to manually convert the functional traversal into a more traditional \inlinecode{for} loop \cite{iterperf09} \cite{iterperf10} \cite{iterperf11}.  This involves manually projecting the functional operator composition (and the companion functions) into standard procedural code.  While increasing performance and decreasing memory usage, the overall cost is tied to code maintainability and quality \cite{langstudy14}.  
