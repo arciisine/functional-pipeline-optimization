@@ -1,7 +1,7 @@
 import { AST, Macro as m, ParseUtil, Visitor } from '@arcsine/ecma-ast-transform/src';
-import { Transformable, TransformResponse, BaseTransformable} from '../../core';
+import { Transformable, TransformResponse, BaseTransformable } from '../../core';
 import { Analysis, FunctionAnalyzer } from '../../core/analyze';
-import { RewriteContext, VariableStack, RewriteUtil, VariableNodeHandler }  from '../../core/analyze/variable';
+import { RewriteContext, VariableStack, RewriteUtil, VariableNodeHandler } from '../../core/analyze/variable';
 import { TransformState, VariableState } from './types';
 
 interface ConstantParam {
@@ -15,11 +15,11 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   private static cache = {};
   private static id = 0;
   public static DEFAULT_MAPPING = {
-    callback : 0,
-    context : 1
+    callback: 0,
+    context: 1
   };
 
-  static getArrayFunction<V extends BaseArrayTransformable<any, any, any, any>>(inst:any) {
+  static getArrayFunction<V extends BaseArrayTransformable<any, any, any, any>>(inst: any) {
     let key = inst.constructor.name
     if (!BaseArrayTransformable.cache[key]) {
       let fn = key.split('Transform')[0];
@@ -29,75 +29,80 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     return BaseArrayTransformable.cache[key];
   }
 
-  public manual:W;
+  public manual: W;
   public position = -1;
   public posId = m.Id('idx', true);
-  private analysis:Analysis|null = null
+  public blockId: AST.Identifier;
+  private analysis: Analysis | null = null
 
   constructor(
-    inputs:any[], 
-    inputMapping:{[key:string]:number} = BaseArrayTransformable.DEFAULT_MAPPING, 
-    private reassignableParams:{[key:number]:boolean} = {}
+    inputs: any[],
+    inputMapping: { [key: string]: number } = BaseArrayTransformable.DEFAULT_MAPPING,
+    private reassignableParams: { [key: number]: boolean } = {}
   ) {
     super(inputs, inputMapping);
   }
 
-  abstract onReturn(state:TransformState, node:AST.ReturnStatement):AST.Node;
+  abstract onReturn(state: TransformState, node: AST.ReturnStatement): AST.Node;
 
-  getContinue(state:TransformState):AST.ContinueStatement {
+  getContinue(state: TransformState): AST.ContinueStatement {
     return m.Continue(state.continueLabel);
   }
 
-  getInput(key:'context'):any
-  getInput(key:'callback'):V
-  getInput(key:string) {
+  getInput(key: 'context'): any
+  getInput(key: 'callback'): V
+  getInput(key: string) {
     return this.inputs[this.inputMapping[key]];
   }
 
-  getParams(state:TransformState):AST.Identifier[] {
+  getParams(state: TransformState): AST.Identifier[] {
     return [state.elementId];
+  }
+
+  accountForBlockId(node: AST.Node): AST.Node {
+    return this.blockId ? m.Block(node, AST.BreakStatement({ label: this.blockId })) : node;
   }
 
   /**
    * When we cannot inline, we just call the function directly
    */
-  buildFunctionCallResult(state:TransformState, out:TransformResponse, params:AST.Identifier[]):void {
+  buildFunctionCallResult(state: TransformState, out: TransformResponse, params: AST.Identifier[]): void {
     let stepContextId = m.Id();
     let stepCallbackId = m.Id()
 
     out.vars.push(
-      stepContextId, this.getContextValue(state, 'context'), 
-      stepCallbackId, this.getContextValue(state, 'callback'), 
+      stepContextId, this.getContextValue(state, 'context'),
+      stepCallbackId, this.getContextValue(state, 'callback'),
     )
 
-    out.body.push(
-      this.onReturn(state, 
-        m.Return(m.Call(m.GetProperty(stepCallbackId, 'call'), stepContextId, ...params))
-      )
+    let ret = this.onReturn(state,
+      m.Return(m.Call(m.GetProperty(stepCallbackId, 'call'), stepContextId, ...params))
     );
+
+    out.body.push(ret);
   }
 
-  rewriteConstantParams(state:TransformState, out:TransformResponse, params:AST.Identifier[], fn:AST.FunctionExpression) {
+  rewriteConstantParams(state: TransformState, out: TransformResponse, params: AST.Identifier[], fn: AST.FunctionExpression) {
     //Check for rewriting constant params
     let temp = {};
-    let constantParams:{[key:string]: ConstantParam} = params
-      .map((id, i) => ({ i, id, origId : fn.params[i] }))
+    let constantParams: { [key: string]: ConstantParam } = params
+      .map((id, i) => ({ i, id, origId: fn.params[i] }))
       .filter(x => !this.reassignableParams[x.i])
       .reduce((acc, x) => (acc[(x.origId as AST.Identifier).name] = x) && acc, {});
 
     Visitor.exec(new VariableNodeHandler({
-      Function : node => Visitor.PREVENT_DESCENT,
-      Write : id => {
+      Function: node => Visitor.PREVENT_DESCENT,
+      Write: id => {
         if (constantParams[id.name]) {
           let conf = constantParams[id.name];
           let finalId = conf.id;
-          
+
           if (finalId === this.posId) {
-            temp['indexId'] =  conf;
+            temp['indexId'] = conf;
           } else if (finalId === state.elementId) {
             temp['elementId'] = conf;
           }
-        } 
+        }
       }
     }), fn);
 
@@ -106,7 +111,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
       .forEach(k => {
         let conf = temp[k];
         if (!state.tempIds[k]) {
-          state.tempIds[k] = m.Id('temp'+k, true);
+          state.tempIds[k] = m.Id('temp' + k, true);
           out.vars.push(state.tempIds[k], null);
         }
         out.body.unshift(m.Assign(state.tempIds[k], conf.id));
@@ -117,7 +122,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
   /**
    * Inline the function
    */
-  buildInlineResult(state:TransformState, out:TransformResponse, params:AST.Identifier[], fn:AST.FunctionExpression):void {
+  buildInlineResult(state: TransformState, out: TransformResponse, params: AST.Identifier[], fn: AST.FunctionExpression): void {
     let stack = new VariableStack<RewriteContext>();
 
     this.rewriteConstantParams(state, out, params, fn);
@@ -133,28 +138,51 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     let res = RewriteUtil.rewriteVariables(stack, fn, params);
     out.vars.push(...res.vars);
     out.body.unshift(...res.body);
-    
+
+    let returnCount = 0;
+
+    if (!AST.isReturnStatement(fn.body.body[fn.body.body.length])) {
+      fn.body.body.push(AST.ReturnStatement({}));
+    }
+
+    Visitor.exec({
+      Function: (x: AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
+      ReturnStatementEnd: (x: AST.ReturnStatement) => { returnCount++; return x; }
+    }, fn);
+
+    if (returnCount > 1) {
+      this.blockId = m.Id();
+    }
+
     //Handle returns
     Visitor.exec({
-      Function : (x:AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
-      ReturnStatementEnd : (x:AST.ReturnStatement) => this.onReturn(state, x)
-    }, fn)
+      Function: (x: AST.BaseFunction) => x !== fn ? Visitor.PREVENT_DESCENT : null,
+      ReturnStatementEnd: (x: AST.ReturnStatement) => this.onReturn(state, x)
+    }, fn);
 
-    out.body.push(...fn.body.body);
+    let nodes = fn.body.body;
+    if (this.blockId) {
+      nodes = [AST.BlockStatement({
+        label: this.blockId,
+        body: nodes
+      } as any)]
+    }
+
+    out.body.push(...nodes);
   }
 
-  transform(state:TransformState):TransformResponse  {
-    let fn:AST.FunctionExpression|null = null;
+  transform(state: TransformState): TransformResponse {
+    let fn: AST.FunctionExpression | null = null;
     let input = this.getInput('callback');
-    let params = this.getParams(state);    
-    let res:TransformResponse = {vars:[], body:[], after:[]};
+    let params = this.getParams(state);
+    let res: TransformResponse = { vars: [], body: [], after: [] };
     let variableState = state.operations[this.position][1];
     let hasSource = !ParseUtil.isNative(input) && variableState !== VariableState.dynamic
     let isInlinable = variableState === VariableState.inline;
-    let hasIndex = true    
-    let analysis:Analysis|null = null;
+    let hasIndex = true
+    let analysis: Analysis | null = null;
 
-    if (hasSource) { 
+    if (hasSource) {
       let node = ParseUtil.parse(input) as AST.Node;
 
       if (AST.isExpressionStatement(node)) {
@@ -168,13 +196,13 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
         hasIndex = fn.params.length === params.length + 1; //If using index;
 
         //Assumes native functions will not access the array, can be wrong
-        let hasArray = fn.params.length === params.length + 2;   
+        let hasArray = fn.params.length === params.length + 2;
 
         if (hasArray) { //If using array notation
-          throw { message : "Array references are not supported", invalid : true };
+          throw { message: "Array references are not supported", invalid: true };
         }
       } else {
-        throw { message : `Invalid type: ${node.type}`, invalid : true };
+        throw { message: `Invalid type: ${node.type}`, invalid: true };
       }
     }
 
@@ -185,7 +213,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
       res.vars.push(posId, m.Literal(0))
       params.push(posId)
     }
-    
+
     //If can be inlined
     if (isInlinable && fn) {
       this.buildInlineResult(state, res, params, fn);
@@ -193,7 +221,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
         state.analysis.merge(analysis);
       }
     } else {
-      this.buildFunctionCallResult(state, res, params); 
+      this.buildFunctionCallResult(state, res, params);
     }
 
     if (hasIndex) {
@@ -203,10 +231,10 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     return res;
   }
 
-  manualTransform(data:T[]):U {
+  manualTransform(data: T[]): U {
     if (!this.manual) {
       this.manual = BaseArrayTransformable.getArrayFunction(this);
     }
-    return this.manual.apply(data, this.inputs) as U; 
+    return this.manual.apply(data, this.inputs) as U;
   }
 }

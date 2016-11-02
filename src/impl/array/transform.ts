@@ -5,141 +5,142 @@ import { TransformState, Callback, Handler } from './types';
 
 export class SliceTransform<T> extends BaseTransformable<T[], T[]>  {
 
-  constructor(inputs?:[number, number]) {
-    super(inputs || [], { start : 0, end : 1})
+  constructor(inputs?: [number, number]) {
+    super(inputs || [], { start: 0, end: 1 })
   }
 
-  transform(state:TransformState):TransformResponse {
+  transform(state: TransformState): TransformResponse {
     let counter = m.Id();
     let start = m.Id();
     let end = m.Id();
     let incr = m.Expr(m.Increment(counter));
-    let check:AST.Expression = 
+    let check: AST.Expression =
       AST.BinaryExpression({
-        left:counter, 
-        operator:'<', 
+        left: counter,
+        operator: '<',
         right: start
       })
-      
+
     if (this.inputs[1] !== undefined) {
       check = AST.LogicalExpression({
-        left : check,
-        operator : '||',
-        right : AST.BinaryExpression({
-          left:counter, 
-          operator:'>=', 
+        left: check,
+        operator: '||',
+        right: AST.BinaryExpression({
+          left: counter,
+          operator: '>=',
           right: end
         })
       });
     }
     return {
-      vars : [
-        counter, m.Literal(-1), 
-        start, this.getContextValue(state, 'start'), 
+      vars: [
+        counter, m.Literal(-1),
+        start, this.getContextValue(state, 'start'),
         end, this.getContextValue(state, 'end')],
-      body : [
+      body: [
         incr, m.IfThen(check, [m.Continue(state.continueLabel)])
       ],
-      after : []
+      after: []
     }
   }
 
-  manualTransform(data:T[]):T[] {
+  manualTransform(data: T[]): T[] {
     return data.slice(this.inputs[0], this.inputs[1]);
   }
 }
 
 export class JoinTransform<T> extends BaseTransformable<T[], string>  {
 
-  constructor(inputs:[string]) {
-    super(inputs, { separator : 0 })
+  constructor(inputs: [string]) {
+    super(inputs, { separator: 0 })
   }
 
-  transform(state:TransformState):TransformResponse {
+  transform(state: TransformState): TransformResponse {
     let res = state.returnValueId;
     let sepId = m.Id();
-    
+
     return {
-      vars : [
+      vars: [
         state.returnValueId, m.Literal(''),
-        sepId,  this.getContextValue(state, 'separator')
+        sepId, this.getContextValue(state, 'separator')
       ],
-      body : [
+      body: [
         m.Expr(m.Assign(
-          res, 
-          m.BinaryExpr(res, '+', 
+          res,
+          m.BinaryExpr(res, '+',
             m.BinaryExpr(state.elementId, '+', sepId))))
       ],
-      after : [
+      after: [
         m.IfThen(sepId, [
-          m.Expr(m.Assign(res, 
+          m.Expr(m.Assign(res,
             m.Call(
-              m.GetProperty(res, 'substring'), 
-              m.Literal(0), 
+              m.GetProperty(res, 'substring'),
+              m.Literal(0),
               m.BinaryExpr(
-                m.GetProperty(res, 'length'), 
-                '-', 
+                m.GetProperty(res, 'length'),
+                '-',
                 m.GetProperty(sepId, 'length')))))
         ])
       ]
     }
   }
 
-  manualTransform(data:T[]):string {
+  manualTransform(data: T[]): string {
     return data.join(this.inputs[0]);
   }
 }
 
-export class FilterTransform<T> extends 
-  BaseArrayTransformable<T, T[], Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
+export class FilterTransform<T> extends
+  BaseArrayTransformable<T, T[], Callback.Predicate<T>, Handler.Standard<T, T, boolean>>
 {
-  init(state:TransformState) {
+  init(state: TransformState) {
     return m.Array();
   }
 
-  collect(state:TransformState):AST.Node {
+  collect(state: TransformState): AST.Node {
     return m.Expr(m.Call(m.GetProperty(state.returnValueId, 'push'), state.elementId))
   }
 
-  onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
+  onReturn(state: TransformState, node: AST.ReturnStatement): AST.Statement {
     if (!node.argument) {
-      return this.getContinue(state);
+      return this.accountForBlockId(this.getContinue(state));
     } else {
-      return m.IfThen(m.Negate(node.argument), [this.getContinue(state)]);
+      return m.IfThen(m.Negate(node.argument), [this.accountForBlockId(this.getContinue(state))]);
     }
   }
 }
 
-export class MapTransform<T, U> extends 
-  BaseArrayTransformable<T, T[], Callback.Transform<T, U>, Handler.Standard<T, T, U>> 
+export class MapTransform<T, U> extends
+  BaseArrayTransformable<T, T[], Callback.Transform<T, U>, Handler.Standard<T, T, U>>
 {
-  constructor(inputs:any[]) {
-    super(inputs, BaseArrayTransformable.DEFAULT_MAPPING, {0:true});
+  constructor(inputs: any[]) {
+    super(inputs, BaseArrayTransformable.DEFAULT_MAPPING, { 0: true });
   }
 
-  init(state:TransformState) {
+  init(state: TransformState) {
     return m.Array();
   }
 
-  collect(state:TransformState):AST.Node {
+  collect(state: TransformState): AST.Node {
     return m.Expr(m.Call(m.GetProperty(state.returnValueId, 'push'), state.elementId))
   }
 
-  onReturn(state:TransformState, node:AST.ReturnStatement) {
-    return m.Expr(m.Assign(state.elementId, !node.argument ? 
+  onReturn(state: TransformState, node: AST.ReturnStatement) {
+    let expr = m.Expr(m.Assign(state.elementId, !node.argument ?
       m.Literal(undefined) :
       node.argument));
+    return this.accountForBlockId(expr);
   }
 }
 
-export class ForEachTransform<T> extends 
+export class ForEachTransform<T> extends
   BaseArrayTransformable<T, void, Callback.Void<T>, Handler.Standard<T, T, void>>
 {
-  init(state:TransformState) {
+  init(state: TransformState) {
     return m.Literal(null);
   }
 
-  onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
+  onReturn(state: TransformState, node: AST.ReturnStatement): AST.Statement {
     if (!node.argument) {
       return this.getContinue(state);
     } else {
@@ -149,9 +150,9 @@ export class ForEachTransform<T> extends
 }
 
 export class FindTransform<T> extends
-  BaseArrayTransformable<T, T, Callback.Predicate<T>, Handler.Standard<T, T, boolean>> 
+  BaseArrayTransformable<T, T, Callback.Predicate<T>, Handler.Standard<T, T, boolean>>
 {
-  onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
+  onReturn(state: TransformState, node: AST.ReturnStatement): AST.Statement {
     if (!node.argument) {
       return this.getContinue(state);
     } else {
@@ -161,13 +162,13 @@ export class FindTransform<T> extends
 }
 
 export class FindIndexTransform<T> extends
-  BaseArrayTransformable<T, number, Callback.Predicate<T>, Handler.Standard<T, number, boolean>> 
+  BaseArrayTransformable<T, number, Callback.Predicate<T>, Handler.Standard<T, number, boolean>>
 {
-  hasIndex(fn:AST.FunctionExpression, params:AST.Identifier[]):boolean {
+  hasIndex(fn: AST.FunctionExpression, params: AST.Identifier[]): boolean {
     return true;
   }
 
-  onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
+  onReturn(state: TransformState, node: AST.ReturnStatement): AST.Statement {
     if (!node.argument) {
       return this.getContinue(state);
     } else {
@@ -176,31 +177,31 @@ export class FindIndexTransform<T> extends
   }
 }
 
-export class SomeTransform<T> extends 
-  BaseArrayTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>> 
+export class SomeTransform<T> extends
+  BaseArrayTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>>
 {
-  init(state:TransformState):AST.Pattern {
+  init(state: TransformState): AST.Pattern {
     return m.Literal(false);
   }
 
-  onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
+  onReturn(state: TransformState, node: AST.ReturnStatement): AST.Statement {
     if (!node.argument) {
-       return this.getContinue(state);
+      return this.getContinue(state);
     } else {
       return m.IfThen(node.argument, [state.buildReturn(m.Literal(true))]);
     }
   }
 }
 
-export class EveryTransform<T> extends 
-  BaseArrayTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>> 
+export class EveryTransform<T> extends
+  BaseArrayTransformable<T, boolean, Callback.Predicate<T>, Handler.Standard<T, boolean, boolean>>
 {
 
-  init(state:TransformState):AST.Pattern {
+  init(state: TransformState): AST.Pattern {
     return m.Literal(true);
   }
 
-  onReturn(state:TransformState, node:AST.ReturnStatement):AST.Statement {
+  onReturn(state: TransformState, node: AST.ReturnStatement): AST.Statement {
     if (!node.argument) {
       return state.buildReturn(m.Literal(false));
     } else {
@@ -209,43 +210,43 @@ export class EveryTransform<T> extends
   }
 }
 
-export class ReduceTransform<T, U>  extends 
+export class ReduceTransform<T, U> extends
   BaseArrayTransformable<T, U, Callback.Accumulate<T, U>, Handler.Reduce<T, U>>
 {
-  constructor(inputs:[Callback.Accumulate<T, U>, U, any]) {
+  constructor(inputs: [Callback.Accumulate<T, U>, U, any]) {
     super(inputs, {
-      callback  : 0,
-      initValue : 1,
-      context   : 2
-    }, 
-    { 0 : true});
+      callback: 0,
+      initValue: 1,
+      context: 2
+    },
+      { 0: true });
   }
 
-  init(state:TransformState):AST.Pattern {
+  init(state: TransformState): AST.Pattern {
     return this.getContextValue(state, 'initValue');
   }
 
-  getParams(state:TransformState) {
+  getParams(state: TransformState) {
     return [state.returnValueId, state.elementId];
   }
 
-  onReturn(state:TransformState, node:AST.ReturnStatement) {
-    if (!node.argument) {
-      return m.Expr(m.Assign(state.returnValueId, m.Literal(undefined)));
-    } else {
-      return m.Expr(m.Assign(state.returnValueId, node.argument));
-    }
+  onReturn(state: TransformState, node: AST.ReturnStatement) {
+    let expr = !node.argument ?
+      m.Expr(m.Assign(state.returnValueId, m.Literal(undefined))) :
+      m.Expr(m.Assign(state.returnValueId, node.argument));
+
+    return this.accountForBlockId(expr);
   }
 }
 
 export const MAPPING = [
-  FilterTransform, MapTransform, FindTransform, 
+  FilterTransform, MapTransform, FindTransform,
   SomeTransform, ReduceTransform, ForEachTransform,
   SliceTransform, EveryTransform, FindIndexTransform,
   JoinTransform
 ]
-  .map(x => { 
+  .map(x => {
     let name = x.name.split('Transform')[0];
-    return [name.charAt(0).toLowerCase() + name.substring(1), x] as [string, Function]; 
+    return [name.charAt(0).toLowerCase() + name.substring(1), x] as [string, Function];
   })
   .reduce((acc, pair) => (acc[pair[0]] = pair[1]) && acc, {});
