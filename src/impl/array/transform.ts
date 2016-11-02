@@ -103,9 +103,12 @@ export class FilterTransform<T> extends
 
   onReturn(state: TransformState, node: AST.ReturnStatement): AST.Statement {
     if (!node.argument) {
-      return this.accountForBlockId(this.getContinue(state));
+      return this.getContinue(state);
     } else {
-      return m.IfThen(m.Negate(node.argument), [this.accountForBlockId(this.getContinue(state))]);
+      return m.IfThen(m.Negate(node.argument), [this.getContinue(state)],
+        this.blockId ?
+          [this.getBlockSkip()] :
+          []);
     }
   }
 }

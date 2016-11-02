@@ -59,9 +59,14 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     return [state.elementId];
   }
 
-  accountForBlockId(node: AST.Node): AST.Node {
-    return this.blockId ? m.Block(node, AST.BreakStatement({ label: this.blockId })) : node;
+  getBlockSkip(): AST.Node {
+    return AST.BreakStatement({ label: this.blockId });
   }
+
+  accountForBlockId(node: AST.Node): AST.Node {
+    return this.blockId ? m.Block(node, this.getBlockSkip()) : node;
+  }
+
 
   /**
    * When we cannot inline, we just call the function directly
@@ -141,8 +146,10 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
     let returnCount = 0;
 
-    if (!AST.isReturnStatement(fn.body.body[fn.body.body.length])) {
-      fn.body.body.push(AST.ReturnStatement({}));
+
+    let lastBody = fn.body.body[fn.body.body.length - 1];
+    if (!AST.isReturnStatement(lastBody)) {
+      fn.body.body.push(AST.ReturnStatement({ argument: AST.Literal({ value: undefined }) }));
     }
 
     Visitor.exec({
@@ -161,11 +168,9 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
     }, fn);
 
     let nodes = fn.body.body;
+
     if (this.blockId) {
-      nodes = [AST.BlockStatement({
-        label: this.blockId,
-        body: nodes
-      } as any)]
+      nodes = [AST.LabeledStatement({ body: m.Block(...nodes), label: this.blockId })];
     }
 
     out.body.push(...nodes);

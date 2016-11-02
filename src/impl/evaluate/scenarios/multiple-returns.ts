@@ -3,8 +3,9 @@ import { TestUtil } from '../../../core';
 function Manual(a: number[]) {
   let out: any[] = [];
   for (let i = 0; i < a.length; i++) {
-    if (a[i] < 10 || a[i] % 2 == 1) continue;
-    out.push(a[i]);
+    if (a[i] > 10 || a[i] % 2 == 0) {
+      out.push(a[i]);
+    }
   }
   return out;
 }
