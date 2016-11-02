@@ -15,3 +15,5 @@ With our testing, there are three main variables that will be analyzed.
 \end{enumerate}
 
 The end result will be measured as \textbf{Processing Time}. This is the number of nanoseconds (test hardware supports nanonsecond resolution for timer) it takes to process one unit of input.  Given a scenario, input size and iteration count, we will see how the different algorithms perform.  The times will be determined using a high resolution timer provided by the Node.js engine \cite{nodehr16}.  This is fairly, accurate but is affected by garbage-collection, and so there are outliers in the test runs. To handle some of these outliers, we focus on the median, as well as the weighted average. The weighted average is defined as the central 80\% of the data, excluding the top and bottom 10\%.
+
+Additionally, to provide consistent results from run to run, we pre-compile the code.  When running the initial tests, the compilation cost was fairly small, but since each test run is run in the same \veight instance, the caching applies across all test runs and would unfairly burden the initial test.
