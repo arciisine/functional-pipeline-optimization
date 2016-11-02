@@ -5,9 +5,9 @@ import { Compiler, ExecOutput, ExecHandler } from './types';
 import { TransformResponse } from '../transform';
 import { Optimizer } from './optimizer';
 
-const CompileConfig:EscodegenOptions = {
-  indent : false,
-  format : {
+const CompileConfig: EscodegenOptions = {
+  indent: false,
+  format: {
     indent: {
       style: '  ',
       base: 0
@@ -21,28 +21,28 @@ const CompileConfig:EscodegenOptions = {
 };
 
 export class CompilerUtil {
-  static computed:{[key:string]:ExecHandler<any, any>|null} = {};
+  static computed: { [key: string]: ExecHandler<any, any> | null } = {};
 
-  static manual<I, O>(compilable:Compilable<I, O>, data:I):O {
+  static manual<I, O>(compilable: Compilable<I, O>, data: I): O {
     compilable.finalize();
     return compilable.chain.reduce((acc, fn) => fn.manualTransform(acc), data) as any as O;
-  }  
+  }
 
-  static readChain<T, I, O>(compilable:Compilable<I, O>, state:T):TransformResponse {
+  static readChain<T, I, O>(compilable: Compilable<I, O>, state: T): TransformResponse {
     let out = compilable.chain
       .map(t => t.transform(state))
       .reduce((res, e) => {
-        res.body.push(...(e.body||[]));
-        res.vars.push(...(e.vars||[]));
-        res.after.push(...(e.after||[]));
+        res.body.push(...(e.body || []));
+        res.vars.push(...(e.vars || []));
+        res.after.push(...(e.after || []));
         return res;
-      }, {vars:[], body:[], after:[]});
+      }, { vars: [], body: [], after: [] });
     return out;
   }
 
-  static compile<T, I, O>(compiler:Compiler<T>, compilable:Compilable<I, O>, key?:string, extraState?:any):ExecHandler<I,O> {
-    let computed:ExecHandler<I,O>|null = key ? CompilerUtil.computed[key] : null;
-    
+  static compile<T, I, O>(compiler: Compiler<T>, compilable: Compilable<I, O>, key?: string, extraState?: any): ExecHandler<I, O> {
+    let computed: ExecHandler<I, O> | null = key ? CompilerUtil.computed[key] : null;
+
     if (key && computed) {
       return computed;
     }
@@ -57,7 +57,7 @@ export class CompilerUtil {
 
     let src = CompileUtil.compileFunction(ast as any, {}, CompileConfig);
     //src = optimizer(src);    
-    let res = CompileUtil.evaluate<ExecHandler<I,O>>(src);
+    let res = CompileUtil.evaluate<ExecHandler<I, O>>(src);
 
     console.error("COMPILED", res.toString());
 

@@ -149,7 +149,7 @@ export abstract class BaseArrayTransformable<T, U, V extends Function, W extends
 
     let lastBody = fn.body.body[fn.body.body.length - 1];
     if (!AST.isReturnStatement(lastBody)) {
-      fn.body.body.push(AST.ReturnStatement({ argument: AST.Literal({ value: undefined }) }));
+      fn.body.body.push(AST.ReturnStatement({ argument: m.Id('undefined') }));
     }
 
     Visitor.exec({
